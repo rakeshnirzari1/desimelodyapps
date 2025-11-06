@@ -2,8 +2,9 @@ import { RadioStation } from "@/types/station";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Play, ExternalLink, ThumbsUp, TrendingUp } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { generateSlug } from "@/lib/slug";
 
 interface StationCardProps {
   station: RadioStation;
@@ -12,9 +13,11 @@ interface StationCardProps {
 
 export const StationCard = ({ station, onPlay }: StationCardProps) => {
   const [imageError, setImageError] = useState(false);
+  const navigate = useNavigate();
+  const slug = station.slug || generateSlug(station.name);
 
   const handleCardClick = () => {
-    window.location.href = `/station/${station.id}`;
+    navigate(`/${slug}`);
   };
 
   return (
@@ -38,7 +41,7 @@ export const StationCard = ({ station, onPlay }: StationCardProps) => {
 
       <div className="p-4 space-y-3">
         <div>
-          <Link to={`/station/${station.id}`}>
+          <Link to={`/${slug}`}>
             <h3 className="font-semibold text-lg line-clamp-1 hover:text-primary transition-colors">
               {station.name}
             </h3>
@@ -67,7 +70,7 @@ export const StationCard = ({ station, onPlay }: StationCardProps) => {
 
         <div className="flex gap-2">
           <Button
-            onClick={() => onPlay(station)}
+            onClick={(e) => { e.stopPropagation(); onPlay(station); }}
             className="flex-1"
             size="sm"
           >
@@ -80,6 +83,7 @@ export const StationCard = ({ station, onPlay }: StationCardProps) => {
               variant="outline"
               size="sm"
               className="px-3"
+              onClick={(e) => e.stopPropagation()}
             >
               <a href={station.website} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="w-3 h-3" />

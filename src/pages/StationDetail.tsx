@@ -6,7 +6,7 @@ import { StationCard } from "@/components/StationCard";
 import { OnlineListeners } from "@/components/OnlineListeners";
 import { Button } from "@/components/ui/button";
 import { RadioStation } from "@/types/station";
-import { radioStations } from "@/data/stations";
+import { findStationBySlug, getStationsWithSlugs } from "@/lib/station-utils";
 import { 
   MapPin, 
   Radio, 
@@ -22,20 +22,23 @@ import {
 import { toast } from "sonner";
 
 const StationDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [station, setStation] = useState<RadioStation | null>(null);
   const [currentStation, setCurrentStation] = useState<RadioStation | null>(null);
   const [relatedStations, setRelatedStations] = useState<RadioStation[]>([]);
 
   useEffect(() => {
-    const found = radioStations.find((s) => s.id === id);
+    if (!slug) return;
+    
+    const found = findStationBySlug(slug);
     if (found) {
       setStation(found);
       setCurrentStation(found);
       
       // Find related stations (same language or location)
-      const related = radioStations
+      const allStations = getStationsWithSlugs();
+      const related = allStations
         .filter((s) => 
           s.id !== found.id && 
           (s.language === found.language || s.location === found.location)
@@ -45,7 +48,7 @@ const StationDetail = () => {
     } else {
       navigate("/");
     }
-  }, [id, navigate]);
+  }, [slug, navigate]);
 
   const handlePlay = (stationToPlay: RadioStation) => {
     setCurrentStation(stationToPlay);
@@ -203,6 +206,8 @@ const StationDetail = () => {
           </div>
         </div>
 
+        <AudioPlayer station={currentStation} onClose={() => setCurrentStation(null)} />
+
         {/* Related Stations */}
         {relatedStations.length > 0 && (
           <section className="mt-16">
@@ -219,8 +224,6 @@ const StationDetail = () => {
           </section>
         )}
       </div>
-
-      <AudioPlayer station={currentStation} onClose={() => setCurrentStation(null)} />
     </div>
   );
 };

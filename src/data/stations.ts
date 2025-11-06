@@ -3,6 +3,7 @@ import { RadioStation } from "@/types/station";
 export const radioStations: RadioStation[] = [
   {
     id: "1",
+    slug: "bollywood-gaane-purane",
     name: "Bollywood Gaane Purane",
     image: "https://mytuner.global.ssl.fastly.net/media/tvos_radios/ppqbgfej6skx.jpeg",
     type: "MP3",
@@ -16,6 +17,7 @@ export const radioStations: RadioStation[] = [
   },
   {
     id: "2",
+    slug: "red-fm-935",
     name: "Red FM 93.5",
     image: "https://radiobarfi.com/wp-content/uploads/2024/04/Red-FM-93.5-Live-Online.png.webp",
     type: "MP3",
@@ -29,6 +31,7 @@ export const radioStations: RadioStation[] = [
   },
   {
     id: "3",
+    slug: "radio-mirchi-hindi",
     name: "Radio Mirchi Hindi",
     image: "https://onlineradiohub.com/wp-content/uploads/2023/05/radio-mirchi-hindi-fm.jpg",
     type: "MP3",
@@ -42,6 +45,7 @@ export const radioStations: RadioStation[] = [
   },
   {
     id: "4",
+    slug: "radio-bollywood-90s",
     name: "RADIO BOLLYWOOD 90s",
     image: "https://static.mytuner.mobi/media/tvos_radios/9fKKkfbJKE.png",
     type: "MP3",
@@ -55,6 +59,7 @@ export const radioStations: RadioStation[] = [
   },
   {
     id: "5",
+    slug: "vivid-bharti",
     name: "Vivid Bharti",
     image: "https://www.radio-browser.info/",
     type: "AAC",

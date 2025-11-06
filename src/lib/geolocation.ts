@@ -13,8 +13,8 @@ export const getUserCountry = async (): Promise<string> => {
     // Default to India for South Asian countries
     if (['BD', 'LK', 'NP', 'BT', 'MV'].includes(country)) return 'india';
     
-    // Default to India for unrecognized locations
-    return 'india';
+    // Default to USA for all other countries
+    return 'usa';
   } catch (error) {
     console.error('Error detecting location:', error);
     return 'india'; // Default fallback

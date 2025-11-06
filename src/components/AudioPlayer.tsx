@@ -6,7 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { Card } from "@/components/ui/card";
 import { AudioVisualizer } from "./AudioVisualizer";
 import { getUserCountry, getAdUrl } from "@/lib/geolocation";
-import { radioStations } from "@/data/stations";
+import { getStationsWithSlugs } from "@/lib/station-utils";
 import { useNavigate } from "react-router-dom";
 
 interface AudioPlayerProps {
@@ -14,8 +14,8 @@ interface AudioPlayerProps {
   onClose: () => void;
 }
 
-const AD_INTERVAL = 2 * 60 * 1000; // 10 minutes in milliseconds
-const STATION_TIMEOUT = 10000; // 10 seconds
+const AD_INTERVAL = 10 * 60 * 1000; // 10 minutes in milliseconds
+const STATION_TIMEOUT = 15000; // 15 seconds
 
 export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -23,6 +23,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const [isMuted, setIsMuted] = useState(false);
   const [isPlayingAd, setIsPlayingAd] = useState(false);
   const [playbackTime, setPlaybackTime] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [adUrl, setAdUrl] = useState<string>("/ads/india.mp3");
   const audioRef = useRef<HTMLAudioElement>(null);
   const adRef = useRef<HTMLAudioElement>(null);
@@ -92,40 +94,49 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     }
   };
 
-  // Auto-skip to next station if current doesn't load within 10 seconds
+  // Auto-skip to next station if current doesn't load within 15 seconds
   const playNextStation = () => {
     if (!station) return;
 
-    const currentIndex = radioStations.findIndex((s) => s.id === station.id);
-    const nextIndex = (currentIndex + 1) % radioStations.length;
-    const nextStation = radioStations[nextIndex];
+    const stations = getStationsWithSlugs();
+    const currentIndex = stations.findIndex((s) => s.id === station.id);
+    const nextIndex = (currentIndex + 1) % stations.length;
+    const nextStation = stations[nextIndex];
 
-    navigate(`/station/${nextStation.id}`);
+    if (nextStation.slug) {
+      navigate(`/${nextStation.slug}`);
+    }
   };
 
   useEffect(() => {
     if (station && audioRef.current) {
       setPlaybackTime(0);
+      setIsLoading(true);
+      setLoadError(false);
       audioRef.current.src = station.link;
       audioRef.current.load();
 
       // Set timeout for station loading
       stationTimeoutRef.current = setTimeout(() => {
-        if (audioRef.current && audioRef.current.paused) {
-          console.log("Station timed out, playing next...");
-          playNextStation();
+        if (audioRef.current && audioRef.current.paused && !loadError) {
+          console.log("Station timed out after 15 seconds");
+          setIsLoading(false);
+          setLoadError(true);
         }
       }, STATION_TIMEOUT);
 
       audioRef.current.play().catch(() => {
-        console.log("Failed to play, trying next station...");
-        playNextStation();
+        console.log("Failed to play station");
+        setIsLoading(false);
+        setLoadError(true);
       });
 
       setIsPlaying(true);
 
-      // Clear timeout when station starts playing
+      // Clear timeout and loading state when station starts playing
       const handlePlaying = () => {
+        setIsLoading(false);
+        setLoadError(false);
         if (stationTimeoutRef.current) {
           clearTimeout(stationTimeoutRef.current);
         }
@@ -198,42 +209,59 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           />
 
           <div className="flex-1 min-w-0">
-            <h4 className="font-semibold truncate">{isPlayingAd ? "Advertisement" : station.name}</h4>
+            <h4 className="font-semibold truncate">
+              {isPlayingAd ? "Advertisement" : loadError ? "Station Offline" : isLoading ? "Loading..." : station.name}
+            </h4>
             <p className="text-sm text-muted-foreground">
-              {isPlayingAd ? "Please wait..." : `${station.language || "Hindi"} • ${station.type}`}
+              {isPlayingAd 
+                ? "Please wait..." 
+                : loadError 
+                ? "This station is currently unavailable" 
+                : isLoading 
+                ? "Connecting to station..." 
+                : `${station.language || "Hindi"} • ${station.type}`}
             </p>
-            {!isPlayingAd && (
+            {!isPlayingAd && !loadError && !isLoading && (
               <p className="text-xs text-primary font-medium mt-1">Playing for {formatTime(playbackTime)}</p>
             )}
           </div>
 
           <div className="flex items-center gap-3">
-            <Button onClick={togglePlay} size="icon" className="rounded-full w-12 h-12">
-              {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
-            </Button>
-
-            <Button
-              onClick={playNextStation}
-              size="icon"
-              variant="outline"
-              className="rounded-full w-10 h-10"
-              title="Next Station"
-            >
-              <SkipForward className="w-4 h-4" />
-            </Button>
-
-            <div className="hidden sm:flex items-center gap-2 w-32">
-              <Button onClick={toggleMute} size="icon" variant="ghost" className="w-8 h-8">
-                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            {loadError ? (
+              <Button onClick={playNextStation} size="default" className="rounded-full">
+                Play Next Station
               </Button>
-              <Slider
-                value={[volume]}
-                onValueChange={(value) => setVolume(value[0])}
-                max={100}
-                step={1}
-                className="w-20"
-              />
-            </div>
+            ) : (
+              <>
+                <Button onClick={togglePlay} size="icon" className="rounded-full w-12 h-12" disabled={isLoading}>
+                  {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
+                </Button>
+
+                <Button
+                  onClick={playNextStation}
+                  size="icon"
+                  variant="outline"
+                  className="rounded-full w-10 h-10"
+                  title="Next Station"
+                  disabled={isLoading}
+                >
+                  <SkipForward className="w-4 h-4" />
+                </Button>
+
+                <div className="hidden sm:flex items-center gap-2 w-32">
+                  <Button onClick={toggleMute} size="icon" variant="ghost" className="w-8 h-8">
+                    {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                  </Button>
+                  <Slider
+                    value={[volume]}
+                    onValueChange={(value) => setVolume(value[0])}
+                    max={100}
+                    step={1}
+                    className="w-20"
+                  />
+                </div>
+              </>
+            )}
 
             <Button onClick={onClose} size="icon" variant="ghost" className="w-8 h-8">
               <X className="w-4 h-4" />

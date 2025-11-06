@@ -6,13 +6,14 @@ import { SearchBar } from "@/components/SearchBar";
 import { OnlineListeners } from "@/components/OnlineListeners";
 import { Button } from "@/components/ui/button";
 import { RadioStation } from "@/types/station";
-import { radioStations } from "@/data/stations";
+import { getStationsWithSlugs } from "@/lib/station-utils";
 import { ArrowRight, Radio, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Index = () => {
   const [currentStation, setCurrentStation] = useState<RadioStation | null>(null);
 
+  const radioStations = getStationsWithSlugs();
   const featuredStations = radioStations
     .sort((a, b) => b.votes - a.votes)
     .slice(0, 8);
@@ -26,25 +27,25 @@ const Index = () => {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative py-20 overflow-hidden">
+      <section className="relative py-12 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-background to-background" />
         <div className="container relative z-10">
-          <div className="max-w-4xl mx-auto text-center space-y-8">
+          <div className="max-w-4xl mx-auto text-center space-y-6">
             <div className="flex justify-center mb-4">
               <OnlineListeners />
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent leading-tight">
+            <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent leading-tight">
               Desi Melody - Endless Vibes
             </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
               Stream live radio from India, Pakistan, Bangladesh, Sri Lanka and across South Asia. From Bollywood hits to regional classics.
             </p>
             
             <div className="pt-4">
-              <SearchBar />
+              <SearchBar onStationSelect={handlePlay} />
             </div>
 
-            <div className="flex items-center justify-center gap-4 pt-4">
+            <div className="flex items-center justify-center gap-4 pt-2">
               <Link to="/browse">
                 <Button size="lg" className="gap-2">
                   Browse All Stations

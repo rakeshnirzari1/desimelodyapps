@@ -1,13 +1,20 @@
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { radioStations } from "@/data/stations";
+import { RadioStation } from "@/types/station";
+import { getStationsWithSlugs } from "@/lib/station-utils";
 import { useNavigate } from "react-router-dom";
+import { generateSlug } from "@/lib/slug";
 
-export const SearchBar = () => {
+interface SearchBarProps {
+  onStationSelect?: (station: RadioStation) => void;
+}
+
+export const SearchBar = ({ onStationSelect }: SearchBarProps) => {
   const [query, setQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const navigate = useNavigate();
+  const radioStations = getStationsWithSlugs();
 
   const suggestions = useMemo(() => {
     if (!query.trim()) return [];
@@ -21,10 +28,14 @@ export const SearchBar = () => {
     return filtered;
   }, [query]);
 
-  const handleSuggestionClick = (stationId: string) => {
-    navigate(`/station/${stationId}`);
+  const handleSuggestionClick = (station: RadioStation) => {
+    const slug = station.slug || generateSlug(station.name);
+    navigate(`/${slug}`);
     setQuery("");
     setShowSuggestions(false);
+    if (onStationSelect) {
+      onStationSelect(station);
+    }
   };
 
   return (
@@ -49,7 +60,7 @@ export const SearchBar = () => {
           {suggestions.map((station) => (
             <button
               key={station.id}
-              onClick={() => handleSuggestionClick(station.id)}
+              onClick={() => handleSuggestionClick(station)}
               className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
             >
               <img
