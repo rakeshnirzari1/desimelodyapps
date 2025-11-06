@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { RadioStation } from "@/types/station";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, Volume2, VolumeX, X, SkipForward } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, X, SkipForward, SkipBack } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Card } from "@/components/ui/card";
 import { AudioVisualizer } from "./AudioVisualizer";
@@ -94,7 +94,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     }
   };
 
-  // Auto-skip to next station if current doesn't load within 15 seconds
+  // Navigate to next station
   const playNextStation = () => {
     if (!station) return;
 
@@ -105,6 +105,20 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
     if (nextStation.slug) {
       navigate(`/${nextStation.slug}`);
+    }
+  };
+
+  // Navigate to previous station
+  const playPreviousStation = () => {
+    if (!station) return;
+
+    const stations = getStationsWithSlugs();
+    const currentIndex = stations.findIndex((s) => s.id === station.id);
+    const prevIndex = currentIndex === 0 ? stations.length - 1 : currentIndex - 1;
+    const prevStation = stations[prevIndex];
+
+    if (prevStation.slug) {
+      navigate(`/${prevStation.slug}`);
     }
   };
 
@@ -135,12 +149,17 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         }
       }, STATION_TIMEOUT);
 
-      audioRef.current.play().catch((error) => {
-        console.log("Autoplay blocked:", error.name);
-        // Autoplay blocked - station may still be loading in background
-        // Set playing to false so play button works correctly
-        setIsPlaying(false);
-      });
+      // Try to play immediately - no delays
+      const playPromise = audioRef.current.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          setIsPlaying(true);
+        }).catch((error) => {
+          console.log("Autoplay blocked:", error.name);
+          setIsPlaying(false);
+        });
+      }
 
       // Only set to true if play succeeds (will be updated by 'playing' event)
 
@@ -185,6 +204,44 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       adRef.current.volume = isMuted ? 0 : volume / 100;
     }
   }, [volume, isMuted, isPlayingAd]);
+
+  // Media Session API for car controls and lock screen controls
+  useEffect(() => {
+    if (!station || !('mediaSession' in navigator)) return;
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: station.name,
+      artist: `${station.language || 'Hindi'} • ${station.type}`,
+      album: 'Desi Melody',
+      artwork: [
+        { src: station.image, sizes: '512x512', type: 'image/jpeg' }
+      ]
+    });
+
+    navigator.mediaSession.setActionHandler('play', () => {
+      if (audioRef.current && !isPlaying) {
+        audioRef.current.play();
+        setIsPlaying(true);
+      }
+    });
+
+    navigator.mediaSession.setActionHandler('pause', () => {
+      if (audioRef.current && isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      }
+    });
+
+    navigator.mediaSession.setActionHandler('nexttrack', playNextStation);
+    navigator.mediaSession.setActionHandler('previoustrack', playPreviousStation);
+
+    return () => {
+      navigator.mediaSession.setActionHandler('play', null);
+      navigator.mediaSession.setActionHandler('pause', null);
+      navigator.mediaSession.setActionHandler('nexttrack', null);
+      navigator.mediaSession.setActionHandler('previoustrack', null);
+    };
+  }, [station, isPlaying]);
 
   const togglePlay = () => {
     if (audioRef.current) {
@@ -257,6 +314,17 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
               </Button>
             ) : (
               <>
+                <Button
+                  onClick={playPreviousStation}
+                  size="icon"
+                  variant="outline"
+                  className="rounded-full w-10 h-10"
+                  title="Previous Station"
+                  disabled={isLoading}
+                >
+                  <SkipBack className="w-4 h-4" />
+                </Button>
+
                 <Button onClick={togglePlay} size="icon" className="rounded-full w-12 h-12" disabled={isLoading}>
                   {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
                 </Button>

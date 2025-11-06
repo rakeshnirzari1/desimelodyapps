@@ -148,15 +148,17 @@ const Index = () => {
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </Link>
-              <Link to="/about">
-                <Button size="lg" variant="outline">
-                  Learn More
-                </Button>
-              </Link>
             </div>
           </div>
         </div>
       </section>
+
+      {/* Audio Player - Positioned above featured stations */}
+      {currentStation && (
+        <section className="sticky top-16 z-40">
+          <AudioPlayer station={currentStation} onClose={() => setCurrentStation(null)} />
+        </section>
+      )}
 
       {/* Featured Stations */}
       <section className="py-16 bg-muted/30">
@@ -373,8 +375,6 @@ const Index = () => {
       </section>
 
       <Footer />
-
-      <AudioPlayer station={currentStation} onClose={() => setCurrentStation(null)} />
     </div>
   );
 };
