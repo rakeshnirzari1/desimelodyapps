@@ -16,7 +16,11 @@ export const StationCard = ({ station, onPlay }: StationCardProps) => {
   const navigate = useNavigate();
   const slug = station.slug || generateSlug(station.name);
 
-  const handleCardClick = () => {
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Only navigate if clicking on the card itself, not nested buttons/links
+    if ((e.target as HTMLElement).closest('a, button')) {
+      return;
+    }
     navigate(`/${slug}`);
   };
 

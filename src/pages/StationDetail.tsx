@@ -61,9 +61,11 @@ const StationDetail = () => {
 
       // Scroll to show audio player control bar on mobile after a short delay
       setTimeout(() => {
-        const scrollPosition = window.innerHeight * 0.5; // Scroll to show player controls
-        window.scrollTo({ top: scrollPosition, behavior: 'smooth' });
-      }, 500);
+        if (window.innerWidth < 768) {
+          const scrollPosition = window.innerHeight * 0.6; // Scroll to show player controls on mobile
+          window.scrollTo({ top: scrollPosition, behavior: 'smooth' });
+        }
+      }, 800);
     } else {
       navigate("/");
     }
