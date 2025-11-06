@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { StationCard } from "@/components/StationCard";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { SearchBar } from "@/components/SearchBar";
@@ -16,7 +17,28 @@ const Index = () => {
   const [currentStation, setCurrentStation] = useState<RadioStation | null>(null);
 
   const radioStations = getStationsWithSlugs();
+  
+  // Featured stations by name
+  const featuredStationNames = [
+    "Radio Mirchi Hindi",
+    "Mirchi Love",
+    "RADIO BOLLYWOOD 90s",
+    "Hindi Retro",
+    "Radio City Hindi",
+    "City 92 FM",
+    "Mirchi Love Hindi",
+    "Radio Bollywood Gaane Purane"
+  ];
+  
   const featuredStations = radioStations
+    .filter(station => featuredStationNames.some(name => 
+      station.name.toLowerCase().includes(name.toLowerCase()) || 
+      name.toLowerCase().includes(station.name.toLowerCase())
+    ))
+    .slice(0, 8);
+  
+  // Popular stations by votes
+  const popularStations = radioStations
     .sort((a, b) => b.votes - a.votes)
     .slice(0, 8);
 
@@ -114,6 +136,41 @@ const Index = () => {
             <div>
               <div>
                 <h2 className="text-3xl font-bold flex items-center gap-2">
+                  <Radio className="w-8 h-8 text-primary" />
+                  Featured Stations
+                </h2>
+                <p className="text-muted-foreground mt-2">
+                  Handpicked stations with the best music and entertainment
+                </p>
+              </div>
+            </div>
+            <Link to="/browse">
+              <Button variant="ghost" className="gap-2">
+                View All
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredStations.map((station) => (
+              <StationCard
+                key={station.id}
+                station={station}
+                onPlay={handlePlay}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Most Popular Stations */}
+      <section className="py-16">
+        <div className="container space-y-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <div>
+                <h2 className="text-3xl font-bold flex items-center gap-2">
                   <TrendingUp className="w-8 h-8 text-primary" />
                   Most Popular Stations
                 </h2>
@@ -131,7 +188,7 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredStations.map((station) => (
+            {popularStations.map((station) => (
               <StationCard
                 key={station.id}
                 station={station}
@@ -286,75 +343,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-card border-t py-12">
-        <div className="container">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Radio className="w-6 h-6 text-primary" />
-                <span className="font-bold text-xl">Desi Melody</span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Your premier destination for streaming live radio from South Asia. Access 1100+ stations anytime, anywhere.
-              </p>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link to="/" className="hover:text-primary transition-colors">Home</Link></li>
-                <li><Link to="/browse" className="hover:text-primary transition-colors">Browse Stations</Link></li>
-                <li><Link to="/about" className="hover:text-primary transition-colors">About Us</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4">Popular Languages</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link to="/browse?language=hindi" className="hover:text-primary transition-colors">Hindi</Link></li>
-                <li><Link to="/browse?language=tamil" className="hover:text-primary transition-colors">Tamil</Link></li>
-                <li><Link to="/browse?language=punjabi" className="hover:text-primary transition-colors">Punjabi</Link></li>
-                <li><Link to="/browse?language=bengali" className="hover:text-primary transition-colors">Bengali</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4">Connect</h4>
-              <div className="flex gap-2">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => handleShare("facebook")}
-                  title="Facebook"
-                >
-                  <Facebook className="w-4 h-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => handleShare("twitter")}
-                  title="Twitter"
-                >
-                  <Twitter className="w-4 h-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => handleShare("linkedin")}
-                  title="LinkedIn"
-                >
-                  <Linkedin className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-          
-          <div className="pt-8 border-t text-center text-sm text-muted-foreground">
-            <p>&copy; {new Date().getFullYear()} Desi Melody. All rights reserved. Stream live radio from India, Pakistan, Bangladesh, Sri Lanka and beyond.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
       <AudioPlayer station={currentStation} onClose={() => setCurrentStation(null)} />
     </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { StationCard } from "@/components/StationCard";
 import { OnlineListeners } from "@/components/OnlineListeners";
@@ -295,6 +296,8 @@ const StationDetail = () => {
           </div>
         </section>
       )}
+
+      <Footer />
     </div>
   );
 };

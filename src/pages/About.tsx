@@ -1,4 +1,5 @@
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { Card } from "@/components/ui/card";
 import { Radio, Globe, Heart, Users } from "lucide-react";
 
@@ -82,6 +83,8 @@ const About = () => {
           </div>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 };

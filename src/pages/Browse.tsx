@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { StationCard } from "@/components/StationCard";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { RadioStation } from "@/types/station";
@@ -150,6 +151,8 @@ const Browse = () => {
           </div>
         )}
       </div>
+
+      <Footer />
 
       <AudioPlayer station={currentStation} onClose={() => setCurrentStation(null)} />
     </div>

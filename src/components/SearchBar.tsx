@@ -56,7 +56,7 @@ export const SearchBar = ({ onStationSelect }: SearchBarProps) => {
       </div>
       
       {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute top-full mt-2 w-full bg-card border border-border rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+        <div className="absolute top-full mt-2 w-full bg-card border border-border rounded-lg shadow-lg z-50 max-h-[400px] overflow-y-auto">
           {suggestions.map((station) => (
             <button
               key={station.id}
