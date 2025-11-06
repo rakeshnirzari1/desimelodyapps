@@ -27,9 +27,9 @@ export const AudioVisualizer = ({ audioRef, isPlaying }: AudioVisualizerProps) =
         analyserRef.current = audioContextRef.current.createAnalyser();
         sourceRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
 
-        // Connect only to analyser. Do NOT connect to destination to avoid routing playback
-        // through the AudioContext which can be suspended in background on mobile browsers.
+        // Connect to both analyser (for visualization) and destination (for audio output)
         sourceRef.current.connect(analyserRef.current);
+        analyserRef.current.connect(audioContextRef.current.destination);
         analyserRef.current.fftSize = 128;
       } catch (error) {
         console.error("Error setting up audio context:", error);
