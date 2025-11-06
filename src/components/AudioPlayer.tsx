@@ -226,10 +226,10 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {loadError ? (
-              <Button onClick={playNextStation} size="default" className="rounded-full">
-                Play Next Station
+              <Button onClick={playNextStation} size="sm" className="rounded-full text-xs sm:text-sm whitespace-nowrap px-3 sm:px-4">
+                Play Next
               </Button>
             ) : (
               <>

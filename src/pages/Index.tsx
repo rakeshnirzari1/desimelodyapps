@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Helmet } from "react-helmet";
 import { Header } from "@/components/Header";
 import { StationCard } from "@/components/StationCard";
 import { AudioPlayer } from "@/components/AudioPlayer";
@@ -24,6 +25,17 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <Helmet>
+        <title>Desi Melody - Stream 1100+ Live Radio Stations | India, Pakistan, Bangladesh, Sri Lanka</title>
+        <meta name="description" content="Listen to 1100+ live radio stations from India, Pakistan, Bangladesh, Sri Lanka. Stream Bollywood hits, regional classics, and more. Free online radio streaming." />
+        <meta property="og:title" content="Desi Melody - Stream 1100+ Live Radio Stations from South Asia" />
+        <meta property="og:description" content="Listen to 1100+ live radio stations from India, Pakistan, Bangladesh, Sri Lanka. Stream Bollywood hits, regional classics, and more. Free online radio streaming." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={window.location.href} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Desi Melody - Stream 1100+ Live Radio Stations from South Asia" />
+        <meta name="twitter:description" content="Listen to 1100+ live radio stations from India, Pakistan, Bangladesh, Sri Lanka. Stream Bollywood hits, regional classics, and more. Free online radio streaming." />
+      </Helmet>
       <Header />
 
       {/* Hero Section */}

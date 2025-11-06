@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet";
 import { Header } from "@/components/Header";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { StationCard } from "@/components/StationCard";
@@ -34,6 +35,7 @@ const StationDetail = () => {
     const found = findStationBySlug(slug);
     if (found) {
       setStation(found);
+      // Auto-play the station when page loads
       setCurrentStation(found);
       
       // Find related stations (same language or location)
@@ -88,8 +90,24 @@ const StationDetail = () => {
 
   if (!station) return null;
 
+  const pageTitle = `${station.name} - Live Radio | Desi Melody`;
+  const pageDescription = `Listen to ${station.name} live online. ${station.language || 'Hindi'} ${station.type} radio from ${station.location}. Stream free on Desi Melody.`;
+
   return (
     <div className="min-h-screen flex flex-col pb-24">
+      <Helmet>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:image" content={station.image} />
+        <meta property="og:type" content="music.radio_station" />
+        <meta property="og:url" content={window.location.href} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
+        <meta name="twitter:image" content={station.image} />
+      </Helmet>
       <Header />
 
       <div className="container py-8">
@@ -206,8 +224,6 @@ const StationDetail = () => {
           </div>
         </div>
 
-        <AudioPlayer station={currentStation} onClose={() => setCurrentStation(null)} />
-
         {/* Related Stations */}
         {relatedStations.length > 0 && (
           <section className="mt-16">
@@ -224,6 +240,8 @@ const StationDetail = () => {
           </section>
         )}
       </div>
+
+      <AudioPlayer station={currentStation} onClose={() => setCurrentStation(null)} />
     </div>
   );
 };

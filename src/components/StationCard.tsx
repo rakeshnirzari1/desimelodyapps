@@ -31,11 +31,13 @@ export const StationCard = ({ station, onPlay }: StationCardProps) => {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         <Button
-          onClick={(e) => { e.stopPropagation(); onPlay(station); }}
+          asChild
           size="lg"
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 scale-90 group-hover:scale-100 rounded-full w-16 h-16 p-0"
         >
-          <Play className="w-6 h-6 fill-current" />
+          <Link to={`/${slug}`} onClick={(e) => e.stopPropagation()}>
+            <Play className="w-6 h-6 fill-current" />
+          </Link>
         </Button>
       </div>
 
@@ -70,12 +72,14 @@ export const StationCard = ({ station, onPlay }: StationCardProps) => {
 
         <div className="flex gap-2">
           <Button
-            onClick={(e) => { e.stopPropagation(); onPlay(station); }}
+            asChild
             className="flex-1"
             size="sm"
           >
-            <Play className="w-3 h-3 mr-1 fill-current" />
-            Listen Now
+            <Link to={`/${slug}`}>
+              <Play className="w-3 h-3 mr-1 fill-current" />
+              Listen Now
+            </Link>
           </Button>
           {station.website && station.website !== "https://www.radio-browser.info/" && (
             <Button
