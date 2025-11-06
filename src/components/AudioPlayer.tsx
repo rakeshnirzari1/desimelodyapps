@@ -5,7 +5,6 @@ import { Play, Pause, Volume2, VolumeX, X, SkipForward, SkipBack } from "lucide-
 import { Slider } from "@/components/ui/slider";
 import { Card } from "@/components/ui/card";
 import { AudioVisualizer } from "./AudioVisualizer";
-import { getUserCountry, getAdUrl } from "@/lib/geolocation";
 import { getStationsWithSlugs } from "@/lib/station-utils";
 import { useAudio } from "@/contexts/AudioContext";
 
@@ -20,14 +19,10 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(70);
   const [isMuted, setIsMuted] = useState(false);
-  const [isPlayingAd, setIsPlayingAd] = useState(false);
   const [playbackTime, setPlaybackTime] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
-  const [adUrl, setAdUrl] = useState<string>("/ads/india.mp3");
-  const [stationChangeCount, setStationChangeCount] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
-  const adRef = useRef<HTMLAudioElement>(null);
   const playbackTimerRef = useRef<NodeJS.Timeout | null>(null);
   const stationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { setCurrentStation } = useAudio();
@@ -36,18 +31,9 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const nextActionRef = useRef<() => void>(() => {});
   const prevActionRef = useRef<() => void>(() => {});
 
-  // Detect user location and set appropriate ad
-  useEffect(() => {
-    const detectLocation = async () => {
-      const country = await getUserCountry();
-      setAdUrl(getAdUrl(country));
-    };
-    detectLocation();
-  }, []);
-
   // Playback timer
   useEffect(() => {
-    if (isPlaying && !isPlayingAd) {
+    if (isPlaying) {
       playbackTimerRef.current = setInterval(() => {
         setPlaybackTime((prev) => prev + 1);
       }, 1000);
@@ -60,49 +46,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         clearInterval(playbackTimerRef.current);
       }
     };
-  }, [isPlaying, isPlayingAd]);
-
-  // Play advertisement with proper timing
-  const playAdvertisement = () => {
-    if (audioRef.current && adRef.current) {
-      // Completely stop the radio during ad
-      audioRef.current.pause();
-      audioRef.current.src = "";
-      setIsPlaying(false);
-      
-      // Wait 1 second before starting ad
-      setTimeout(() => {
-        setIsPlayingAd(true);
-        adRef.current.src = adUrl;
-        adRef.current.volume = isMuted ? 0 : volume / 100;
-        adRef.current.play().catch((error) => {
-          console.log("Ad play failed:", error);
-          // Resume radio if ad fails
-          handleAdEnd();
-        });
-      }, 1000);
-    }
-  };
-
-  // Handle ad end - resume radio playback after delay
-  const handleAdEnd = () => {
-    setIsPlayingAd(false);
-    
-    // Wait 1-2 seconds after ad ends before resuming radio
-    setTimeout(() => {
-      if (audioRef.current && station) {
-        // Reload and resume the radio stream
-        audioRef.current.src = station.link;
-        audioRef.current.load();
-        audioRef.current.play().then(() => {
-          setIsPlaying(true);
-        }).catch((error) => {
-          console.log("Radio resume failed:", error);
-          setIsPlaying(false);
-        });
-      }
-    }, 1500);
-  };
+  }, [isPlaying]);
 
   // Change to next station without navigation
   const playNextStation = () => {
@@ -113,29 +57,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     const nextIndex = (currentIndex + 1) % stations.length;
     const nextStation = stations[nextIndex];
 
-    // Increment station change counter
-    const newCount = stationChangeCount + 1;
-    setStationChangeCount(newCount);
-
-    // Play ad every 3rd station change
-    if (newCount % 3 === 0) {
-      // Stop current station first
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
-        setIsPlaying(false);
-      }
-      
-      // Play advertisement
-      playAdvertisement();
-      
-      // Change station after ad is set to play (will load after ad ends)
-      setTimeout(() => {
-        setCurrentStation(nextStation);
-      }, 500);
-    } else {
-      setCurrentStation(nextStation);
-    }
+    setCurrentStation(nextStation);
   };
 
   // Change to previous station without navigation
@@ -147,29 +69,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     const prevIndex = currentIndex === 0 ? stations.length - 1 : currentIndex - 1;
     const prevStation = stations[prevIndex];
 
-    // Increment station change counter
-    const newCount = stationChangeCount + 1;
-    setStationChangeCount(newCount);
-
-    // Play ad every 3rd station change
-    if (newCount % 3 === 0) {
-      // Stop current station first
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
-        setIsPlaying(false);
-      }
-      
-      // Play advertisement
-      playAdvertisement();
-      
-      // Change station after ad is set to play (will load after ad ends)
-      setTimeout(() => {
-        setCurrentStation(prevStation);
-      }, 500);
-    } else {
-      setCurrentStation(prevStation);
-    }
+    setCurrentStation(prevStation);
   };
 
   // Keep Media Session handlers updated with latest callbacks
@@ -255,13 +155,10 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   }, [station]);
 
   useEffect(() => {
-    if (audioRef.current && !isPlayingAd) {
+    if (audioRef.current) {
       audioRef.current.volume = isMuted ? 0 : volume / 100;
     }
-    if (adRef.current && isPlayingAd) {
-      adRef.current.volume = isMuted ? 0 : volume / 100;
-    }
-  }, [volume, isMuted, isPlayingAd]);
+  }, [volume, isMuted]);
 
   // Media Session API for car controls and lock screen controls
   useEffect(() => {
@@ -275,7 +172,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     });
 
     // Keep session active so next/prev work even while loading or screen is off
-    navigator.mediaSession.playbackState = isPlaying || isLoading || isPlayingAd ? "playing" : "paused";
+    navigator.mediaSession.playbackState = isPlaying || isLoading ? "playing" : "paused";
 
     navigator.mediaSession.setActionHandler("play", () => {
       if (audioRef.current) {
@@ -301,7 +198,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       navigator.mediaSession.setActionHandler("play", null);
       navigator.mediaSession.setActionHandler("pause", null);
     };
-  }, [station, isPlaying, isLoading, isPlayingAd]);
+  }, [station, isPlaying, isLoading]);
 
   // Register next/prev handlers once to remain active during screen-off
   useEffect(() => {
@@ -359,9 +256,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   return (
     <Card className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 relative overflow-hidden">
       <audio ref={audioRef} crossOrigin="anonymous" preload="auto" />
-      <audio ref={adRef} onEnded={handleAdEnd} preload="auto" />
 
-      <AudioVisualizer audioRef={audioRef} isPlaying={isPlaying && !isPlayingAd} />
+      <AudioVisualizer audioRef={audioRef} isPlaying={isPlaying} />
 
       <div className="container py-4 relative z-10">
         <div className="flex items-center gap-4">
@@ -376,18 +272,16 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
           <div className="flex-1 min-w-0">
             <h4 className="font-semibold truncate text-sm sm:text-base">
-              {isPlayingAd ? "Advertisement" : loadError ? "Station Offline" : isLoading ? "Loading..." : station.name}
+              {loadError ? "Station Offline" : isLoading ? "Loading..." : station.name}
             </h4>
             <p className="text-xs sm:text-sm text-muted-foreground">
-              {isPlayingAd
-                ? "Please wait..."
-                : loadError
-                  ? "This station is currently unavailable"
-                  : isLoading
-                    ? "Loading..."
-                    : `${station.language || "Hindi"} • ${station.type}`}
+              {loadError
+                ? "This station is currently unavailable"
+                : isLoading
+                  ? "Loading..."
+                  : `${station.language || "Hindi"} • ${station.type}`}
             </p>
-            {!isPlayingAd && !loadError && !isLoading && (
+            {!loadError && !isLoading && (
               <p className="text-xs text-primary font-medium mt-1">Playing for {formatTime(playbackTime)}</p>
             )}
           </div>
