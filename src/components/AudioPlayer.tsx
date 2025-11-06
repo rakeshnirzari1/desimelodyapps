@@ -174,16 +174,24 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     // Keep session active so next/prev work even while loading or screen is off
     navigator.mediaSession.playbackState = isPlaying || isLoading ? "playing" : "paused";
 
-    navigator.mediaSession.setActionHandler("play", () => {
+    navigator.mediaSession.setActionHandler("play", async () => {
       if (audioRef.current) {
-        // Reload stream to get live audio
-        audioRef.current.load();
-        audioRef.current
-          .play()
-          .then(() => {
-            setIsPlaying(true);
-          })
-          .catch(console.error);
+        try {
+          // Resume audio context if suspended (critical for mobile)
+          const audioContext = new AudioContext();
+          if (audioContext.state === 'suspended') {
+            await audioContext.resume();
+          }
+          audioContext.close();
+          
+          // Reload stream to get live audio
+          audioRef.current.load();
+          await audioRef.current.play();
+          setIsPlaying(true);
+        } catch (error) {
+          console.error("Play error:", error);
+          setIsPlaying(false);
+        }
       }
     });
 
@@ -215,23 +223,28 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     };
   }, []);
 
-  const togglePlay = () => {
+  const togglePlay = async () => {
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause();
         setIsPlaying(false);
       } else {
-        // Reload the stream to get live audio when resuming
-        audioRef.current.load();
-        audioRef.current
-          .play()
-          .then(() => {
-            setIsPlaying(true);
-          })
-          .catch((error) => {
-            console.log("Play failed:", error);
-            setIsPlaying(false);
-          });
+        try {
+          // Resume audio context if suspended (critical for mobile with screen off)
+          const audioContext = new AudioContext();
+          if (audioContext.state === 'suspended') {
+            await audioContext.resume();
+          }
+          audioContext.close();
+          
+          // Reload the stream to get live audio when resuming
+          audioRef.current.load();
+          await audioRef.current.play();
+          setIsPlaying(true);
+        } catch (error) {
+          console.log("Play failed:", error);
+          setIsPlaying(false);
+        }
       }
     }
   };

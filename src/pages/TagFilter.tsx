@@ -23,7 +23,8 @@ const TagFilter = () => {
       (station) =>
         station.location?.toLowerCase() === decodedTag.toLowerCase() ||
         station.language?.toLowerCase() === decodedTag.toLowerCase() ||
-        station.type?.toLowerCase() === decodedTag.toLowerCase()
+        station.type?.toLowerCase() === decodedTag.toLowerCase() ||
+        station.tags?.toLowerCase().split(',').some(tag => tag.trim().toLowerCase() === decodedTag.toLowerCase())
     );
   }, [decodedTag]);
 

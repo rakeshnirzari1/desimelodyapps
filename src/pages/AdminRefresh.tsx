@@ -38,7 +38,8 @@ const AdminRefresh = () => {
         location: station.state || station.country || "India",
         language: station.language || "",
         link: station.url_resolved || station.url,
-        website: station.homepage || "https://www.radio-browser.info/"
+        website: station.homepage || "https://www.radio-browser.info/",
+        tags: station.tags || ""
       }));
 
       // Generate the TypeScript file content

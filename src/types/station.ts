@@ -11,4 +11,5 @@ export interface RadioStation {
   language: string;
   link: string;
   website: string;
+  tags?: string;
 }

@@ -14,12 +14,33 @@ import { ArrowRight, Radio, TrendingUp, Share2, Facebook, Twitter, Linkedin, Mai
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useAudio } from "@/contexts/AudioContext";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 const Index = () => {
   const { currentStation, setCurrentStation } = useAudio();
 
   const radioStations = getStationsWithSlugs();
+
+  // Get top 5 most common tags
+  const topTags = useMemo(() => {
+    const tagCounts: Record<string, number> = {};
+    
+    radioStations.forEach(station => {
+      if (station.tags) {
+        station.tags.split(',').forEach(tag => {
+          const trimmedTag = tag.trim().toLowerCase();
+          if (trimmedTag) {
+            tagCounts[trimmedTag] = (tagCounts[trimmedTag] || 0) + 1;
+          }
+        });
+      }
+    });
+    
+    return Object.entries(tagCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([tag]) => tag.charAt(0).toUpperCase() + tag.slice(1));
+  }, [radioStations]);
 
   // Auto-play Radio Mirchi Hindi on page load
   useEffect(() => {
@@ -137,6 +158,23 @@ const Index = () => {
             <div className="pt-4">
               <SearchBar onStationSelect={handlePlay} />
             </div>
+
+            {/* Top 5 Tags */}
+            {topTags.length > 0 && (
+              <div className="flex flex-wrap items-center justify-center gap-2 pt-4">
+                <Tag className="w-4 h-4 text-muted-foreground" />
+                {topTags.map((tag) => (
+                  <Link key={tag} to={`/tag/${tag.toLowerCase()}`}>
+                    <Badge 
+                      variant="secondary" 
+                      className="px-3 py-1 text-sm hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer"
+                    >
+                      {tag}
+                    </Badge>
+                  </Link>
+                ))}
+              </div>
+            )}
 
             <div className="flex items-center justify-center gap-4 pt-2">
               <Link to="/browse">

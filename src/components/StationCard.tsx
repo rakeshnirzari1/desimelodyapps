@@ -1,6 +1,7 @@
 import { RadioStation } from "@/types/station";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Play, ExternalLink, ThumbsUp, TrendingUp } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -61,6 +62,15 @@ export const StationCard = ({ station, onPlay }: StationCardProps) => {
             <span>•</span>
             <span>{station.type}</span>
           </div>
+          {station.tags && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {station.tags.split(',').slice(0, 3).map((tag, idx) => (
+                <Badge key={idx} variant="outline" className="text-xs px-2 py-0">
+                  {tag.trim()}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-between text-xs text-muted-foreground">
