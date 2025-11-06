@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { AudioVisualizer } from "./AudioVisualizer";
 import { getUserCountry, getAdUrl } from "@/lib/geolocation";
 import { getStationsWithSlugs } from "@/lib/station-utils";
-import { useNavigate } from "react-router-dom";
+import { useAudio } from "@/contexts/AudioContext";
 
 interface AudioPlayerProps {
   station: RadioStation | null;
@@ -31,7 +31,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const adTimerRef = useRef<NodeJS.Timeout | null>(null);
   const playbackTimerRef = useRef<NodeJS.Timeout | null>(null);
   const stationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const navigate = useNavigate();
+  const { setCurrentStation } = useAudio();
 
   // Persistent refs for Media Session next/prev handlers
   const nextActionRef = useRef<() => void>(() => {});
@@ -106,7 +106,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     }
   };
 
-  // Navigate to next station
+  // Change to next station without navigation
   const playNextStation = () => {
     if (!station) return;
 
@@ -115,12 +115,10 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     const nextIndex = (currentIndex + 1) % stations.length;
     const nextStation = stations[nextIndex];
 
-    if (nextStation.slug) {
-      navigate(`/${nextStation.slug}`);
-    }
+    setCurrentStation(nextStation);
   };
 
-  // Navigate to previous station
+  // Change to previous station without navigation
   const playPreviousStation = () => {
     if (!station) return;
 
@@ -129,9 +127,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     const prevIndex = currentIndex === 0 ? stations.length - 1 : currentIndex - 1;
     const prevStation = stations[prevIndex];
 
-    if (prevStation.slug) {
-      navigate(`/${prevStation.slug}`);
-    }
+    setCurrentStation(prevStation);
   };
 
   // Keep Media Session handlers updated with latest callbacks
