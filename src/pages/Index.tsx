@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+
 import { Helmet } from "react-helmet";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -19,15 +19,6 @@ const Index = () => {
 
   const radioStations = getStationsWithSlugs();
 
-  // Auto-play Radio Mirchi Hindi on homepage load
-  useEffect(() => {
-    const radioMirchiHindi = radioStations.find(
-      (station) => station.name === "Radio Mirchi Hindi"
-    );
-    if (radioMirchiHindi) {
-      setCurrentStation(radioMirchiHindi);
-    }
-  }, []);
   
   // Featured stations by name
   const featuredStationNames = [

@@ -15,6 +15,10 @@ export const AudioVisualizer = ({ audioRef, isPlaying }: AudioVisualizerProps) =
   useEffect(() => {
     if (!audioRef.current || !canvasRef.current) return;
 
+    const isIOS =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+
     const setupAudio = () => {
       if (!audioRef.current || audioContextRef.current) return;
 
@@ -22,13 +26,28 @@ export const AudioVisualizer = ({ audioRef, isPlaying }: AudioVisualizerProps) =
         audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
         analyserRef.current = audioContextRef.current.createAnalyser();
         sourceRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
-        
+
+        // Connect only to analyser. Do NOT connect to destination to avoid routing playback
+        // through the AudioContext which can be suspended in background on mobile browsers.
         sourceRef.current.connect(analyserRef.current);
-        analyserRef.current.connect(audioContextRef.current.destination);
         analyserRef.current.fftSize = 128;
       } catch (error) {
         console.error("Error setting up audio context:", error);
       }
+    };
+
+    const cleanupAudio = () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+      try { sourceRef.current?.disconnect(); } catch {}
+      try { analyserRef.current?.disconnect(); } catch {}
+      if (audioContextRef.current) {
+        audioContextRef.current.close().catch(() => {});
+        audioContextRef.current = undefined;
+      }
+      sourceRef.current = undefined;
+      analyserRef.current = undefined;
     };
 
     const draw = () => {
@@ -49,11 +68,11 @@ export const AudioVisualizer = ({ audioRef, isPlaying }: AudioVisualizerProps) =
 
       for (let i = 0; i < bufferLength; i++) {
         const barHeight = (dataArray[i] / 255) * canvas.height * 0.8;
-        
+
         // Create gradient colors
         const hue = (i / bufferLength) * 360;
         ctx.fillStyle = `hsl(${hue}, 80%, 50%)`;
-        
+
         ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
         x += barWidth + 1;
       }
@@ -61,17 +80,29 @@ export const AudioVisualizer = ({ audioRef, isPlaying }: AudioVisualizerProps) =
       animationRef.current = requestAnimationFrame(draw);
     };
 
-    if (isPlaying) {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        cleanupAudio();
+      } else {
+        if (isPlaying && !isIOS) {
+          setupAudio();
+          draw();
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    if (isPlaying && !isIOS && document.visibilityState === 'visible') {
       setupAudio();
       draw();
-    } else if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
+    } else {
+      cleanupAudio();
     }
 
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
+      document.removeEventListener('visibilitychange', handleVisibility);
+      cleanupAudio();
     };
   }, [isPlaying, audioRef]);
 
