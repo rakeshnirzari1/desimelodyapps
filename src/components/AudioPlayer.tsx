@@ -69,19 +69,18 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
     const playAdvertisement = () => {
       if (audioRef.current && adRef.current) {
-        // Lower radio volume instead of pausing
-        const originalVolume = audioRef.current.volume;
-        audioRef.current.volume = originalVolume * 0.15; // 15% volume for background
+        // Pause the radio completely during ad
+        audioRef.current.pause();
         setIsPlayingAd(true);
 
-        // Play the ad on top
+        // Play the ad
         adRef.current.src = adUrl;
         adRef.current.volume = isMuted ? 0 : volume / 100;
         adRef.current.play().catch((error) => {
           console.log("Ad play failed:", error);
-          // Restore radio volume if ad fails
+          // Resume radio if ad fails
           if (audioRef.current) {
-            audioRef.current.volume = originalVolume;
+            audioRef.current.play();
           }
           setIsPlayingAd(false);
         });
@@ -98,11 +97,17 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     };
   }, [station, isPlaying, volume, isMuted, isPlayingAd, adUrl]);
 
-  // Handle ad end - restore radio to normal volume
+  // Handle ad end - resume radio playback
   const handleAdEnd = () => {
     setIsPlayingAd(false);
     if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : volume / 100;
+      // Resume the radio stream
+      audioRef.current.play().then(() => {
+        setIsPlaying(true);
+      }).catch((error) => {
+        console.log("Radio resume failed:", error);
+        setIsPlaying(false);
+      });
     }
   };
 

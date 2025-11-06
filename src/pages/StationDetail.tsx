@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { StationCard } from "@/components/StationCard";
 import { OnlineListeners } from "@/components/OnlineListeners";
+import { SearchBar } from "@/components/SearchBar";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { RadioStation } from "@/types/station";
 import { findStationBySlug, getStationsWithSlugs } from "@/lib/station-utils";
 import {
@@ -54,7 +56,7 @@ const StationDetail = () => {
       const allStations = getStationsWithSlugs();
       const related = allStations
         .filter((s) => s.id !== found.id && (s.language === found.language || s.location === found.location))
-        .slice(0, 4);
+        .slice(0, 8);
       setRelatedStations(related);
 
       // Scroll to show audio player control bar on mobile after a short delay
@@ -145,6 +147,11 @@ const StationDetail = () => {
       </Helmet>
       <Header />
 
+      {/* Search Bar */}
+      <div className="container pt-6 pb-4">
+        <SearchBar />
+      </div>
+
       <div className="container py-8">
         {/* Station Hero Section */}
         <div className="grid md:grid-cols-2 gap-8 mb-12">
@@ -163,18 +170,24 @@ const StationDetail = () => {
             <div>
               <h1 className="text-4xl md:text-5xl font-bold mb-2">{station.name}</h1>
               <div className="flex flex-wrap gap-3 mt-4">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary">
-                  <MapPin className="w-4 h-4" />
-                  <span>{station.location}</span>
-                </div>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 text-accent">
-                  <Radio className="w-4 h-4" />
-                  <span>{station.language || "Hindi"}</span>
-                </div>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/10 text-secondary">
-                  <Activity className="w-4 h-4" />
-                  <span>{station.type}</span>
-                </div>
+                <Link to={`/tag/${encodeURIComponent(station.location)}`}>
+                  <Badge variant="outline" className="cursor-pointer hover:bg-primary/20 transition-colors px-4 py-2 text-sm">
+                    <MapPin className="w-4 h-4 mr-2" />
+                    {station.location}
+                  </Badge>
+                </Link>
+                <Link to={`/tag/${encodeURIComponent(station.language || "Hindi")}`}>
+                  <Badge variant="outline" className="cursor-pointer hover:bg-accent/20 transition-colors px-4 py-2 text-sm">
+                    <Radio className="w-4 h-4 mr-2" />
+                    {station.language || "Hindi"}
+                  </Badge>
+                </Link>
+                <Link to={`/tag/${encodeURIComponent(station.type)}`}>
+                  <Badge variant="outline" className="cursor-pointer hover:bg-secondary/20 transition-colors px-4 py-2 text-sm">
+                    <Activity className="w-4 h-4 mr-2" />
+                    {station.type}
+                  </Badge>
+                </Link>
               </div>
             </div>
 
