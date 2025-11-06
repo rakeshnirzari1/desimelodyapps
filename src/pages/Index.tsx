@@ -26,6 +26,11 @@ const Index = () => {
     if (radioMirchiHindi) {
       setCurrentStation(radioMirchiHindi);
     }
+
+    // Cleanup: Stop playing when leaving home page
+    return () => {
+      setCurrentStation(null);
+    };
   }, []);
   
   // Featured stations by name
