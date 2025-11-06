@@ -14,7 +14,7 @@ interface AudioPlayerProps {
   onClose: () => void;
 }
 
-const AD_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
+const AD_INTERVAL = 2 * 60 * 1000; // 5 minutes in milliseconds
 const STATION_TIMEOUT = 15000; // 15 seconds
 
 export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
@@ -36,7 +36,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   // Persistent refs for Media Session next/prev handlers
   const nextActionRef = useRef<() => void>(() => {});
   const prevActionRef = useRef<() => void>(() => {});
-
 
   // Detect user location and set appropriate ad
   useEffect(() => {
@@ -141,7 +140,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     prevActionRef.current = playPreviousStation;
   }, [station]);
 
-
   useEffect(() => {
     if (station && audioRef.current) {
       setPlaybackTime(0);
@@ -171,14 +169,16 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
       // Try to play immediately
       const playPromise = audioRef.current.play();
-      
+
       if (playPromise !== undefined) {
-        playPromise.then(() => {
-          setIsPlaying(true);
-        }).catch((error) => {
-          console.log("Autoplay blocked:", error.name);
-          setIsPlaying(false);
-        });
+        playPromise
+          .then(() => {
+            setIsPlaying(true);
+          })
+          .catch((error) => {
+            console.log("Autoplay blocked:", error.name);
+            setIsPlaying(false);
+          });
       }
 
       const handlePlaying = () => {
@@ -227,31 +227,32 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
   // Media Session API for car controls and lock screen controls
   useEffect(() => {
-    if (!station || !('mediaSession' in navigator)) return;
+    if (!station || !("mediaSession" in navigator)) return;
 
     navigator.mediaSession.metadata = new MediaMetadata({
       title: station.name,
-      artist: `${station.language || 'Hindi'} • ${station.type}`,
-      album: 'Desi Melody',
-      artwork: [
-        { src: station.image, sizes: '512x512', type: 'image/jpeg' }
-      ]
+      artist: `${station.language || "Hindi"} • ${station.type}`,
+      album: "Desi Melody",
+      artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
     });
 
     // Keep session active so next/prev work even while loading or screen is off
-    navigator.mediaSession.playbackState = (isPlaying || isLoading || isPlayingAd) ? 'playing' : 'paused';
+    navigator.mediaSession.playbackState = isPlaying || isLoading || isPlayingAd ? "playing" : "paused";
 
-    navigator.mediaSession.setActionHandler('play', () => {
+    navigator.mediaSession.setActionHandler("play", () => {
       if (audioRef.current) {
         // Reload stream to get live audio
         audioRef.current.load();
-        audioRef.current.play().then(() => {
-          setIsPlaying(true);
-        }).catch(console.error);
+        audioRef.current
+          .play()
+          .then(() => {
+            setIsPlaying(true);
+          })
+          .catch(console.error);
       }
     });
 
-    navigator.mediaSession.setActionHandler('pause', () => {
+    navigator.mediaSession.setActionHandler("pause", () => {
       if (audioRef.current) {
         audioRef.current.pause();
         setIsPlaying(false);
@@ -259,26 +260,25 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     });
 
     return () => {
-      navigator.mediaSession.setActionHandler('play', null);
-      navigator.mediaSession.setActionHandler('pause', null);
+      navigator.mediaSession.setActionHandler("play", null);
+      navigator.mediaSession.setActionHandler("pause", null);
     };
   }, [station, isPlaying, isLoading, isPlayingAd]);
 
   // Register next/prev handlers once to remain active during screen-off
   useEffect(() => {
-    if (!('mediaSession' in navigator)) return;
-    navigator.mediaSession.setActionHandler('nexttrack', () => {
+    if (!("mediaSession" in navigator)) return;
+    navigator.mediaSession.setActionHandler("nexttrack", () => {
       nextActionRef.current();
     });
-    navigator.mediaSession.setActionHandler('previoustrack', () => {
+    navigator.mediaSession.setActionHandler("previoustrack", () => {
       prevActionRef.current();
     });
     return () => {
-      navigator.mediaSession.setActionHandler('nexttrack', null);
-      navigator.mediaSession.setActionHandler('previoustrack', null);
+      navigator.mediaSession.setActionHandler("nexttrack", null);
+      navigator.mediaSession.setActionHandler("previoustrack", null);
     };
   }, []);
-
 
   const togglePlay = () => {
     if (audioRef.current) {
@@ -288,12 +288,15 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       } else {
         // Reload the stream to get live audio when resuming
         audioRef.current.load();
-        audioRef.current.play().then(() => {
-          setIsPlaying(true);
-        }).catch((error) => {
-          console.log("Play failed:", error);
-          setIsPlaying(false);
-        });
+        audioRef.current
+          .play()
+          .then(() => {
+            setIsPlaying(true);
+          })
+          .catch((error) => {
+            console.log("Play failed:", error);
+            setIsPlaying(false);
+          });
       }
     }
   };
@@ -353,7 +356,11 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
           <div className="flex items-center gap-2 sm:gap-3">
             {loadError ? (
-              <Button onClick={playNextStation} size="sm" className="rounded-full text-xs sm:text-sm whitespace-nowrap px-3 sm:px-4">
+              <Button
+                onClick={playNextStation}
+                size="sm"
+                className="rounded-full text-xs sm:text-sm whitespace-nowrap px-3 sm:px-4"
+              >
                 Play Next
               </Button>
             ) : (
