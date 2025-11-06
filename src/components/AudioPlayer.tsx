@@ -138,10 +138,11 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       audioRef.current.play().catch((error) => {
         console.log("Autoplay blocked:", error.name);
         // Autoplay blocked - station may still be loading in background
-        // Don't show error immediately, let user click play or wait for timeout
+        // Set playing to false so play button works correctly
+        setIsPlaying(false);
       });
 
-      setIsPlaying(true);
+      // Only set to true if play succeeds (will be updated by 'playing' event)
 
       // Clear timeout and loading state when station starts playing
       const handlePlaying = () => {
