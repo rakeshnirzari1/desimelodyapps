@@ -138,13 +138,17 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       audioRef.current.src = station.link;
       audioRef.current.load();
 
-      // Set timeout for station loading - only if we get an actual error
+      // Set timeout for station loading - auto-skip if station doesn't load
       stationTimeoutRef.current = setTimeout(() => {
         if (audioRef.current) {
           if (audioRef.current.readyState === 0 && audioRef.current.paused) {
-            console.log("Station timed out - network issue");
+            console.log("Station timed out - auto-skipping to next");
             setIsLoading(false);
             setLoadError(true);
+            // Auto-skip to next station after 1 second
+            setTimeout(() => {
+              playNextStation();
+            }, 1000);
           } else if (audioRef.current.paused) {
             console.log("Station loaded but autoplay blocked");
             setIsLoading(false);
@@ -175,12 +179,16 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       };
 
       const handleError = () => {
-        console.log("Station error - failed to load");
+        console.log("Station error - auto-skipping to next");
         setIsLoading(false);
         setLoadError(true);
         if (stationTimeoutRef.current) {
           clearTimeout(stationTimeoutRef.current);
         }
+        // Auto-skip to next station after 1 second
+        setTimeout(() => {
+          playNextStation();
+        }, 1000);
       };
 
       audioRef.current.addEventListener("playing", handlePlaying);
@@ -308,7 +316,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
                 : loadError
                   ? "This station is currently unavailable"
                   : isLoading
-                    ? "Connecting to station..."
+                    ? "Loading..."
                     : `${station.language || "Hindi"} • ${station.type}`}
             </p>
             {!isPlayingAd && !loadError && !isLoading && (
