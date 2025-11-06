@@ -126,9 +126,9 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       }, STATION_TIMEOUT);
 
       audioRef.current.play().catch(() => {
-        console.log("Failed to play station");
-        setIsLoading(false);
-        setLoadError(true);
+        console.log("Autoplay blocked, waiting for user interaction or timeout");
+        // Don't immediately set error - let the timeout handle it
+        // Mobile browsers often block autoplay, but station may still connect
       });
 
       setIsPlaying(true);
