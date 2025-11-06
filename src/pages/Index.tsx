@@ -8,8 +8,9 @@ import { OnlineListeners } from "@/components/OnlineListeners";
 import { Button } from "@/components/ui/button";
 import { RadioStation } from "@/types/station";
 import { getStationsWithSlugs } from "@/lib/station-utils";
-import { ArrowRight, Radio, TrendingUp } from "lucide-react";
+import { ArrowRight, Radio, TrendingUp, Share2, Facebook, Twitter, Linkedin, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 const Index = () => {
   const [currentStation, setCurrentStation] = useState<RadioStation | null>(null);
@@ -21,6 +22,38 @@ const Index = () => {
 
   const handlePlay = (station: RadioStation) => {
     setCurrentStation(station);
+  };
+
+  const shareUrl = window.location.href;
+  const shareTitle = "Desi Melody - Stream Live Radio from South Asia";
+
+  const handleShare = (platform: string) => {
+    const encodedUrl = encodeURIComponent(shareUrl);
+    const encodedTitle = encodeURIComponent(shareTitle);
+    
+    let url = "";
+    switch (platform) {
+      case "facebook":
+        url = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+        break;
+      case "twitter":
+        url = `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`;
+        break;
+      case "linkedin":
+        url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
+        break;
+      case "email":
+        url = `mailto:?subject=${encodedTitle}&body=${encodedUrl}`;
+        break;
+      case "copy":
+        navigator.clipboard.writeText(shareUrl);
+        toast.success("Link copied to clipboard!");
+        return;
+    }
+    
+    if (url) {
+      window.open(url, "_blank", "width=600,height=400");
+    }
   };
 
   return (
@@ -47,7 +80,7 @@ const Index = () => {
               <OnlineListeners />
             </div>
             <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent leading-tight">
-              Desi Melody - Endless Vibes
+              <span className="hidden md:inline">Desi Melody - </span>Endless Vibes
             </h1>
             <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
               Stream live radio from India, Pakistan, Bangladesh, Sri Lanka and across South Asia. From Bollywood hits to regional classics.
@@ -193,6 +226,135 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Social Share Section */}
+      <section className="py-12 bg-muted/30">
+        <div className="container">
+          <div className="max-w-2xl mx-auto text-center space-y-6">
+            <div className="flex items-center justify-center gap-2">
+              <Share2 className="w-5 h-5 text-primary" />
+              <h3 className="text-2xl font-bold">Share Desi Melody</h3>
+            </div>
+            <p className="text-muted-foreground">
+              Love our radio streaming service? Share it with your friends and family!
+            </p>
+            <div className="flex justify-center gap-3">
+              <Button
+                size="icon"
+                variant="outline"
+                onClick={() => handleShare("facebook")}
+                title="Share on Facebook"
+                className="w-12 h-12"
+              >
+                <Facebook className="w-5 h-5" />
+              </Button>
+              <Button
+                size="icon"
+                variant="outline"
+                onClick={() => handleShare("twitter")}
+                title="Share on Twitter"
+                className="w-12 h-12"
+              >
+                <Twitter className="w-5 h-5" />
+              </Button>
+              <Button
+                size="icon"
+                variant="outline"
+                onClick={() => handleShare("linkedin")}
+                title="Share on LinkedIn"
+                className="w-12 h-12"
+              >
+                <Linkedin className="w-5 h-5" />
+              </Button>
+              <Button
+                size="icon"
+                variant="outline"
+                onClick={() => handleShare("email")}
+                title="Share via Email"
+                className="w-12 h-12"
+              >
+                <Mail className="w-5 h-5" />
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => handleShare("copy")}
+              >
+                Copy Link
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-card border-t py-12">
+        <div className="container">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Radio className="w-6 h-6 text-primary" />
+                <span className="font-bold text-xl">Desi Melody</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Your premier destination for streaming live radio from South Asia. Access 1100+ stations anytime, anywhere.
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Quick Links</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><Link to="/" className="hover:text-primary transition-colors">Home</Link></li>
+                <li><Link to="/browse" className="hover:text-primary transition-colors">Browse Stations</Link></li>
+                <li><Link to="/about" className="hover:text-primary transition-colors">About Us</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Popular Languages</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><Link to="/browse?language=hindi" className="hover:text-primary transition-colors">Hindi</Link></li>
+                <li><Link to="/browse?language=tamil" className="hover:text-primary transition-colors">Tamil</Link></li>
+                <li><Link to="/browse?language=punjabi" className="hover:text-primary transition-colors">Punjabi</Link></li>
+                <li><Link to="/browse?language=bengali" className="hover:text-primary transition-colors">Bengali</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Connect</h4>
+              <div className="flex gap-2">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => handleShare("facebook")}
+                  title="Facebook"
+                >
+                  <Facebook className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => handleShare("twitter")}
+                  title="Twitter"
+                >
+                  <Twitter className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => handleShare("linkedin")}
+                  title="LinkedIn"
+                >
+                  <Linkedin className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+          
+          <div className="pt-8 border-t text-center text-sm text-muted-foreground">
+            <p>&copy; {new Date().getFullYear()} Desi Melody. All rights reserved. Stream live radio from India, Pakistan, Bangladesh, Sri Lanka and beyond.</p>
+          </div>
+        </div>
+      </footer>
 
       <AudioPlayer station={currentStation} onClose={() => setCurrentStation(null)} />
     </div>

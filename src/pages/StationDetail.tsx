@@ -18,7 +18,9 @@ import {
   Facebook,
   Twitter,
   Linkedin,
-  Mail
+  Mail,
+  Bookmark,
+  BookmarkCheck
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -28,6 +30,14 @@ const StationDetail = () => {
   const [station, setStation] = useState<RadioStation | null>(null);
   const [currentStation, setCurrentStation] = useState<RadioStation | null>(null);
   const [relatedStations, setRelatedStations] = useState<RadioStation[]>([]);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+
+  // Check if station is bookmarked
+  useEffect(() => {
+    if (!station) return;
+    const bookmarks = JSON.parse(localStorage.getItem('bookmarkedStations') || '[]');
+    setIsBookmarked(bookmarks.some((b: any) => b.id === station.id));
+  }, [station]);
 
   useEffect(() => {
     if (!slug) return;
@@ -48,9 +58,10 @@ const StationDetail = () => {
         .slice(0, 4);
       setRelatedStations(related);
 
-      // Scroll to show audio player on mobile after a short delay
+      // Scroll to show audio player control bar on mobile after a short delay
       setTimeout(() => {
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        const scrollPosition = window.innerHeight * 0.5; // Scroll to show player controls
+        window.scrollTo({ top: scrollPosition, behavior: 'smooth' });
       }, 500);
     } else {
       navigate("/");
@@ -63,6 +74,24 @@ const StationDetail = () => {
 
   const shareUrl = window.location.href;
   const shareTitle = `Listen to ${station?.name} on Desi Melody`;
+
+  const handleBookmark = () => {
+    if (!station) return;
+    
+    const bookmarks = JSON.parse(localStorage.getItem('bookmarkedStations') || '[]');
+    
+    if (isBookmarked) {
+      const updated = bookmarks.filter((b: any) => b.id !== station.id);
+      localStorage.setItem('bookmarkedStations', JSON.stringify(updated));
+      setIsBookmarked(false);
+      toast.success("Removed from bookmarks");
+    } else {
+      bookmarks.push({ id: station.id, name: station.name, slug: station.slug });
+      localStorage.setItem('bookmarkedStations', JSON.stringify(bookmarks));
+      setIsBookmarked(true);
+      toast.success("Added to bookmarks");
+    }
+  };
 
   const handleShare = (platform: string) => {
     const encodedUrl = encodeURIComponent(shareUrl);
@@ -175,6 +204,27 @@ const StationDetail = () => {
                 Visit Official Website
               </Button>
             )}
+
+            {/* Bookmark Button */}
+            <div className="pt-4 border-t">
+              <Button
+                onClick={handleBookmark}
+                variant={isBookmarked ? "default" : "outline"}
+                className="w-full gap-2"
+              >
+                {isBookmarked ? (
+                  <>
+                    <BookmarkCheck className="w-4 h-4" />
+                    Bookmarked - {station.name}
+                  </>
+                ) : (
+                  <>
+                    <Bookmark className="w-4 h-4" />
+                    Bookmark {station.name}
+                  </>
+                )}
+              </Button>
+            </div>
 
             {/* Social Sharing */}
             <div className="pt-4 border-t">
