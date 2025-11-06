@@ -17,10 +17,12 @@ export const StationCard = ({ station, onPlay }: StationCardProps) => {
   const slug = station.slug || generateSlug(station.name);
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Only navigate if clicking on the card itself, not nested buttons/links
+    // Only handle when tapping the card itself (not nested links/buttons)
     if ((e.target as HTMLElement).closest('a, button')) {
       return;
     }
+    // Start playback immediately (mobile Safari requires user gesture)
+    onPlay(station);
     navigate(`/${slug}`);
   };
 
@@ -39,7 +41,7 @@ export const StationCard = ({ station, onPlay }: StationCardProps) => {
           size="lg"
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 scale-90 group-hover:scale-100 rounded-full w-16 h-16 p-0"
         >
-          <Link to={`/${slug}`} onClick={(e) => e.stopPropagation()}>
+          <Link to={`/${slug}`} onClick={(e) => { e.stopPropagation(); onPlay(station); }}>
             <Play className="w-6 h-6 fill-current" />
           </Link>
         </Button>
@@ -47,7 +49,7 @@ export const StationCard = ({ station, onPlay }: StationCardProps) => {
 
       <div className="p-4 space-y-3">
         <div>
-          <Link to={`/${slug}`}>
+          <Link to={`/${slug}`} onClick={(e) => { e.stopPropagation(); onPlay(station); }}>
             <h3 className="font-semibold text-lg line-clamp-1 hover:text-primary transition-colors">
               {station.name}
             </h3>
@@ -80,7 +82,7 @@ export const StationCard = ({ station, onPlay }: StationCardProps) => {
             className="flex-1"
             size="sm"
           >
-            <Link to={`/${slug}`}>
+            <Link to={`/${slug}`} onClick={(e) => { e.stopPropagation(); onPlay(station); }}>
               <Play className="w-3 h-3 mr-1 fill-current" />
               Listen Now
             </Link>
