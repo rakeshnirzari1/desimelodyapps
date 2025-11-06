@@ -14,7 +14,7 @@ interface AudioPlayerProps {
   onClose: () => void;
 }
 
-const AD_INTERVAL = 2 * 60 * 1000; // 2 minutes in milliseconds. Do not change this please
+const AD_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
 const STATION_TIMEOUT = 15000; // 15 seconds
 
 export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
@@ -209,10 +209,10 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           />
 
           <div className="flex-1 min-w-0">
-            <h4 className="font-semibold truncate">
+            <h4 className="font-semibold truncate text-sm sm:text-base">
               {isPlayingAd ? "Advertisement" : loadError ? "Station Offline" : isLoading ? "Loading..." : station.name}
             </h4>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               {isPlayingAd
                 ? "Please wait..."
                 : loadError

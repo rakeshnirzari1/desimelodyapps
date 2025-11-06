@@ -47,6 +47,11 @@ const StationDetail = () => {
         )
         .slice(0, 4);
       setRelatedStations(related);
+
+      // Scroll to show audio player on mobile after a short delay
+      setTimeout(() => {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      }, 500);
     } else {
       navigate("/");
     }
@@ -122,9 +127,6 @@ const StationDetail = () => {
                 e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500";
               }}
             />
-            <div className="absolute top-4 right-4">
-              <OnlineListeners />
-            </div>
           </div>
 
           <div className="flex flex-col justify-center space-y-6">
@@ -224,24 +226,25 @@ const StationDetail = () => {
           </div>
         </div>
 
-        {/* Related Stations */}
-        {relatedStations.length > 0 && (
-          <section className="mt-16">
-            <h2 className="text-3xl font-bold mb-6">Related Stations</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedStations.map((relatedStation) => (
-                <StationCard
-                  key={relatedStation.id}
-                  station={relatedStation}
-                  onPlay={handlePlay}
-                />
-              ))}
-            </div>
-          </section>
-        )}
       </div>
 
       <AudioPlayer station={currentStation} onClose={() => setCurrentStation(null)} />
+
+      {/* Related Stations - Below Audio Player */}
+      {relatedStations.length > 0 && (
+        <section className="container mt-8 mb-32">
+          <h2 className="text-3xl font-bold mb-6">Related Stations</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {relatedStations.map((relatedStation) => (
+              <StationCard
+                key={relatedStation.id}
+                station={relatedStation}
+                onPlay={handlePlay}
+              />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 };
