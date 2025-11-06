@@ -33,6 +33,11 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const stationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
 
+  // Persistent refs for Media Session next/prev handlers
+  const nextActionRef = useRef<() => void>(() => {});
+  const prevActionRef = useRef<() => void>(() => {});
+
+
   // Detect user location and set appropriate ad
   useEffect(() => {
     const detectLocation = async () => {
@@ -130,6 +135,13 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     }
   };
 
+  // Keep Media Session handlers updated with latest callbacks
+  useEffect(() => {
+    nextActionRef.current = playNextStation;
+    prevActionRef.current = playPreviousStation;
+  }, [station]);
+
+
   useEffect(() => {
     if (station && audioRef.current) {
       setPlaybackTime(0);
@@ -226,8 +238,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       ]
     });
 
-    // Set playback state to keep session active
-    navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+    // Keep session active so next/prev work even while loading or screen is off
+    navigator.mediaSession.playbackState = (isPlaying || isLoading || isPlayingAd) ? 'playing' : 'paused';
 
     navigator.mediaSession.setActionHandler('play', () => {
       if (audioRef.current) {
@@ -246,16 +258,27 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       }
     });
 
-    navigator.mediaSession.setActionHandler('nexttrack', playNextStation);
-    navigator.mediaSession.setActionHandler('previoustrack', playPreviousStation);
-
     return () => {
       navigator.mediaSession.setActionHandler('play', null);
       navigator.mediaSession.setActionHandler('pause', null);
+    };
+  }, [station, isPlaying, isLoading, isPlayingAd]);
+
+  // Register next/prev handlers once to remain active during screen-off
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return;
+    navigator.mediaSession.setActionHandler('nexttrack', () => {
+      nextActionRef.current();
+    });
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+      prevActionRef.current();
+    });
+    return () => {
       navigator.mediaSession.setActionHandler('nexttrack', null);
       navigator.mediaSession.setActionHandler('previoustrack', null);
     };
-  }, [station, isPlaying]);
+  }, []);
+
 
   const togglePlay = () => {
     if (audioRef.current) {
