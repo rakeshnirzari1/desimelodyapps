@@ -226,17 +226,21 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       ]
     });
 
+    // Set playback state to keep session active
+    navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+
     navigator.mediaSession.setActionHandler('play', () => {
-      if (audioRef.current && !isPlaying) {
+      if (audioRef.current) {
         // Reload stream to get live audio
         audioRef.current.load();
-        audioRef.current.play();
-        setIsPlaying(true);
+        audioRef.current.play().then(() => {
+          setIsPlaying(true);
+        }).catch(console.error);
       }
     });
 
     navigator.mediaSession.setActionHandler('pause', () => {
-      if (audioRef.current && isPlaying) {
+      if (audioRef.current) {
         audioRef.current.pause();
         setIsPlaying(false);
       }
@@ -290,8 +294,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
   return (
     <Card className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 relative overflow-hidden">
-      <audio ref={audioRef} crossOrigin="anonymous" />
-      <audio ref={adRef} onEnded={handleAdEnd} />
+      <audio ref={audioRef} crossOrigin="anonymous" preload="auto" />
+      <audio ref={adRef} onEnded={handleAdEnd} preload="auto" />
 
       <AudioVisualizer audioRef={audioRef} isPlaying={isPlaying && !isPlayingAd} />
 
@@ -337,7 +341,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
                   variant="outline"
                   className="rounded-full w-10 h-10"
                   title="Previous Station"
-                  disabled={isLoading}
                 >
                   <SkipBack className="w-4 h-4" />
                 </Button>
@@ -352,7 +355,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
                   variant="outline"
                   className="rounded-full w-10 h-10"
                   title="Next Station"
-                  disabled={isLoading}
                 >
                   <SkipForward className="w-4 h-4" />
                 </Button>
