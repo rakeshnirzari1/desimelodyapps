@@ -65,8 +65,10 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   // Play advertisement every 3rd station change
   const playAdvertisement = () => {
     if (audioRef.current && adRef.current) {
-      // Pause the radio completely during ad
+      // Completely stop the radio during ad
       audioRef.current.pause();
+      audioRef.current.src = "";
+      setIsPlaying(false);
       setIsPlayingAd(true);
 
       // Play the ad
@@ -83,8 +85,10 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   // Handle ad end - resume radio playback
   const handleAdEnd = () => {
     setIsPlayingAd(false);
-    if (audioRef.current) {
-      // Resume the radio stream
+    if (audioRef.current && station) {
+      // Reload and resume the radio stream
+      audioRef.current.src = station.link;
+      audioRef.current.load();
       audioRef.current.play().then(() => {
         setIsPlaying(true);
       }).catch((error) => {
