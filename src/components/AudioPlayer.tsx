@@ -116,19 +116,29 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       audioRef.current.src = station.link;
       audioRef.current.load();
 
-      // Set timeout for station loading
+      // Set timeout for station loading - only if we get an actual error
       stationTimeoutRef.current = setTimeout(() => {
-        if (audioRef.current && audioRef.current.paused && !loadError) {
-          console.log("Station timed out after 15 seconds");
-          setIsLoading(false);
-          setLoadError(true);
+        if (audioRef.current) {
+          // Check if station has started loading (readyState > 0) but isn't playing
+          // readyState 0 = HAVE_NOTHING - no data loaded yet (network issue)
+          // readyState > 0 = some data loaded (autoplay blocked, but station is reachable)
+          if (audioRef.current.readyState === 0 && audioRef.current.paused) {
+            console.log("Station timed out - network issue");
+            setIsLoading(false);
+            setLoadError(true);
+          } else if (audioRef.current.paused) {
+            // Station loaded but autoplay blocked - stop showing loading
+            console.log("Station loaded but autoplay blocked");
+            setIsLoading(false);
+            setIsPlaying(false);
+          }
         }
       }, STATION_TIMEOUT);
 
-      audioRef.current.play().catch(() => {
-        console.log("Autoplay blocked, waiting for user interaction or timeout");
-        // Don't immediately set error - let the timeout handle it
-        // Mobile browsers often block autoplay, but station may still connect
+      audioRef.current.play().catch((error) => {
+        console.log("Autoplay blocked:", error.name);
+        // Autoplay blocked - station may still be loading in background
+        // Don't show error immediately, let user click play or wait for timeout
       });
 
       setIsPlaying(true);
@@ -137,15 +147,28 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       const handlePlaying = () => {
         setIsLoading(false);
         setLoadError(false);
+        setIsPlaying(true);
+        if (stationTimeoutRef.current) {
+          clearTimeout(stationTimeoutRef.current);
+        }
+      };
+
+      // Handle loading errors
+      const handleError = () => {
+        console.log("Station error - failed to load");
+        setIsLoading(false);
+        setLoadError(true);
         if (stationTimeoutRef.current) {
           clearTimeout(stationTimeoutRef.current);
         }
       };
 
       audioRef.current.addEventListener("playing", handlePlaying);
+      audioRef.current.addEventListener("error", handleError);
 
       return () => {
         audioRef.current?.removeEventListener("playing", handlePlaying);
+        audioRef.current?.removeEventListener("error", handleError);
         if (stationTimeoutRef.current) {
           clearTimeout(stationTimeoutRef.current);
         }
