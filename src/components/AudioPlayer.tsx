@@ -10,11 +10,51 @@ interface AudioPlayerProps {
   onClose: () => void;
 }
 
+const AD_INTERVAL = 10 * 60 * 1000; // 10 minutes in milliseconds
+const AD_URL = "/ad.mp3";
+
 export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(70);
   const [isMuted, setIsMuted] = useState(false);
+  const [isPlayingAd, setIsPlayingAd] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const adRef = useRef<HTMLAudioElement>(null);
+  const adTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Handle advertisement playback every 10 minutes
+  useEffect(() => {
+    if (!station || !isPlaying) return;
+
+    const playAdvertisement = () => {
+      if (audioRef.current && adRef.current) {
+        // Pause the radio
+        audioRef.current.pause();
+        setIsPlayingAd(true);
+        
+        // Play the ad
+        adRef.current.volume = isMuted ? 0 : volume / 100;
+        adRef.current.play();
+      }
+    };
+
+    // Set up the interval for ad playback
+    adTimerRef.current = setInterval(playAdvertisement, AD_INTERVAL);
+
+    return () => {
+      if (adTimerRef.current) {
+        clearInterval(adTimerRef.current);
+      }
+    };
+  }, [station, isPlaying, volume, isMuted]);
+
+  // Handle ad end - resume radio playback
+  const handleAdEnd = () => {
+    setIsPlayingAd(false);
+    if (audioRef.current) {
+      audioRef.current.play();
+    }
+  };
 
   useEffect(() => {
     if (station && audioRef.current) {
@@ -29,7 +69,10 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     if (audioRef.current) {
       audioRef.current.volume = isMuted ? 0 : volume / 100;
     }
-  }, [volume, isMuted]);
+    if (adRef.current && isPlayingAd) {
+      adRef.current.volume = isMuted ? 0 : volume / 100;
+    }
+  }, [volume, isMuted, isPlayingAd]);
 
   const togglePlay = () => {
     if (audioRef.current) {
@@ -51,6 +94,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   return (
     <Card className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
       <audio ref={audioRef} />
+      <audio ref={adRef} src={AD_URL} onEnded={handleAdEnd} />
       <div className="container py-4">
         <div className="flex items-center gap-4">
           <img
@@ -63,9 +107,14 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           />
 
           <div className="flex-1 min-w-0">
-            <h4 className="font-semibold truncate">{station.name}</h4>
+            <h4 className="font-semibold truncate">
+              {isPlayingAd ? "Advertisement" : station.name}
+            </h4>
             <p className="text-sm text-muted-foreground">
-              {station.language || "Hindi"} • {station.type}
+              {isPlayingAd 
+                ? "Please wait..." 
+                : `${station.language || "Hindi"} • ${station.type}`
+              }
             </p>
           </div>
 

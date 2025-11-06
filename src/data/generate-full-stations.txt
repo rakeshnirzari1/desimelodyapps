@@ -1,0 +1,27 @@
+Instructions for extracting all 1103 stations:
+
+The tool-results file at: tool-results://document--parse_document/20251106-005814-876307
+
+Contains all station data in markdown table format. Each row contains:
+|Name|Image|Type|Kbps|Votes|Clicks|Location|Language|Link|Website|
+
+To create the full stations.ts file, extract each row and convert to:
+{
+  id: "sequential_number",
+  name: "station name",
+  image: "image url",
+  type: "MP3/AAC/etc",
+  kbps: "bitrate",
+  votes: numeric_value,
+  clicks: numeric_value,
+  location: "India or specific city",
+  language: "hindi/tamil/etc or empty string",
+  link: "streaming url",
+  website: "website url"
+}
+
+Default values if missing:
+- image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200"
+- location: "India"
+- language: "Hindi"
+- website: "https://www.radio-browser.info/"

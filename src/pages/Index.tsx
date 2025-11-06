@@ -93,17 +93,82 @@ const Index = () => {
         <div className="container">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center space-y-2">
-              <div className="text-4xl font-bold text-primary">20+</div>
+              <div className="text-4xl font-bold text-primary">1100+</div>
               <div className="text-muted-foreground">Radio Stations</div>
             </div>
             <div className="text-center space-y-2">
-              <div className="text-4xl font-bold text-accent">10+</div>
+              <div className="text-4xl font-bold text-accent">15+</div>
               <div className="text-muted-foreground">Languages</div>
             </div>
             <div className="text-center space-y-2">
-              <div className="text-4xl font-bold text-secondary">100K+</div>
+              <div className="text-4xl font-bold text-secondary">1M+</div>
               <div className="text-muted-foreground">Monthly Listeners</div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-16 bg-muted/30">
+        <div className="container">
+          <div className="text-center space-y-4 mb-12">
+            <h2 className="text-3xl font-bold">Why Choose Us?</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Your one-stop destination for all Indian radio stations with seamless streaming experience
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center space-y-4 p-6 rounded-lg bg-card hover:shadow-lg transition-shadow">
+              <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                <Radio className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold">1100+ Stations</h3>
+              <p className="text-muted-foreground">
+                Access to over 1100 radio stations from all across India in one place
+              </p>
+            </div>
+            <div className="text-center space-y-4 p-6 rounded-lg bg-card hover:shadow-lg transition-shadow">
+              <div className="w-16 h-16 mx-auto bg-accent/10 rounded-full flex items-center justify-center">
+                <TrendingUp className="w-8 h-8 text-accent" />
+              </div>
+              <h3 className="text-xl font-semibold">Always Updated</h3>
+              <p className="text-muted-foreground">
+                Latest hits and classics, constantly updated playlist across all stations
+              </p>
+            </div>
+            <div className="text-center space-y-4 p-6 rounded-lg bg-card hover:shadow-lg transition-shadow">
+              <div className="w-16 h-16 mx-auto bg-secondary/10 rounded-full flex items-center justify-center">
+                <ArrowRight className="w-8 h-8 text-secondary" />
+              </div>
+              <h3 className="text-xl font-semibold">Easy Navigation</h3>
+              <p className="text-muted-foreground">
+                Find your favorite stations quickly with our smart search and filters
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Categories Section */}
+      <section className="py-16">
+        <div className="container">
+          <div className="text-center space-y-4 mb-12">
+            <h2 className="text-3xl font-bold">Browse by Category</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Discover radio stations by your favorite genres and languages
+            </p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {['Hindi', 'Tamil', 'Malayalam', 'Kannada', 'Telugu', 'Punjabi', 'Bengali', 'Marathi'].map((lang) => (
+              <Link key={lang} to={`/browse?language=${lang.toLowerCase()}`}>
+                <div className="p-6 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 hover:from-primary/20 hover:to-accent/20 transition-all cursor-pointer text-center">
+                  <h4 className="font-semibold text-lg">{lang}</h4>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {radioStations.filter(s => s.language?.toLowerCase().includes(lang.toLowerCase())).length} stations
+                  </p>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
