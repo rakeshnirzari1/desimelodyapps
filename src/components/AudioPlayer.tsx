@@ -10,7 +10,7 @@ interface AudioPlayerProps {
   onClose: () => void;
 }
 
-const AD_INTERVAL = 10 * 60 * 1000; // 10 minutes in milliseconds
+const AD_INTERVAL = 2 * 60 * 1000; // 2 minutes in milliseconds
 const AD_URL = "/ad.mp3";
 
 export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
@@ -31,7 +31,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         // Pause the radio
         audioRef.current.pause();
         setIsPlayingAd(true);
-        
+
         // Play the ad
         adRef.current.volume = isMuted ? 0 : volume / 100;
         adRef.current.play();
@@ -107,42 +107,20 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           />
 
           <div className="flex-1 min-w-0">
-            <h4 className="font-semibold truncate">
-              {isPlayingAd ? "Advertisement" : station.name}
-            </h4>
+            <h4 className="font-semibold truncate">{isPlayingAd ? "Advertisement" : station.name}</h4>
             <p className="text-sm text-muted-foreground">
-              {isPlayingAd 
-                ? "Please wait..." 
-                : `${station.language || "Hindi"} • ${station.type}`
-              }
+              {isPlayingAd ? "Please wait..." : `${station.language || "Hindi"} • ${station.type}`}
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <Button
-              onClick={togglePlay}
-              size="icon"
-              className="rounded-full w-12 h-12"
-            >
-              {isPlaying ? (
-                <Pause className="w-5 h-5 fill-current" />
-              ) : (
-                <Play className="w-5 h-5 fill-current" />
-              )}
+            <Button onClick={togglePlay} size="icon" className="rounded-full w-12 h-12">
+              {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
             </Button>
 
             <div className="hidden sm:flex items-center gap-2 w-32">
-              <Button
-                onClick={toggleMute}
-                size="icon"
-                variant="ghost"
-                className="w-8 h-8"
-              >
-                {isMuted ? (
-                  <VolumeX className="w-4 h-4" />
-                ) : (
-                  <Volume2 className="w-4 h-4" />
-                )}
+              <Button onClick={toggleMute} size="icon" variant="ghost" className="w-8 h-8">
+                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
               </Button>
               <Slider
                 value={[volume]}
@@ -153,12 +131,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
               />
             </div>
 
-            <Button
-              onClick={onClose}
-              size="icon"
-              variant="ghost"
-              className="w-8 h-8"
-            >
+            <Button onClick={onClose} size="icon" variant="ghost" className="w-8 h-8">
               <X className="w-4 h-4" />
             </Button>
           </div>
