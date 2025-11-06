@@ -33,9 +33,9 @@ export const StationCard = ({ station, onPlay }: StationCardProps) => {
           src={imageError ? "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400" : station.image}
           alt={station.name}
           onError={() => setImageError(true)}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-foreground/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         <Button
           asChild
           size="lg"

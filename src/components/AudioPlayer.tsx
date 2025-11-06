@@ -14,7 +14,6 @@ interface AudioPlayerProps {
   onClose: () => void;
 }
 
-const AD_INTERVAL = 2 * 60 * 1000; // 5 minutes in milliseconds
 const STATION_TIMEOUT = 15000; // 15 seconds
 
 export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
@@ -26,9 +25,9 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [adUrl, setAdUrl] = useState<string>("/ads/india.mp3");
+  const [stationChangeCount, setStationChangeCount] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
   const adRef = useRef<HTMLAudioElement>(null);
-  const adTimerRef = useRef<NodeJS.Timeout | null>(null);
   const playbackTimerRef = useRef<NodeJS.Timeout | null>(null);
   const stationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { setCurrentStation } = useAudio();
@@ -63,39 +62,23 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     };
   }, [isPlaying, isPlayingAd]);
 
-  // Handle advertisement playback every 5 minutes
-  useEffect(() => {
-    if (!station || !isPlaying || isPlayingAd) return;
+  // Play advertisement every 3rd station change
+  const playAdvertisement = () => {
+    if (audioRef.current && adRef.current) {
+      // Pause the radio completely during ad
+      audioRef.current.pause();
+      setIsPlayingAd(true);
 
-    const playAdvertisement = () => {
-      if (audioRef.current && adRef.current) {
-        // Pause the radio completely during ad
-        audioRef.current.pause();
-        setIsPlayingAd(true);
-
-        // Play the ad
-        adRef.current.src = adUrl;
-        adRef.current.volume = isMuted ? 0 : volume / 100;
-        adRef.current.play().catch((error) => {
-          console.log("Ad play failed:", error);
-          // Resume radio if ad fails
-          if (audioRef.current) {
-            audioRef.current.play();
-          }
-          setIsPlayingAd(false);
-        });
-      }
-    };
-
-    // Set up the interval for ad playback
-    adTimerRef.current = setInterval(playAdvertisement, AD_INTERVAL);
-
-    return () => {
-      if (adTimerRef.current) {
-        clearInterval(adTimerRef.current);
-      }
-    };
-  }, [station, isPlaying, volume, isMuted, isPlayingAd, adUrl]);
+      // Play the ad
+      adRef.current.src = adUrl;
+      adRef.current.volume = isMuted ? 0 : volume / 100;
+      adRef.current.play().catch((error) => {
+        console.log("Ad play failed:", error);
+        // Resume radio if ad fails
+        handleAdEnd();
+      });
+    }
+  };
 
   // Handle ad end - resume radio playback
   const handleAdEnd = () => {
@@ -120,7 +103,20 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     const nextIndex = (currentIndex + 1) % stations.length;
     const nextStation = stations[nextIndex];
 
-    setCurrentStation(nextStation);
+    // Increment station change counter
+    const newCount = stationChangeCount + 1;
+    setStationChangeCount(newCount);
+
+    // Play ad every 3rd station change
+    if (newCount % 3 === 0) {
+      playAdvertisement();
+      // Delay station change until after ad
+      setTimeout(() => {
+        setCurrentStation(nextStation);
+      }, 100);
+    } else {
+      setCurrentStation(nextStation);
+    }
   };
 
   // Change to previous station without navigation
@@ -132,7 +128,20 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     const prevIndex = currentIndex === 0 ? stations.length - 1 : currentIndex - 1;
     const prevStation = stations[prevIndex];
 
-    setCurrentStation(prevStation);
+    // Increment station change counter
+    const newCount = stationChangeCount + 1;
+    setStationChangeCount(newCount);
+
+    // Play ad every 3rd station change
+    if (newCount % 3 === 0) {
+      playAdvertisement();
+      // Delay station change until after ad
+      setTimeout(() => {
+        setCurrentStation(prevStation);
+      }, 100);
+    } else {
+      setCurrentStation(prevStation);
+    }
   };
 
   // Keep Media Session handlers updated with latest callbacks

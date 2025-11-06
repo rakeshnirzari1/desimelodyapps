@@ -7,17 +7,27 @@ import { AudioPlayer } from "@/components/AudioPlayer";
 import { SearchBar } from "@/components/SearchBar";
 import { OnlineListeners } from "@/components/OnlineListeners";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { RadioStation } from "@/types/station";
 import { getStationsWithSlugs } from "@/lib/station-utils";
-import { ArrowRight, Radio, TrendingUp, Share2, Facebook, Twitter, Linkedin, Mail } from "lucide-react";
+import { ArrowRight, Radio, TrendingUp, Share2, Facebook, Twitter, Linkedin, Mail, Tag } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useAudio } from "@/contexts/AudioContext";
+import { useEffect } from "react";
 
 const Index = () => {
   const { currentStation, setCurrentStation } = useAudio();
 
   const radioStations = getStationsWithSlugs();
+
+  // Auto-play Radio Mirchi Hindi on page load
+  useEffect(() => {
+    const radioMirchiHindi = radioStations.find(s => s.id === "3");
+    if (radioMirchiHindi && !currentStation) {
+      setCurrentStation(radioMirchiHindi);
+    }
+  }, []);
 
   
   // Featured stations by name
@@ -140,6 +150,26 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Radio Mirchi Hindi - Auto-playing section */}
+      <section className="py-8 bg-gradient-to-br from-primary/5 to-accent/5">
+        <div className="container">
+          <div className="max-w-3xl mx-auto">
+            {currentStation && currentStation.id === "3" && (
+              <div className="text-center space-y-4">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full">
+                  <Radio className="w-4 h-4 text-primary animate-pulse" />
+                  <span className="text-sm font-medium text-primary">Now Playing</span>
+                </div>
+                <h2 className="text-2xl font-bold">{currentStation.name}</h2>
+                <p className="text-muted-foreground">
+                  Your favorite Bollywood hits, live 24/7
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
       {/* Audio Player - Positioned above featured stations */}
       {currentStation && (
         <section className="sticky top-16 z-40">
@@ -147,7 +177,7 @@ const Index = () => {
         </section>
       )}
 
-      {/* Featured Stations */}
+      {/* Top Stations */}
       <section className="py-16 bg-muted/30">
         <div className="container space-y-8">
           <div className="flex items-center justify-between">
@@ -155,7 +185,7 @@ const Index = () => {
               <div>
                 <h2 className="text-3xl font-bold flex items-center gap-2">
                   <Radio className="w-8 h-8 text-primary" />
-                  Featured Stations
+                  Top Stations
                 </h2>
                 <p className="text-muted-foreground mt-2">
                   Handpicked stations with the best music and entertainment
@@ -182,7 +212,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Most Popular Stations */}
+      {/* Hot Today */}
       <section className="py-16">
         <div className="container space-y-8">
           <div className="flex items-center justify-between">
@@ -190,7 +220,7 @@ const Index = () => {
               <div>
                 <h2 className="text-3xl font-bold flex items-center gap-2">
                   <TrendingUp className="w-8 h-8 text-primary" />
-                  Most Popular Stations
+                  Hot Today
                 </h2>
                 <p className="text-muted-foreground mt-2">
                   Top-rated stations loved by millions of listeners across South Asia
@@ -296,6 +326,33 @@ const Index = () => {
                     {radioStations.filter(s => s.language?.toLowerCase().includes(lang.toLowerCase())).length} stations
                   </p>
                 </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Tags Section */}
+      <section className="py-16 bg-muted/30">
+        <div className="container">
+          <div className="text-center space-y-4 mb-12">
+            <h2 className="text-3xl font-bold flex items-center justify-center gap-2">
+              <Tag className="w-8 h-8 text-primary" />
+              Browse by Tags
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Find stations by popular tags and genres
+            </p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-3">
+            {['MP3', 'Bollywood', 'Classical', 'Devotional', 'Pop', 'Rock', 'Folk', 'News'].map((tag) => (
+              <Link key={tag} to={`/tag/${tag.toLowerCase()}`}>
+                <Badge 
+                  variant="outline" 
+                  className="px-4 py-2 text-base hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer"
+                >
+                  {tag}
+                </Badge>
               </Link>
             ))}
           </div>
