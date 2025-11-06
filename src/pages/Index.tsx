@@ -37,9 +37,23 @@ const Index = () => {
     ))
     .slice(0, 8);
   
-  // Popular stations by votes
+  // Popular stations by name
+  const popularStationNames = [
+    "Radio Mirchi USA",
+    "Namaste Bollywood",
+    "Bhojpuri Songs",
+    "Mixify Bollywood",
+    "Mirchi Love Hindi",
+    "90's Tamil Melodies",
+    "latamangeshkarradio",
+    "Red FM 93.5"
+  ];
+  
   const popularStations = radioStations
-    .sort((a, b) => b.votes - a.votes)
+    .filter(station => popularStationNames.some(name => 
+      station.name.toLowerCase().includes(name.toLowerCase()) || 
+      name.toLowerCase().includes(station.name.toLowerCase())
+    ))
     .slice(0, 8);
 
   const handlePlay = (station: RadioStation) => {
