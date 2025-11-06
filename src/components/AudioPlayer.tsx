@@ -62,40 +62,46 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     };
   }, [isPlaying, isPlayingAd]);
 
-  // Play advertisement every 3rd station change
+  // Play advertisement with proper timing
   const playAdvertisement = () => {
     if (audioRef.current && adRef.current) {
       // Completely stop the radio during ad
       audioRef.current.pause();
       audioRef.current.src = "";
       setIsPlaying(false);
-      setIsPlayingAd(true);
-
-      // Play the ad
-      adRef.current.src = adUrl;
-      adRef.current.volume = isMuted ? 0 : volume / 100;
-      adRef.current.play().catch((error) => {
-        console.log("Ad play failed:", error);
-        // Resume radio if ad fails
-        handleAdEnd();
-      });
+      
+      // Wait 1 second before starting ad
+      setTimeout(() => {
+        setIsPlayingAd(true);
+        adRef.current.src = adUrl;
+        adRef.current.volume = isMuted ? 0 : volume / 100;
+        adRef.current.play().catch((error) => {
+          console.log("Ad play failed:", error);
+          // Resume radio if ad fails
+          handleAdEnd();
+        });
+      }, 1000);
     }
   };
 
-  // Handle ad end - resume radio playback
+  // Handle ad end - resume radio playback after delay
   const handleAdEnd = () => {
     setIsPlayingAd(false);
-    if (audioRef.current && station) {
-      // Reload and resume the radio stream
-      audioRef.current.src = station.link;
-      audioRef.current.load();
-      audioRef.current.play().then(() => {
-        setIsPlaying(true);
-      }).catch((error) => {
-        console.log("Radio resume failed:", error);
-        setIsPlaying(false);
-      });
-    }
+    
+    // Wait 1-2 seconds after ad ends before resuming radio
+    setTimeout(() => {
+      if (audioRef.current && station) {
+        // Reload and resume the radio stream
+        audioRef.current.src = station.link;
+        audioRef.current.load();
+        audioRef.current.play().then(() => {
+          setIsPlaying(true);
+        }).catch((error) => {
+          console.log("Radio resume failed:", error);
+          setIsPlaying(false);
+        });
+      }
+    }, 1500);
   };
 
   // Change to next station without navigation
@@ -113,11 +119,20 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
     // Play ad every 3rd station change
     if (newCount % 3 === 0) {
+      // Stop current station first
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+        setIsPlaying(false);
+      }
+      
+      // Play advertisement
       playAdvertisement();
-      // Delay station change until after ad
+      
+      // Change station after ad is set to play (will load after ad ends)
       setTimeout(() => {
         setCurrentStation(nextStation);
-      }, 100);
+      }, 500);
     } else {
       setCurrentStation(nextStation);
     }
@@ -138,11 +153,20 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
     // Play ad every 3rd station change
     if (newCount % 3 === 0) {
+      // Stop current station first
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+        setIsPlaying(false);
+      }
+      
+      // Play advertisement
       playAdvertisement();
-      // Delay station change until after ad
+      
+      // Change station after ad is set to play (will load after ad ends)
       setTimeout(() => {
         setCurrentStation(prevStation);
-      }, 100);
+      }, 500);
     } else {
       setCurrentStation(prevStation);
     }
