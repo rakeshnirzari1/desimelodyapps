@@ -59,20 +59,28 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     };
   }, [isPlaying, isPlayingAd]);
 
-  // Handle advertisement playback every 10 minutes
+  // Handle advertisement playback every 5 minutes
   useEffect(() => {
     if (!station || !isPlaying || isPlayingAd) return;
 
     const playAdvertisement = () => {
       if (audioRef.current && adRef.current) {
-        // Pause the radio
-        audioRef.current.pause();
+        // Lower radio volume instead of pausing
+        const originalVolume = audioRef.current.volume;
+        audioRef.current.volume = originalVolume * 0.15; // 15% volume for background
         setIsPlayingAd(true);
 
-        // Play the ad
+        // Play the ad on top
         adRef.current.src = adUrl;
         adRef.current.volume = isMuted ? 0 : volume / 100;
-        adRef.current.play();
+        adRef.current.play().catch((error) => {
+          console.log("Ad play failed:", error);
+          // Restore radio volume if ad fails
+          if (audioRef.current) {
+            audioRef.current.volume = originalVolume;
+          }
+          setIsPlayingAd(false);
+        });
       }
     };
 
@@ -86,11 +94,11 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     };
   }, [station, isPlaying, volume, isMuted, isPlayingAd, adUrl]);
 
-  // Handle ad end - resume radio playback
+  // Handle ad end - restore radio to normal volume
   const handleAdEnd = () => {
     setIsPlayingAd(false);
     if (audioRef.current) {
-      audioRef.current.play();
+      audioRef.current.volume = isMuted ? 0 : volume / 100;
     }
   };
 
@@ -133,15 +141,11 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       // Set timeout for station loading - only if we get an actual error
       stationTimeoutRef.current = setTimeout(() => {
         if (audioRef.current) {
-          // Check if station has started loading (readyState > 0) but isn't playing
-          // readyState 0 = HAVE_NOTHING - no data loaded yet (network issue)
-          // readyState > 0 = some data loaded (autoplay blocked, but station is reachable)
           if (audioRef.current.readyState === 0 && audioRef.current.paused) {
             console.log("Station timed out - network issue");
             setIsLoading(false);
             setLoadError(true);
           } else if (audioRef.current.paused) {
-            // Station loaded but autoplay blocked - stop showing loading
             console.log("Station loaded but autoplay blocked");
             setIsLoading(false);
             setIsPlaying(false);
@@ -149,7 +153,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         }
       }, STATION_TIMEOUT);
 
-      // Try to play immediately - no delays
+      // Try to play immediately
       const playPromise = audioRef.current.play();
       
       if (playPromise !== undefined) {
@@ -161,9 +165,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         });
       }
 
-      // Only set to true if play succeeds (will be updated by 'playing' event)
-
-      // Clear timeout and loading state when station starts playing
       const handlePlaying = () => {
         setIsLoading(false);
         setLoadError(false);
@@ -173,7 +174,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         }
       };
 
-      // Handle loading errors
       const handleError = () => {
         console.log("Station error - failed to load");
         setIsLoading(false);
@@ -197,7 +197,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   }, [station]);
 
   useEffect(() => {
-    if (audioRef.current) {
+    if (audioRef.current && !isPlayingAd) {
       audioRef.current.volume = isMuted ? 0 : volume / 100;
     }
     if (adRef.current && isPlayingAd) {
@@ -220,6 +220,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
     navigator.mediaSession.setActionHandler('play', () => {
       if (audioRef.current && !isPlaying) {
+        // Reload stream to get live audio
+        audioRef.current.load();
         audioRef.current.play();
         setIsPlaying(true);
       }
@@ -247,10 +249,17 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause();
+        setIsPlaying(false);
       } else {
-        audioRef.current.play();
+        // Reload the stream to get live audio when resuming
+        audioRef.current.load();
+        audioRef.current.play().then(() => {
+          setIsPlaying(true);
+        }).catch((error) => {
+          console.log("Play failed:", error);
+          setIsPlaying(false);
+        });
       }
-      setIsPlaying(!isPlaying);
     }
   };
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -12,9 +12,10 @@ import { getStationsWithSlugs } from "@/lib/station-utils";
 import { ArrowRight, Radio, TrendingUp, Share2, Facebook, Twitter, Linkedin, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { useAudio } from "@/contexts/AudioContext";
 
 const Index = () => {
-  const [currentStation, setCurrentStation] = useState<RadioStation | null>(null);
+  const { currentStation, setCurrentStation } = useAudio();
 
   const radioStations = getStationsWithSlugs();
 
@@ -26,11 +27,6 @@ const Index = () => {
     if (radioMirchiHindi) {
       setCurrentStation(radioMirchiHindi);
     }
-
-    // Cleanup: Stop playing when leaving home page
-    return () => {
-      setCurrentStation(null);
-    };
   }, []);
   
   // Featured stations by name

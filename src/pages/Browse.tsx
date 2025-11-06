@@ -15,9 +15,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, SlidersHorizontal } from "lucide-react";
+import { useAudio } from "@/contexts/AudioContext";
 
 const Browse = () => {
-  const [currentStation, setCurrentStation] = useState<RadioStation | null>(null);
+  const { currentStation, setCurrentStation } = useAudio();
   const [searchQuery, setSearchQuery] = useState("");
   const [languageFilter, setLanguageFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("votes");

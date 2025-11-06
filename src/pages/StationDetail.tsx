@@ -24,12 +24,13 @@ import {
   BookmarkCheck,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useAudio } from "@/contexts/AudioContext";
 
 const StationDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [station, setStation] = useState<RadioStation | null>(null);
-  const [currentStation, setCurrentStation] = useState<RadioStation | null>(null);
+  const { currentStation, setCurrentStation } = useAudio();
   const [relatedStations, setRelatedStations] = useState<RadioStation[]>([]);
   const [isBookmarked, setIsBookmarked] = useState(false);
 
