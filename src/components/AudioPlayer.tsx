@@ -14,7 +14,7 @@ interface AudioPlayerProps {
   onClose: () => void;
 }
 
-const AD_INTERVAL = 10 * 60 * 1000; // 10 minutes in milliseconds
+const AD_INTERVAL = 2 * 60 * 1000; // 10 minutes in milliseconds
 const STATION_TIMEOUT = 10000; // 10 seconds
 
 export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
@@ -44,7 +44,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   useEffect(() => {
     if (isPlaying && !isPlayingAd) {
       playbackTimerRef.current = setInterval(() => {
-        setPlaybackTime(prev => prev + 1);
+        setPlaybackTime((prev) => prev + 1);
       }, 1000);
     } else if (playbackTimerRef.current) {
       clearInterval(playbackTimerRef.current);
@@ -95,11 +95,11 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   // Auto-skip to next station if current doesn't load within 10 seconds
   const playNextStation = () => {
     if (!station) return;
-    
-    const currentIndex = radioStations.findIndex(s => s.id === station.id);
+
+    const currentIndex = radioStations.findIndex((s) => s.id === station.id);
     const nextIndex = (currentIndex + 1) % radioStations.length;
     const nextStation = radioStations[nextIndex];
-    
+
     navigate(`/station/${nextStation.id}`);
   };
 
@@ -108,7 +108,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       setPlaybackTime(0);
       audioRef.current.src = station.link;
       audioRef.current.load();
-      
+
       // Set timeout for station loading
       stationTimeoutRef.current = setTimeout(() => {
         if (audioRef.current && audioRef.current.paused) {
@@ -121,7 +121,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         console.log("Failed to play, trying next station...");
         playNextStation();
       });
-      
+
       setIsPlaying(true);
 
       // Clear timeout when station starts playing
@@ -130,11 +130,11 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           clearTimeout(stationTimeoutRef.current);
         }
       };
-      
-      audioRef.current.addEventListener('playing', handlePlaying);
+
+      audioRef.current.addEventListener("playing", handlePlaying);
 
       return () => {
-        audioRef.current?.removeEventListener('playing', handlePlaying);
+        audioRef.current?.removeEventListener("playing", handlePlaying);
         if (stationTimeoutRef.current) {
           clearTimeout(stationTimeoutRef.current);
         }
@@ -170,11 +170,11 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    
+
     if (hrs > 0) {
-      return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      return `${hrs}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     }
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   if (!station) return null;
@@ -183,9 +183,9 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     <Card className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 relative overflow-hidden">
       <audio ref={audioRef} crossOrigin="anonymous" />
       <audio ref={adRef} onEnded={handleAdEnd} />
-      
+
       <AudioVisualizer audioRef={audioRef} isPlaying={isPlaying && !isPlayingAd} />
-      
+
       <div className="container py-4 relative z-10">
         <div className="flex items-center gap-4">
           <img
@@ -203,9 +203,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
               {isPlayingAd ? "Please wait..." : `${station.language || "Hindi"} • ${station.type}`}
             </p>
             {!isPlayingAd && (
-              <p className="text-xs text-primary font-medium mt-1">
-                Playing for {formatTime(playbackTime)}
-              </p>
+              <p className="text-xs text-primary font-medium mt-1">Playing for {formatTime(playbackTime)}</p>
             )}
           </div>
 
@@ -214,10 +212,10 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
               {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
             </Button>
 
-            <Button 
-              onClick={playNextStation} 
-              size="icon" 
-              variant="outline" 
+            <Button
+              onClick={playNextStation}
+              size="icon"
+              variant="outline"
               className="rounded-full w-10 h-10"
               title="Next Station"
             >
