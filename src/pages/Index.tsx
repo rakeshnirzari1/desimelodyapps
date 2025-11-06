@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Header } from "@/components/Header";
 import { StationCard } from "@/components/StationCard";
 import { AudioPlayer } from "@/components/AudioPlayer";
+import { SearchBar } from "@/components/SearchBar";
+import { OnlineListeners } from "@/components/OnlineListeners";
 import { Button } from "@/components/ui/button";
 import { RadioStation } from "@/types/station";
 import { radioStations } from "@/data/stations";
@@ -27,17 +29,21 @@ const Index = () => {
       <section className="relative py-20 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-background to-background" />
         <div className="container relative z-10">
-          <div className="max-w-3xl mx-auto text-center space-y-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
-              <Radio className="w-4 h-4" />
-              <span>1000+ Indian Radio Stations</span>
+          <div className="max-w-4xl mx-auto text-center space-y-8">
+            <div className="flex justify-center mb-4">
+              <OnlineListeners />
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent leading-tight">
-              Discover Indian Radio Stations
+            <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent leading-tight">
+              Desi Melody - Endless Vibes
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Stream live radio from across India. From Bollywood hits to regional classics, find your perfect station.
+            <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
+              Stream live radio from India, Pakistan, Bangladesh, Sri Lanka and across South Asia. From Bollywood hits to regional classics.
             </p>
+            
+            <div className="pt-4">
+              <SearchBar />
+            </div>
+
             <div className="flex items-center justify-center gap-4 pt-4">
               <Link to="/browse">
                 <Button size="lg" className="gap-2">
@@ -60,13 +66,15 @@ const Index = () => {
         <div className="container space-y-8">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-3xl font-bold flex items-center gap-2">
-                <TrendingUp className="w-8 h-8 text-primary" />
-                Most Popular Stations
-              </h2>
-              <p className="text-muted-foreground mt-2">
-                Top-rated stations loved by millions of listeners
-              </p>
+              <div>
+                <h2 className="text-3xl font-bold flex items-center gap-2">
+                  <TrendingUp className="w-8 h-8 text-primary" />
+                  Most Popular Stations
+                </h2>
+                <p className="text-muted-foreground mt-2">
+                  Top-rated stations loved by millions of listeners across South Asia
+                </p>
+              </div>
             </div>
             <Link to="/browse">
               <Button variant="ghost" className="gap-2">
@@ -124,7 +132,7 @@ const Index = () => {
               </div>
               <h3 className="text-xl font-semibold">1100+ Stations</h3>
               <p className="text-muted-foreground">
-                Access to over 1100 radio stations from all across India in one place
+                Access to over 1100 radio stations from India, Pakistan, Bangladesh, Sri Lanka and more
               </p>
             </div>
             <div className="text-center space-y-4 p-6 rounded-lg bg-card hover:shadow-lg transition-shadow">

@@ -10,10 +10,10 @@ const About = () => {
       <div className="container py-16 space-y-12">
         <div className="max-w-3xl mx-auto text-center space-y-4">
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            About Radio India
+            About Desi Melody
           </h1>
           <p className="text-xl text-muted-foreground">
-            Your one-stop platform to discover and enjoy Indian radio stations from across the country
+            Your one-stop platform for South Asian radio - India, Pakistan, Bangladesh, Sri Lanka & beyond
           </p>
         </div>
 

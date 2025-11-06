@@ -13,8 +13,12 @@ interface StationCardProps {
 export const StationCard = ({ station, onPlay }: StationCardProps) => {
   const [imageError, setImageError] = useState(false);
 
+  const handleCardClick = () => {
+    window.location.href = `/station/${station.id}`;
+  };
+
   return (
-    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-[var(--shadow-hover)] bg-gradient-to-br from-card to-muted/20">
+    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-[var(--shadow-hover)] bg-gradient-to-br from-card to-muted/20 cursor-pointer" onClick={handleCardClick}>
       <div className="relative aspect-square overflow-hidden">
         <img
           src={imageError ? "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400" : station.image}
@@ -24,7 +28,7 @@ export const StationCard = ({ station, onPlay }: StationCardProps) => {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         <Button
-          onClick={() => onPlay(station)}
+          onClick={(e) => { e.stopPropagation(); onPlay(station); }}
           size="lg"
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 scale-90 group-hover:scale-100 rounded-full w-16 h-16 p-0"
         >
