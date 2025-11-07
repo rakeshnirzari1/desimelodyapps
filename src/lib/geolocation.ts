@@ -4,14 +4,20 @@ export const getUserCountry = async (): Promise<string> => {
     const data = await response.json();
     const country = data.country_code?.toUpperCase();
     
-    // Map countries to ad regions
+    // Map countries to ad regions (folder names)
     if (country === 'IN') return 'india';
     if (country === 'US') return 'usa';
     if (country === 'AU') return 'australia';
     if (country === 'PK') return 'pakistan';
+    if (country === 'GB') return 'uk';
+    if (country === 'AE') return 'uae';
+    if (country === 'CA') return 'canada';
+    if (country === 'BD') return 'bangladesh';
+    if (country === 'KW') return 'kuwait';
+    if (country === 'ZA') return 'south-africa';
     
-    // Default to India for South Asian countries
-    if (['BD', 'LK', 'NP', 'BT', 'MV'].includes(country)) return 'india';
+    // Default to India for other South Asian countries
+    if (['LK', 'NP', 'BT', 'MV'].includes(country)) return 'india';
     
     // Default to USA for all other countries
     return 'usa';

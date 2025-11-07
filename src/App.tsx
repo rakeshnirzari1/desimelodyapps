@@ -10,6 +10,7 @@ import About from "./pages/About";
 import StationDetail from "./pages/StationDetail";
 import TagFilter from "./pages/TagFilter";
 import AdminRefresh from "./pages/AdminRefresh";
+import AdminAds from "./pages/AdminAds";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/browse" element={<Browse />} />
             <Route path="/tag/:tag" element={<TagFilter />} />
             <Route path="/admin-refresh-stations" element={<AdminRefresh />} />
+            <Route path="/admin/ads" element={<AdminAds />} />
             <Route path="/:slug" element={<StationDetail />} />
             <Route path="/about" element={<About />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -42,26 +42,26 @@ export const AdOverlay = ({ isVisible, duration, onSkip }: AdOverlayProps) => {
   if (!isVisible) return null;
 
   return (
-    <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 backdrop-blur-sm z-20 flex items-center justify-center">
-      <div className="text-center space-y-3 px-4">
-        <Badge variant="secondary" className="text-sm font-semibold px-4 py-1.5">
+    <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-accent/20 to-primary/30 backdrop-blur-md z-20 flex items-center justify-center">
+      <div className="text-center space-y-4 px-6 py-8 rounded-xl bg-background/40 backdrop-blur-sm border border-border/50 shadow-xl max-w-sm mx-4">
+        <Badge variant="secondary" className="text-base font-bold px-6 py-2 shadow-lg">
           🎵 Commercial Break
         </Badge>
         
-        <div className="text-lg font-medium text-foreground">
+        <div className="text-xl font-semibold text-foreground">
           Ad playing • {timeRemaining}s remaining
         </div>
         
         {canSkip && onSkip && (
           <button
             onClick={onSkip}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors underline"
+            className="text-sm font-medium text-primary hover:text-primary/80 transition-colors underline underline-offset-2 mt-2"
           >
-            Skip ad
+            Skip ad →
           </button>
         )}
         
-        <p className="text-xs text-muted-foreground max-w-xs">
+        <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed pt-2">
           Ads help us keep Desi Melody free and support our radio partners
         </p>
       </div>

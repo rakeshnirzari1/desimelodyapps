@@ -27,16 +27,64 @@ const DEFAULT_AD_CONFIG: Record<string, string> = {
   'default': '/ad.mp3'
 };
 
-export const AD_FREQUENCY = 5; // Every 5th station change
+export const AD_FREQUENCY = 6; // Every 6th station change
 export const AD_TIME_INTERVAL = 15 * 60 * 1000; // 15 minutes
 export const AD_COOLDOWN = 3 * 60 * 1000; // 3 minutes minimum between ads
 
+// Supported countries for ads
+export const AD_COUNTRIES = [
+  'australia',
+  'uk', 
+  'india',
+  'usa',
+  'uae',
+  'canada',
+  'pakistan',
+  'bangladesh',
+  'kuwait',
+  'south-africa'
+] as const;
+
 /**
- * Get the appropriate ad URL based on user's detected country
+ * Get list of available ads for a country by checking numbered files
+ */
+const getAvailableAdsForCountry = async (country: string): Promise<string[]> => {
+  const ads: string[] = [];
+  
+  // Try to fetch up to 20 ad files (ad1.mp3, ad2.mp3, etc.)
+  for (let i = 1; i <= 20; i++) {
+    const adUrl = `/ads/${country}/ad${i}.mp3`;
+    try {
+      const response = await fetch(adUrl, { method: 'HEAD' });
+      if (response.ok) {
+        ads.push(adUrl);
+      } else {
+        break; // Stop checking if file doesn't exist
+      }
+    } catch {
+      break;
+    }
+  }
+  
+  return ads;
+};
+
+/**
+ * Get a random ad URL based on user's detected country
+ * Randomly selects from available ads in the country folder
  */
 export const getAdUrlForRegion = async (): Promise<string> => {
   try {
     const country = await getUserCountry();
+    const ads = await getAvailableAdsForCountry(country);
+    
+    if (ads.length > 0) {
+      // Randomly select an ad from available ads
+      const randomIndex = Math.floor(Math.random() * ads.length);
+      return ads[randomIndex];
+    }
+    
+    // Fallback to old single-file structure
     return DEFAULT_AD_CONFIG[country] || DEFAULT_AD_CONFIG.default;
   } catch (error) {
     console.log('Error detecting country for ad:', error);

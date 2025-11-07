@@ -109,21 +109,35 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
   // Handle ad completion
   const handleAdEnded = () => {
-    console.log('Ad finished');
+    console.log('Ad finished - resuming radio');
     setIsPlayingAd(false);
     
-    // Resume radio stream
-    if (audioRef.current && isPlaying) {
-      audioRef.current.play().catch(console.error);
+    // Always resume radio stream after ad ends
+    if (audioRef.current) {
+      // Force play regardless of previous state
+      audioRef.current.play()
+        .then(() => {
+          setIsPlaying(true);
+          console.log('Radio resumed successfully');
+        })
+        .catch((error) => {
+          console.error('Failed to resume radio:', error);
+          // Try again after a short delay
+          setTimeout(() => {
+            audioRef.current?.play().then(() => setIsPlaying(true)).catch(console.error);
+          }, 500);
+        });
     }
   };
 
   // Skip ad (if user wants)
   const skipAd = () => {
+    console.log('Ad skipped by user - resuming radio');
     if (adAudioRef.current) {
       adAudioRef.current.pause();
-      handleAdEnded();
+      adAudioRef.current.currentTime = 0;
     }
+    handleAdEnded(); // This will auto-resume the radio
   };
 
   // Change to next station without navigation
