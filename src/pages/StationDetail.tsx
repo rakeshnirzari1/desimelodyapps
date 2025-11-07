@@ -36,11 +36,19 @@ const StationDetail = () => {
   const [relatedStations, setRelatedStations] = useState<RadioStation[]>([]);
   const [isBookmarked, setIsBookmarked] = useState(false);
 
-  // Check if station is bookmarked
+  // Check if station is bookmarked (robust with slug fallback)
   useEffect(() => {
     if (!station) return;
-    const bookmarks = JSON.parse(localStorage.getItem("bookmarkedStations") || "[]");
-    setIsBookmarked(bookmarks.some((b: any) => b.id === station.id));
+    try {
+      const raw = localStorage.getItem("bookmarkedStations");
+      const bookmarks: any[] = raw ? JSON.parse(raw) : [];
+      const matched = bookmarks.some(
+        (b: any) => b.id === station.id || (station.slug && b.slug === station.slug),
+      );
+      setIsBookmarked(matched);
+    } catch {
+      setIsBookmarked(false);
+    }
   }, [station]);
 
   useEffect(() => {
@@ -81,18 +89,33 @@ const StationDetail = () => {
   const handleBookmark = () => {
     if (!station) return;
 
-    const bookmarks = JSON.parse(localStorage.getItem("bookmarkedStations") || "[]");
+    try {
+      const raw = localStorage.getItem("bookmarkedStations");
+      let bookmarks: any[] = raw ? JSON.parse(raw) : [];
 
-    if (isBookmarked) {
-      const updated = bookmarks.filter((b: any) => b.id !== station.id);
-      localStorage.setItem("bookmarkedStations", JSON.stringify(updated));
-      setIsBookmarked(false);
-      toast.success("Removed from bookmarks");
-    } else {
-      bookmarks.push({ id: station.id, name: station.name, slug: station.slug });
-      localStorage.setItem("bookmarkedStations", JSON.stringify(bookmarks));
-      setIsBookmarked(true);
-      toast.success("Added to bookmarks");
+      const exists = bookmarks.some(
+        (b: any) => b.id === station.id || (station.slug && b.slug === station.slug),
+      );
+
+      if (exists) {
+        const updated = bookmarks.filter(
+          (b: any) => b.id !== station.id && (!station.slug || b.slug !== station.slug),
+        );
+        localStorage.setItem("bookmarkedStations", JSON.stringify(updated));
+        setIsBookmarked(false);
+        toast.success("Removed from bookmarks");
+      } else {
+        // Ensure only one entry per station
+        bookmarks = bookmarks.filter(
+          (b: any) => b.id !== station.id && (!station.slug || b.slug !== station.slug),
+        );
+        bookmarks.push({ id: station.id, name: station.name, slug: station.slug });
+        localStorage.setItem("bookmarkedStations", JSON.stringify(bookmarks));
+        setIsBookmarked(true);
+        toast.success("Added to bookmarks");
+      }
+    } catch {
+      toast.error("Unable to save bookmark on this device.");
     }
   };
 
@@ -208,25 +231,23 @@ const StationDetail = () => {
               </div>
             </div>
 
-            {station.website && (
-              <Button onClick={() => window.open(station.website, "_blank")} variant="outline" className="gap-2">
-                <Globe className="w-4 h-4" />
-                Visit Official Website
-              </Button>
-            )}
-
-            {/* Bookmark Button */}
-            <div className="pt-4 border-t">
-              <Button onClick={handleBookmark} variant={isBookmarked ? "default" : "outline"} className="w-full gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              {station.website && (
+                <Button onClick={() => window.open(station.website, "_blank")} variant="outline" className="gap-2">
+                  <Globe className="w-4 h-4" />
+                  Visit Site
+                </Button>
+              )}
+              <Button onClick={handleBookmark} variant={isBookmarked ? "default" : "outline"} className="gap-2">
                 {isBookmarked ? (
                   <>
                     <BookmarkCheck className="w-4 h-4" />
-                    Bookmarked - {station.name}
+                    Bookmarked
                   </>
                 ) : (
                   <>
                     <Bookmark className="w-4 h-4" />
-                    Bookmark {station.name}
+                    Bookmark Station
                   </>
                 )}
               </Button>
