@@ -19,7 +19,7 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import { useAudio } from "@/contexts/AudioContext";
 
 const Browse = () => {
-  const { currentStation, setCurrentStation, setFilteredStations } = useAudio();
+  const { currentStation, setCurrentStation } = useAudio();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [languageFilter, setLanguageFilter] = useState<string>("all");
@@ -69,11 +69,6 @@ const Browse = () => {
 
     return filtered;
   }, [searchQuery, languageFilter, sortBy]);
-
-  // Update filtered stations in context
-  useEffect(() => {
-    setFilteredStations(filteredStations);
-  }, [filteredStations, setFilteredStations]);
 
   const handlePlay = (station: RadioStation) => {
     setCurrentStation(station);
