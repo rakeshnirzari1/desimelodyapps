@@ -11,17 +11,34 @@ import { Badge } from "@/components/ui/badge";
 import { RadioStation } from "@/types/station";
 import { getStationsWithSlugs } from "@/lib/station-utils";
 import { ArrowRight, Radio, TrendingUp, Share2, Facebook, Twitter, Linkedin, Mail, Tag } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useAudio } from "@/contexts/AudioContext";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
   const { currentStation, setCurrentStation } = useAudio();
   const isMobile = useIsMobile();
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get('search') || '';
 
   const radioStations = getStationsWithSlugs();
+
+  // Filter stations based on URL search parameter
+  const filteredStations = useMemo(() => {
+    if (!searchQuery) return radioStations;
+    
+    const query = searchQuery.toLowerCase();
+    return radioStations.filter(
+      (station) =>
+        station.name.toLowerCase().includes(query) ||
+        station.language?.toLowerCase().includes(query) ||
+        station.location?.toLowerCase().includes(query) ||
+        station.type?.toLowerCase().includes(query) ||
+        station.tags?.toLowerCase().includes(query)
+    );
+  }, [searchQuery, radioStations]);
 
   // Featured tags
   const featuredTags = ['Bollywood', 'Hindi', 'Tamil', 'News', 'Devotional', 'Pop', 'Rock', 'Folk'];
@@ -49,7 +66,7 @@ const Index = () => {
     "Radio Bollywood Gaane Purane"
   ];
   
-  const featuredStations = radioStations
+  const featuredStations = filteredStations
     .filter(station => featuredStationNames.some(name => 
       station.name.toLowerCase().includes(name.toLowerCase()) || 
       name.toLowerCase().includes(station.name.toLowerCase())
@@ -68,7 +85,7 @@ const Index = () => {
     "Red FM 93.5"
   ];
   
-  const popularStations = radioStations
+  const popularStations = filteredStations
     .filter(station => popularStationNames.some(name => 
       station.name.toLowerCase().includes(name.toLowerCase()) || 
       name.toLowerCase().includes(station.name.toLowerCase())
@@ -134,12 +151,25 @@ const Index = () => {
             <div className="flex justify-center mb-4">
               <OnlineListeners />
             </div>
-            <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent leading-tight">
-              <span className="hidden md:inline">Desi Melody - </span>Endless Vibes
-            </h1>
-            <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
-              Stream live radio from India, Pakistan, Bangladesh, Sri Lanka and across South Asia. From Bollywood hits to regional classics.
-            </p>
+            {!searchQuery ? (
+              <>
+                <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent leading-tight">
+                  <span className="hidden md:inline">Desi Melody - </span>Endless Vibes
+                </h1>
+                <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
+                  Stream live radio from India, Pakistan, Bangladesh, Sri Lanka and across South Asia. From Bollywood hits to regional classics.
+                </p>
+              </>
+            ) : (
+              <>
+                <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent leading-tight">
+                  Search Results for "{searchQuery}"
+                </h1>
+                <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
+                  Found {filteredStations.length} station{filteredStations.length !== 1 ? 's' : ''}
+                </p>
+              </>
+            )}
             
             <div className="pt-4">
               <SearchBar onStationSelect={handlePlay} />
@@ -199,75 +229,118 @@ const Index = () => {
         </section>
       )}
 
-      {/* Top Stations */}
-      <section className="py-16 bg-muted/30">
-        <div className="container space-y-8">
-          <div className="flex items-center justify-between">
-            <div>
+      {/* Search Results or Top Stations */}
+      {searchQuery ? (
+        <section className="py-16 bg-muted/30">
+          <div className="container space-y-8">
+            <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-3xl font-bold flex items-center gap-2">
                   <Radio className="w-8 h-8 text-primary" />
-                  Top Stations
+                  Search Results
                 </h2>
                 <p className="text-muted-foreground mt-2">
-                  Handpicked stations with the best music and entertainment
+                  Stations matching your search
                 </p>
               </div>
+              <Link to="/">
+                <Button variant="ghost" className="gap-2">
+                  Clear Search
+                </Button>
+              </Link>
             </div>
-            <Link to="/browse">
-              <Button variant="ghost" className="gap-2">
-                View All
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </Link>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredStations.map((station) => (
-              <StationCard
-                key={station.id}
-                station={station}
-                onPlay={handlePlay}
-              />
-            ))}
+            {filteredStations.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {filteredStations.map((station) => (
+                  <StationCard
+                    key={station.id}
+                    station={station}
+                    onPlay={handlePlay}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16">
+                <p className="text-lg text-muted-foreground">
+                  No stations found matching "{searchQuery}". Try a different search term.
+                </p>
+              </div>
+            )}
           </div>
-        </div>
-      </section>
+        </section>
+      ) : (
+        <section className="py-16 bg-muted/30">
+          <div className="container space-y-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <div>
+                  <h2 className="text-3xl font-bold flex items-center gap-2">
+                    <Radio className="w-8 h-8 text-primary" />
+                    Top Stations
+                  </h2>
+                  <p className="text-muted-foreground mt-2">
+                    Handpicked stations with the best music and entertainment
+                  </p>
+                </div>
+              </div>
+              <Link to="/browse">
+                <Button variant="ghost" className="gap-2">
+                  View All
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featuredStations.map((station) => (
+                <StationCard
+                  key={station.id}
+                  station={station}
+                  onPlay={handlePlay}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Hot Today */}
-      <section className="py-16">
-        <div className="container space-y-8">
-          <div className="flex items-center justify-between">
-            <div>
+      {!searchQuery && (
+        <section className="py-16">
+          <div className="container space-y-8">
+            <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-3xl font-bold flex items-center gap-2">
-                  <TrendingUp className="w-8 h-8 text-primary" />
-                  Hot Today
-                </h2>
-                <p className="text-muted-foreground mt-2">
-                  Top-rated stations loved by millions of listeners across South Asia
-                </p>
+                <div>
+                  <h2 className="text-3xl font-bold flex items-center gap-2">
+                    <TrendingUp className="w-8 h-8 text-primary" />
+                    Hot Today
+                  </h2>
+                  <p className="text-muted-foreground mt-2">
+                    Top-rated stations loved by millions of listeners across South Asia
+                  </p>
+                </div>
               </div>
+              <Link to="/browse">
+                <Button variant="ghost" className="gap-2">
+                  View All
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
             </div>
-            <Link to="/browse">
-              <Button variant="ghost" className="gap-2">
-                View All
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </Link>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {popularStations.map((station) => (
-              <StationCard
-                key={station.id}
-                station={station}
-                onPlay={handlePlay}
-              />
-            ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {popularStations.map((station) => (
+                <StationCard
+                  key={station.id}
+                  station={station}
+                  onPlay={handlePlay}
+                />
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Stats Section */}
       <section className="py-16">

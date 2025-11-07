@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { StationCard } from "@/components/StationCard";
@@ -19,9 +20,18 @@ import { useAudio } from "@/contexts/AudioContext";
 
 const Browse = () => {
   const { currentStation, setCurrentStation } = useAudio();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [languageFilter, setLanguageFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("votes");
+
+  // Initialize search from URL parameter
+  useEffect(() => {
+    const urlSearch = searchParams.get('search');
+    if (urlSearch) {
+      setSearchQuery(urlSearch);
+    }
+  }, [searchParams]);
 
   const languages = useMemo(() => {
     const langs = new Set(radioStations.map((s) => s.language).filter(Boolean));
@@ -33,11 +43,14 @@ const Browse = () => {
 
     // Search filter
     if (searchQuery) {
+      const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (station) =>
-          station.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          station.language.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          station.location.toLowerCase().includes(searchQuery.toLowerCase())
+          station.name.toLowerCase().includes(query) ||
+          station.language?.toLowerCase().includes(query) ||
+          station.location?.toLowerCase().includes(query) ||
+          station.type?.toLowerCase().includes(query) ||
+          station.tags?.toLowerCase().includes(query)
       );
     }
 
