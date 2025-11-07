@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Play, ExternalLink, ThumbsUp, TrendingUp } from "lucide-react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { generateSlug } from "@/lib/slug";
 
@@ -15,10 +15,7 @@ interface StationCardProps {
 export const StationCard = ({ station, onPlay }: StationCardProps) => {
   const [imageError, setImageError] = useState(false);
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const slug = station.slug || generateSlug(station.name);
-  const searchQuery = searchParams.get("search");
-  const stationUrl = searchQuery ? `/${slug}?search=${encodeURIComponent(searchQuery)}` : `/${slug}`;
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Only handle when tapping the card itself (not nested links/buttons)
@@ -27,7 +24,7 @@ export const StationCard = ({ station, onPlay }: StationCardProps) => {
     }
     // Start playback immediately (mobile Safari requires user gesture)
     onPlay(station);
-    navigate(stationUrl);
+    navigate(`/${slug}`);
   };
 
   return (
@@ -45,7 +42,7 @@ export const StationCard = ({ station, onPlay }: StationCardProps) => {
           size="lg"
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 scale-90 group-hover:scale-100 rounded-full w-16 h-16 p-0"
         >
-          <Link to={stationUrl} onClick={(e) => { e.stopPropagation(); onPlay(station); }}>
+          <Link to={`/${slug}`} onClick={(e) => { e.stopPropagation(); onPlay(station); }}>
             <Play className="w-6 h-6 fill-current" />
           </Link>
         </Button>
@@ -53,7 +50,7 @@ export const StationCard = ({ station, onPlay }: StationCardProps) => {
 
       <div className="p-4 space-y-3">
         <div>
-          <Link to={stationUrl} onClick={(e) => { e.stopPropagation(); onPlay(station); }}>
+          <Link to={`/${slug}`} onClick={(e) => { e.stopPropagation(); onPlay(station); }}>
             <h3 className="font-semibold text-lg line-clamp-1 hover:text-primary transition-colors">
               {station.name}
             </h3>
@@ -95,7 +92,7 @@ export const StationCard = ({ station, onPlay }: StationCardProps) => {
             className="flex-1"
             size="sm"
           >
-            <Link to={stationUrl} onClick={(e) => { e.stopPropagation(); onPlay(station); }}>
+            <Link to={`/${slug}`} onClick={(e) => { e.stopPropagation(); onPlay(station); }}>
               <Play className="w-3 h-3 mr-1 fill-current" />
               Listen Now
             </Link>

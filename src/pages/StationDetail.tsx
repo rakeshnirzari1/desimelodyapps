@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -29,11 +29,9 @@ import { useAudio } from "@/contexts/AudioContext";
 const StationDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const [station, setStation] = useState<RadioStation | null>(null);
   const { currentStation, setCurrentStation, setFilteredStations } = useAudio();
   const [relatedStations, setRelatedStations] = useState<RadioStation[]>([]);
-  const searchQuery = searchParams.get("search");
 
   useEffect(() => {
     if (!slug) return;
@@ -44,35 +42,15 @@ const StationDetail = () => {
       // Auto-play the station when page loads
       setCurrentStation(found);
 
+      // Find related stations (same language or location)
       const allStations = getStationsWithSlugs();
-
-      // If coming from search results, filter by search query for next/prev
-      if (searchQuery) {
-        const searchLower = searchQuery.toLowerCase();
-        const filtered = allStations.filter((s) => {
-          return (
-            s.name.toLowerCase().includes(searchLower) ||
-            s.tags?.toLowerCase().includes(searchLower) ||
-            s.language?.toLowerCase().includes(searchLower) ||
-            s.location?.toLowerCase().includes(searchLower) ||
-            s.type.toLowerCase().includes(searchLower)
-          );
-        });
-        setFilteredStations(filtered);
-        
-        // Show related stations from search results
-        const related = filtered.filter((s) => s.id !== found.id).slice(0, 8);
-        setRelatedStations(related);
-      } else {
-        // Otherwise, find related stations (same language or location)
-        const related = allStations
-          .filter((s) => s.id !== found.id && (s.language === found.language || s.location === found.location))
-          .slice(0, 8);
-        setRelatedStations(related);
-        
-        // Set filtered stations to related stations for next/prev navigation
-        setFilteredStations([found, ...related]);
-      }
+      const related = allStations
+        .filter((s) => s.id !== found.id && (s.language === found.language || s.location === found.location))
+        .slice(0, 8);
+      setRelatedStations(related);
+      
+      // Set filtered stations to related stations for next/prev navigation
+      setFilteredStations([found, ...related]);
 
       // Scroll to show audio player control bar on mobile after a short delay
       setTimeout(() => {
@@ -84,7 +62,7 @@ const StationDetail = () => {
     } else {
       navigate("/");
     }
-  }, [slug, navigate, searchQuery]);
+  }, [slug, navigate]);
 
   const handlePlay = (stationToPlay: RadioStation) => {
     setCurrentStation(stationToPlay);
