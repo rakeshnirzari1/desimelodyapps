@@ -45,13 +45,13 @@ const Index = () => {
 
   // Auto-play Radio Mirchi Hindi on page load (desktop only)
   useEffect(() => {
-    if (!isMobile) {
+    if (!isMobile && !searchQuery) {
       const radioMirchiHindi = radioStations.find(s => s.id === "3");
       if (radioMirchiHindi && !currentStation) {
         setCurrentStation(radioMirchiHindi);
       }
     }
-  }, [isMobile]);
+  }, [isMobile, searchQuery]);
 
   
   // Featured stations by name
@@ -225,7 +225,7 @@ const Index = () => {
       )}
 
       {/* Audio Player - Positioned above featured stations */}
-      {currentStation && (
+      {currentStation && !(searchQuery && currentStation.id === "3") && (
         <section className="sticky top-16 z-40">
           <AudioPlayer station={currentStation} onClose={() => setCurrentStation(null)} />
         </section>
