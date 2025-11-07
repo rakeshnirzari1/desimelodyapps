@@ -25,22 +25,35 @@ const AdminRefresh = () => {
 
       const apiData = await response.json();
 
-      // Transform API data to our RadioStation format
-      const stations: RadioStation[] = apiData.map((station: any, index: number) => ({
-        id: String(index + 1),
-        slug: generateSlug(station.name),
-        name: station.name,
-        image: station.favicon || "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200",
-        type: station.codec || "MP3",
-        kbps: station.bitrate ? String(station.bitrate) : "128",
-        votes: station.votes || 0,
-        clicks: station.clickcount || 0,
-        location: station.state || station.country || "India",
-        language: station.language || "",
-        link: station.url_resolved || station.url,
-        website: station.homepage || "https://www.radio-browser.info/",
-        tags: station.tags || ""
-      }));
+      // Transform API data to our RadioStation format (with cleaned tags)
+      const stations: RadioStation[] = apiData.map((station: any, index: number) => {
+        // Normalize and de-duplicate comma-separated tags from API
+        const rawTags = (station.tags ?? "").toString();
+        const tags = Array.from(
+          new Set(
+            rawTags
+              .split(",")
+              .map((t: string) => t.trim())
+              .filter(Boolean)
+          )
+        ).join(",");
+
+        return {
+          id: String(index + 1),
+          slug: generateSlug(station.name),
+          name: station.name,
+          image: station.favicon || "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200",
+          type: station.codec || "MP3",
+          kbps: station.bitrate ? String(station.bitrate) : "128",
+          votes: station.votes || 0,
+          clicks: station.clickcount || 0,
+          location: station.state || station.country || "India",
+          language: station.language || "",
+          link: station.url_resolved || station.url,
+          website: station.homepage || "https://www.radio-browser.info/",
+          tags,
+        } as RadioStation;
+      });
 
       // Generate the TypeScript file content
       const fileContent = `import { RadioStation } from "@/types/station";
