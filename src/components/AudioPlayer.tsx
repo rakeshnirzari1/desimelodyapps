@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { AudioVisualizer } from "./AudioVisualizer";
 import { getStationsWithSlugs } from "@/lib/station-utils";
 import { useAudio } from "@/contexts/AudioContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface AudioPlayerProps {
   station: RadioStation | null;
@@ -26,6 +27,9 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const playbackTimerRef = useRef<NodeJS.Timeout | null>(null);
   const stationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { setCurrentStation } = useAudio();
+  const isMobile = useIsMobile();
+  const lastPausedAtRef = useRef<number | null>(null);
+  const wasBackgroundedRef = useRef(false);
 
   // Persistent refs for Media Session next/prev handlers
   const nextActionRef = useRef<() => void>(() => {});
@@ -175,23 +179,45 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     navigator.mediaSession.playbackState = isPlaying || isLoading ? "playing" : "paused";
 
     navigator.mediaSession.setActionHandler("play", async () => {
-      if (audioRef.current) {
+      if (!audioRef.current) return;
+      try {
+        // Resume AudioContext (iOS) in response to user gesture
         try {
-          // Resume audio context if suspended (critical for mobile)
-          const audioContext = new AudioContext();
-          if (audioContext.state === 'suspended') {
-            await audioContext.resume();
+          const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
+          if (AC) {
+            const ac = new AC();
+            if (ac.state === "suspended") await ac.resume();
+            await ac.close();
           }
-          audioContext.close();
-          
-          // Reload stream to get live audio
-          audioRef.current.load();
-          await audioRef.current.play();
-          setIsPlaying(true);
-        } catch (error) {
-          console.error("Play error:", error);
-          setIsPlaying(false);
+        } catch {}
+
+        const audio = audioRef.current;
+        const pausedForMs = lastPausedAtRef.current ? Date.now() - lastPausedAtRef.current : 0;
+        const needHardReload =
+          isMobile && (wasBackgroundedRef.current || pausedForMs > 60000 || audio.readyState === 0 || audio.networkState === 3);
+
+        if (needHardReload) {
+          const base = station?.link ?? audio.src;
+          if (base) {
+            const sep = base.includes("?") ? "&" : "?";
+            audio.src = `${base}${sep}ts=${Date.now()}`;
+          } else {
+            audio.load();
+          }
+          setIsLoading(true);
+          setLoadError(false);
+          wasBackgroundedRef.current = false;
+        } else {
+          if (audio.readyState === 0) {
+            audio.load();
+          }
         }
+
+        await audio.play();
+        setIsPlaying(true);
+      } catch (error) {
+        console.error("Play error:", error);
+        setIsPlaying(false);
       }
     });
 
@@ -222,30 +248,67 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       navigator.mediaSession.setActionHandler("previoustrack", null);
     };
   }, []);
+  
+  // Track backgrounding to refresh stream on mobile resume
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        wasBackgroundedRef.current = true;
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
 
   const togglePlay = async () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-        setIsPlaying(false);
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isPlaying) {
+      lastPausedAtRef.current = Date.now();
+      wasBackgroundedRef.current = false;
+      audio.pause();
+      setIsPlaying(false);
+      return;
+    }
+
+    try {
+      // Resume AudioContext (iOS) in response to user gesture
+      try {
+        const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
+        if (AC) {
+          const ac = new AC();
+          if (ac.state === "suspended") await ac.resume();
+          await ac.close();
+        }
+      } catch {}
+
+      const pausedForMs = lastPausedAtRef.current ? Date.now() - lastPausedAtRef.current : 0;
+      const needHardReload =
+        isMobile && (wasBackgroundedRef.current || pausedForMs > 60000 || audio.readyState === 0 || audio.networkState === 3);
+
+      if (needHardReload) {
+        const base = station?.link ?? audio.src;
+        if (base) {
+          const sep = base.includes("?") ? "&" : "?";
+          audio.src = `${base}${sep}ts=${Date.now()}`; // cache-bust to force fresh stream
+        } else {
+          audio.load();
+        }
+        setIsLoading(true);
+        setLoadError(false);
+        wasBackgroundedRef.current = false;
       } else {
-        try {
-          // Resume audio context if suspended (critical for mobile with screen off)
-          const audioContext = new AudioContext();
-          if (audioContext.state === 'suspended') {
-            await audioContext.resume();
-          }
-          audioContext.close();
-          
-          // Reload the stream to get live audio when resuming
-          audioRef.current.load();
-          await audioRef.current.play();
-          setIsPlaying(true);
-        } catch (error) {
-          console.log("Play failed:", error);
-          setIsPlaying(false);
+        if (audio.readyState === 0) {
+          audio.load();
         }
       }
+
+      await audio.play();
+      setIsPlaying(true);
+    } catch (error) {
+      console.log("Play failed:", error);
+      setIsPlaying(false);
     }
   };
 
@@ -268,7 +331,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
   return (
     <Card className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 relative overflow-hidden">
-      <audio ref={audioRef} crossOrigin="anonymous" preload="auto" />
+      <audio ref={audioRef} crossOrigin="anonymous" preload="auto" playsInline />
 
       <AudioVisualizer audioRef={audioRef} isPlaying={isPlaying} />
 
