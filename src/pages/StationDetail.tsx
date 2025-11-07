@@ -22,8 +22,6 @@ import {
   Twitter,
   Linkedin,
   Mail,
-  Bookmark,
-  BookmarkCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAudio } from "@/contexts/AudioContext";
@@ -34,22 +32,6 @@ const StationDetail = () => {
   const [station, setStation] = useState<RadioStation | null>(null);
   const { currentStation, setCurrentStation } = useAudio();
   const [relatedStations, setRelatedStations] = useState<RadioStation[]>([]);
-  const [isBookmarked, setIsBookmarked] = useState(false);
-
-  // Check if station is bookmarked (robust with slug fallback)
-  useEffect(() => {
-    if (!station) return;
-    try {
-      const raw = localStorage.getItem("bookmarkedStations");
-      const bookmarks: any[] = raw ? JSON.parse(raw) : [];
-      const matched = bookmarks.some(
-        (b: any) => b.id === station.id || (station.slug && b.slug === station.slug),
-      );
-      setIsBookmarked(matched);
-    } catch {
-      setIsBookmarked(false);
-    }
-  }, [station]);
 
   useEffect(() => {
     if (!slug) return;
@@ -85,39 +67,6 @@ const StationDetail = () => {
 
   const shareUrl = window.location.href;
   const shareTitle = `Listen to ${station?.name} on Desi Melody`;
-
-  const handleBookmark = () => {
-    if (!station) return;
-
-    try {
-      const raw = localStorage.getItem("bookmarkedStations");
-      let bookmarks: any[] = raw ? JSON.parse(raw) : [];
-
-      const exists = bookmarks.some(
-        (b: any) => b.id === station.id || (station.slug && b.slug === station.slug),
-      );
-
-      if (exists) {
-        const updated = bookmarks.filter(
-          (b: any) => b.id !== station.id && (!station.slug || b.slug !== station.slug),
-        );
-        localStorage.setItem("bookmarkedStations", JSON.stringify(updated));
-        setIsBookmarked(false);
-        toast.success("Removed from bookmarks");
-      } else {
-        // Ensure only one entry per station
-        bookmarks = bookmarks.filter(
-          (b: any) => b.id !== station.id && (!station.slug || b.slug !== station.slug),
-        );
-        bookmarks.push({ id: station.id, name: station.name, slug: station.slug });
-        localStorage.setItem("bookmarkedStations", JSON.stringify(bookmarks));
-        setIsBookmarked(true);
-        toast.success("Added to bookmarks");
-      }
-    } catch {
-      toast.error("Unable to save bookmark on this device.");
-    }
-  };
 
   const handleShare = (platform: string) => {
     const encodedUrl = encodeURIComponent(shareUrl);
@@ -231,35 +180,13 @@ const StationDetail = () => {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              {station.website && (
-                <Button onClick={() => window.open(station.website, "_blank")} variant="outline" className="gap-2">
-                  <Globe className="w-4 h-4" />
-                  Visit Site
-                </Button>
-              )}
-              <Button onClick={handleBookmark} variant={isBookmarked ? "default" : "outline"} className="gap-2">
-                {isBookmarked ? (
-                  <>
-                    <BookmarkCheck className="w-4 h-4" />
-                    Bookmarked
-                  </>
-                ) : (
-                  <>
-                    <Bookmark className="w-4 h-4" />
-                    Bookmark Station
-                  </>
-                )}
-              </Button>
-            </div>
-
             {/* Social Sharing */}
             <div className="pt-4 border-t">
               <div className="flex items-center gap-2 mb-3">
                 <Share2 className="w-4 h-4" />
                 <span className="font-semibold">Share this station</span>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button size="icon" variant="outline" onClick={() => handleShare("facebook")} title="Share on Facebook">
                   <Facebook className="w-4 h-4" />
                 </Button>
@@ -275,6 +202,12 @@ const StationDetail = () => {
                 <Button variant="outline" onClick={() => handleShare("copy")}>
                   Copy Link
                 </Button>
+                {station.website && (
+                  <Button onClick={() => window.open(station.website, "_blank")} variant="outline" className="gap-2">
+                    <Globe className="w-4 h-4" />
+                    Visit Site
+                  </Button>
+                )}
               </div>
             </div>
           </div>

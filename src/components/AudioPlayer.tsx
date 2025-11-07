@@ -335,8 +335,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
       <AudioVisualizer audioRef={audioRef} isPlaying={isPlaying} />
 
-      <div className="container py-4 relative z-10">
-        <div className="flex items-center gap-4">
+      <div className="container py-4 relative z-10 max-w-full">
+        <div className="flex items-center gap-2 sm:gap-4 max-w-full">
           <img
             src={station.image}
             alt={station.name}
@@ -354,7 +354,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
               {loadError
                 ? "This station is currently unavailable"
                 : isLoading
-                  ? "Loading..."
+                  ? "Connecting to station..."
                   : `${station.language || "Hindi"} • ${station.type}`}
             </p>
             {!loadError && !isLoading && (
@@ -362,7 +362,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
             )}
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             {loadError ? (
               <Button
                 onClick={playNextStation}
@@ -377,24 +377,24 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
                   onClick={playPreviousStation}
                   size="icon"
                   variant="outline"
-                  className="rounded-full w-10 h-10"
+                  className="rounded-full w-8 h-8 sm:w-10 sm:h-10"
                   title="Previous Station"
                 >
-                  <SkipBack className="w-4 h-4" />
+                  <SkipBack className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
 
-                <Button onClick={togglePlay} size="icon" className="rounded-full w-12 h-12" disabled={isLoading}>
-                  {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
+                <Button onClick={togglePlay} size="icon" className="rounded-full w-10 h-10 sm:w-12 sm:h-12" disabled={isLoading}>
+                  {isPlaying ? <Pause className="w-4 h-4 sm:w-5 sm:h-5 fill-current" /> : <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />}
                 </Button>
 
                 <Button
                   onClick={playNextStation}
                   size="icon"
                   variant="outline"
-                  className="rounded-full w-10 h-10"
+                  className="rounded-full w-8 h-8 sm:w-10 sm:h-10"
                   title="Next Station"
                 >
-                  <SkipForward className="w-4 h-4" />
+                  <SkipForward className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
 
                 <div className="hidden sm:flex items-center gap-2 w-32">
@@ -412,7 +412,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
               </>
             )}
 
-            <Button onClick={onClose} size="icon" variant="ghost" className="w-8 h-8">
+            <Button onClick={onClose} size="icon" variant="ghost" className="w-8 h-8 shrink-0">
               <X className="w-4 h-4" />
             </Button>
           </div>

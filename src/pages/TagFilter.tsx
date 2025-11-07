@@ -17,6 +17,11 @@ const TagFilter = () => {
   const { currentStation, setCurrentStation } = useAudio();
   const decodedTag = decodeURIComponent(tag || "");
 
+  // Stop playback when entering tag page
+  useEffect(() => {
+    setCurrentStation(null);
+  }, []);
+
   const filteredStations = useMemo(() => {
     const allStations = getStationsWithSlugs();
     return allStations.filter(
