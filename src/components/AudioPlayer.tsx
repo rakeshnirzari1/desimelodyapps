@@ -21,8 +21,9 @@ interface AudioPlayerProps {
   onClose: () => void;
 }
 
-const STATION_TIMEOUT = 8000; // 8 seconds for faster mobile response
-const KEEP_ALIVE_INTERVAL = 5000; // 5 seconds for keep-alive checks
+// Shorter timeout for mobile to prevent media controls from disappearing
+const STATION_TIMEOUT = 8000; // 8 seconds for all devices
+const MOBILE_STATION_TIMEOUT = 4000; // 4 seconds for mobile devices
 
 export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -38,13 +39,13 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const playbackTimerRef = useRef<NodeJS.Timeout | null>(null);
   const stationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const adIntervalCheckRef = useRef<NodeJS.Timeout | null>(null);
-  const keepAliveRef = useRef<NodeJS.Timeout | null>(null);
   const { setCurrentStation, stationChangeCount, incrementStationChangeCount, adAnalytics, updateAdAnalytics } =
     useAudio();
   const isMobile = useIsMobile();
   const lastPausedAtRef = useRef<number | null>(null);
   const wasBackgroundedRef = useRef(false);
   const previousStationIdRef = useRef<string | null>(null);
+
   // Persistent refs for Media Session next/prev handlers
   const nextActionRef = useRef<() => void>(() => {});
   const prevActionRef = useRef<() => void>(() => {});
@@ -58,6 +59,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     } else if (playbackTimerRef.current) {
       clearInterval(playbackTimerRef.current);
     }
+
     return () => {
       if (playbackTimerRef.current) {
         clearInterval(playbackTimerRef.current);
@@ -71,17 +73,23 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       const adUrl = await getAdUrlForRegion();
       const adAudio = adAudioRef.current;
       const radioAudio = audioRef.current;
+
       if (!adAudio || !radioAudio) return;
+
       console.log("Playing ad:", adUrl);
+
       // Pause radio stream
       if (isPlaying) {
         radioAudio.pause();
       }
+
       // Load and play ad
       adAudio.src = adUrl;
       adAudio.volume = radioAudio.volume; // Match radio volume
       setIsPlayingAd(true);
+
       await adAudio.play();
+
       // Log ad impression
       const updatedAnalytics = await logAdImpression(adAnalytics);
       updateAdAnalytics(updatedAnalytics);
@@ -99,6 +107,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const handleAdEnded = () => {
     console.log("Ad finished - resuming radio");
     setIsPlayingAd(false);
+
     // Always resume radio stream after ad ends
     if (audioRef.current) {
       // Force play regardless of previous state
@@ -134,10 +143,12 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   // Change to next station without navigation
   const playNextStation = () => {
     if (!station) return;
+
     const stations = getStationsWithSlugs();
     const currentIndex = stations.findIndex((s) => s.id === station.id);
     const nextIndex = (currentIndex + 1) % stations.length;
     const nextStation = stations[nextIndex];
+
     incrementStationChangeCount();
     setCurrentStation(nextStation);
   };
@@ -145,10 +156,12 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   // Change to previous station without navigation
   const playPreviousStation = () => {
     if (!station) return;
+
     const stations = getStationsWithSlugs();
     const currentIndex = stations.findIndex((s) => s.id === station.id);
     const prevIndex = currentIndex === 0 ? stations.length - 1 : currentIndex - 1;
     const prevStation = stations[prevIndex];
+
     incrementStationChangeCount();
     setCurrentStation(prevStation);
   };
@@ -163,6 +176,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   useEffect(() => {
     if (station && previousStationIdRef.current !== station.id) {
       previousStationIdRef.current = station.id;
+
       // Check if we should play an ad
       if (shouldPlayAdOnStationChange(stationChangeCount, adAnalytics.lastAdTimestamp)) {
         console.log("Triggering ad on station change");
@@ -174,12 +188,14 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   // Check for time-based ad intervals
   useEffect(() => {
     if (!isPlaying) return;
+
     adIntervalCheckRef.current = setInterval(() => {
       if (shouldPlayAdOnTimeInterval(adAnalytics.sessionStartTime, adAnalytics.lastAdTimestamp)) {
         console.log("Triggering ad on time interval");
         playAd();
       }
     }, 60000); // Check every minute
+
     return () => {
       if (adIntervalCheckRef.current) {
         clearInterval(adIntervalCheckRef.current);
@@ -191,18 +207,20 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   useEffect(() => {
     const adAudio = adAudioRef.current;
     if (!adAudio) return;
+
     const handleAdLoaded = () => {
       setAdDuration(Math.floor(adAudio.duration));
     };
+
     adAudio.addEventListener("loadedmetadata", handleAdLoaded);
     adAudio.addEventListener("ended", handleAdEnded);
+
     return () => {
       adAudio.removeEventListener("loadedmetadata", handleAdLoaded);
       adAudio.removeEventListener("ended", handleAdEnded);
     };
   }, []);
 
-  // Station loading and timeout logic
   useEffect(() => {
     if (station && audioRef.current) {
       setPlaybackTime(0);
@@ -211,8 +229,32 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       audioRef.current.src = station.link;
       audioRef.current.load();
 
-      // Attempt to play immediately
+      // Set timeout for station loading - auto-skip if station doesn't load
+      // Use shorter timeout on mobile to prevent media controls from disappearing
+      const timeoutDuration = isMobile ? MOBILE_STATION_TIMEOUT : STATION_TIMEOUT;
+
+      stationTimeoutRef.current = setTimeout(() => {
+        if (audioRef.current) {
+          if (audioRef.current.readyState === 0 || audioRef.current.paused) {
+            console.log(`Station timed out after ${timeoutDuration}ms - auto-skipping to next`);
+            setIsLoading(false);
+            setLoadError(true);
+            // Auto-skip to next station immediately on mobile, or after 1 second on desktop
+            const skipDelay = isMobile ? 0 : 1000;
+            setTimeout(() => {
+              playNextStation();
+            }, skipDelay);
+          } else if (audioRef.current.paused) {
+            console.log("Station loaded but autoplay blocked");
+            setIsLoading(false);
+            setIsPlaying(false);
+          }
+        }
+      }, timeoutDuration);
+
+      // Try to play immediately
       const playPromise = audioRef.current.play();
+
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
@@ -223,16 +265,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
             setIsPlaying(false);
           });
       }
-
-      // Set timeout for station loading
-      stationTimeoutRef.current = setTimeout(() => {
-        if (audioRef.current && audioRef.current.readyState === 0 && audioRef.current.paused) {
-          console.log("Station timed out - auto-skipping to next");
-          setIsLoading(false);
-          setLoadError(true);
-          playNextStation(); // Skip immediately
-        }
-      }, STATION_TIMEOUT);
 
       const handlePlaying = () => {
         setIsLoading(false);
@@ -250,7 +282,10 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         if (stationTimeoutRef.current) {
           clearTimeout(stationTimeoutRef.current);
         }
-        playNextStation(); // Skip immediately
+        // Auto-skip to next station after 1 second
+        setTimeout(() => {
+          playNextStation();
+        }, 1000);
       };
 
       audioRef.current.addEventListener("playing", handlePlaying);
@@ -266,7 +301,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     }
   }, [station]);
 
-  // Volume control
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = isMuted ? 0 : volume / 100;
@@ -276,6 +310,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   // Media Session API for car controls and lock screen controls
   useEffect(() => {
     if (!station || !("mediaSession" in navigator)) return;
+
     navigator.mediaSession.metadata = new MediaMetadata({
       title: station.name,
       artist: `${station.language || "Hindi"} • ${station.type}`,
@@ -283,13 +318,13 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
     });
 
-    // Keep Media Session active even during loading or errors
-    navigator.mediaSession.playbackState = isPlaying || isLoading || loadError ? "playing" : "paused";
+    // Keep session active so next/prev work even while loading or screen is off
+    navigator.mediaSession.playbackState = isPlaying || isLoading ? "playing" : "paused";
 
     navigator.mediaSession.setActionHandler("play", async () => {
       if (!audioRef.current) return;
       try {
-        // Resume AudioContext (iOS)
+        // Resume AudioContext (iOS) in response to user gesture
         try {
           const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
           if (AC) {
@@ -298,11 +333,13 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
             await ac.close();
           }
         } catch {}
+
         const audio = audioRef.current;
         const pausedForMs = lastPausedAtRef.current ? Date.now() - lastPausedAtRef.current : 0;
         const needHardReload =
           isMobile &&
           (wasBackgroundedRef.current || pausedForMs > 60000 || audio.readyState === 0 || audio.networkState === 3);
+
         if (needHardReload) {
           const base = station?.link ?? audio.src;
           if (base) {
@@ -319,6 +356,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
             audio.load();
           }
         }
+
         await audio.play();
         setIsPlaying(true);
       } catch (error) {
@@ -338,7 +376,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       navigator.mediaSession.setActionHandler("play", null);
       navigator.mediaSession.setActionHandler("pause", null);
     };
-  }, [station, isPlaying, isLoading, loadError]);
+  }, [station, isPlaying, isLoading]);
 
   // Register next/prev handlers once to remain active during screen-off
   useEffect(() => {
@@ -355,27 +393,11 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     };
   }, []);
 
-  // Keep-alive mechanism to maintain Media Session
-  useEffect(() => {
-    if (!isMobile || !("mediaSession" in navigator)) return;
-    keepAliveRef.current = setInterval(() => {
-      if (audioRef.current && (isLoading || loadError || audioRef.current.readyState === 0)) {
-        navigator.mediaSession.playbackState = "playing";
-      }
-    }, KEEP_ALIVE_INTERVAL);
-    return () => {
-      if (keepAliveRef.current) {
-        clearInterval(keepAliveRef.current);
-      }
-    };
-  }, [isMobile, isLoading, loadError]);
-
   // Track backgrounding to refresh stream on mobile resume
   useEffect(() => {
     const onVisibility = () => {
       if (document.visibilityState === "hidden") {
         wasBackgroundedRef.current = true;
-        lastPausedAtRef.current = Date.now();
       }
     };
     document.addEventListener("visibilitychange", onVisibility);
@@ -385,6 +407,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const togglePlay = async () => {
     const audio = audioRef.current;
     if (!audio) return;
+
     if (isPlaying) {
       lastPausedAtRef.current = Date.now();
       wasBackgroundedRef.current = false;
@@ -392,6 +415,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       setIsPlaying(false);
       return;
     }
+
     try {
       // Resume AudioContext (iOS) in response to user gesture
       try {
@@ -402,10 +426,12 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           await ac.close();
         }
       } catch {}
+
       const pausedForMs = lastPausedAtRef.current ? Date.now() - lastPausedAtRef.current : 0;
       const needHardReload =
         isMobile &&
         (wasBackgroundedRef.current || pausedForMs > 60000 || audio.readyState === 0 || audio.networkState === 3);
+
       if (needHardReload) {
         const base = station?.link ?? audio.src;
         if (base) {
@@ -422,6 +448,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           audio.load();
         }
       }
+
       await audio.play();
       setIsPlaying(true);
     } catch (error) {
@@ -438,6 +465,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
+
     if (hrs > 0) {
       return `${hrs}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     }
@@ -450,8 +478,11 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     <Card className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 relative overflow-hidden">
       <audio ref={audioRef} crossOrigin="anonymous" preload="auto" playsInline />
       <audio ref={adAudioRef} preload="auto" />
+
       <AdOverlay isVisible={isPlayingAd} duration={adDuration} onSkip={skipAd} />
+
       <AudioVisualizer audioRef={audioRef} isPlaying={isPlaying && !isPlayingAd} />
+
       <div className="container py-4 relative z-10 max-w-full">
         <div className="flex items-center gap-2 sm:gap-4 max-w-full">
           <img
@@ -462,6 +493,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
               e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=100";
             }}
           />
+
           <div className="flex-1 min-w-0">
             <h4 className="font-semibold truncate text-sm sm:text-base">
               {loadError ? "Station Offline" : isLoading ? "Loading..." : station.name}
@@ -477,6 +509,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
               <p className="text-xs text-primary font-medium mt-1">Playing for {formatTime(playbackTime)}</p>
             )}
           </div>
+
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             {loadError ? (
               <Button
@@ -497,6 +530,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
                 >
                   <SkipBack className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
+
                 <Button
                   onClick={togglePlay}
                   size="icon"
@@ -509,6 +543,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
                     <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
                   )}
                 </Button>
+
                 <Button
                   onClick={playNextStation}
                   size="icon"
@@ -518,6 +553,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
                 >
                   <SkipForward className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
+
                 <div className="hidden sm:flex items-center gap-2 w-32">
                   <Button onClick={toggleMute} size="icon" variant="ghost" className="w-8 h-8">
                     {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
@@ -532,6 +568,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
                 </div>
               </>
             )}
+
             <Button onClick={onClose} size="icon" variant="ghost" className="w-8 h-8 shrink-0">
               <X className="w-4 h-4" />
             </Button>
