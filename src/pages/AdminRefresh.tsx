@@ -58,7 +58,11 @@ const AdminRefresh = () => {
       // Generate the TypeScript file content
       const fileContent = `import { RadioStation } from "@/types/station";
 
-export const radioStations: RadioStation[] = ${JSON.stringify(stations, null, 2)};
+export const radioStations: RadioStation[] = ${JSON.stringify(
+  stations.map((s) => ({ ...s, tags: (s as any).tags ?? "" })),
+  null,
+  2
+)};
 `;
 
       setGeneratedCode(fileContent);
