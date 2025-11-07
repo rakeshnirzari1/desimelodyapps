@@ -5,9 +5,16 @@ import { Play, Pause, Volume2, VolumeX, X, SkipForward, SkipBack } from "lucide-
 import { Slider } from "@/components/ui/slider";
 import { Card } from "@/components/ui/card";
 import { AudioVisualizer } from "./AudioVisualizer";
+import { AdOverlay } from "./AdOverlay";
 import { getStationsWithSlugs } from "@/lib/station-utils";
 import { useAudio } from "@/contexts/AudioContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { 
+  getAdUrlForRegion, 
+  shouldPlayAdOnStationChange, 
+  shouldPlayAdOnTimeInterval,
+  logAdImpression 
+} from "@/lib/adManager";
 
 interface AudioPlayerProps {
   station: RadioStation | null;
@@ -23,13 +30,24 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const [playbackTime, setPlaybackTime] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [isPlayingAd, setIsPlayingAd] = useState(false);
+  const [adDuration, setAdDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const adAudioRef = useRef<HTMLAudioElement>(null);
   const playbackTimerRef = useRef<NodeJS.Timeout | null>(null);
   const stationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const { setCurrentStation } = useAudio();
+  const adIntervalCheckRef = useRef<NodeJS.Timeout | null>(null);
+  const { 
+    setCurrentStation, 
+    stationChangeCount, 
+    incrementStationChangeCount,
+    adAnalytics,
+    updateAdAnalytics 
+  } = useAudio();
   const isMobile = useIsMobile();
   const lastPausedAtRef = useRef<number | null>(null);
   const wasBackgroundedRef = useRef(false);
+  const previousStationIdRef = useRef<string | null>(null);
 
   // Persistent refs for Media Session next/prev handlers
   const nextActionRef = useRef<() => void>(() => {});
@@ -52,6 +70,62 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     };
   }, [isPlaying]);
 
+  // Play ad with regional targeting
+  const playAd = async () => {
+    try {
+      const adUrl = await getAdUrlForRegion();
+      const adAudio = adAudioRef.current;
+      const radioAudio = audioRef.current;
+
+      if (!adAudio || !radioAudio) return;
+
+      console.log('Playing ad:', adUrl);
+
+      // Pause radio stream
+      if (isPlaying) {
+        radioAudio.pause();
+      }
+
+      // Load and play ad
+      adAudio.src = adUrl;
+      adAudio.volume = radioAudio.volume; // Match radio volume
+      setIsPlayingAd(true);
+
+      await adAudio.play();
+
+      // Log ad impression
+      const updatedAnalytics = await logAdImpression(adAnalytics);
+      updateAdAnalytics(updatedAnalytics);
+
+    } catch (error) {
+      console.error('Error playing ad:', error);
+      setIsPlayingAd(false);
+      // Resume radio if ad fails
+      if (audioRef.current && isPlaying) {
+        audioRef.current.play().catch(console.error);
+      }
+    }
+  };
+
+  // Handle ad completion
+  const handleAdEnded = () => {
+    console.log('Ad finished');
+    setIsPlayingAd(false);
+    
+    // Resume radio stream
+    if (audioRef.current && isPlaying) {
+      audioRef.current.play().catch(console.error);
+    }
+  };
+
+  // Skip ad (if user wants)
+  const skipAd = () => {
+    if (adAudioRef.current) {
+      adAudioRef.current.pause();
+      handleAdEnded();
+    }
+  };
+
   // Change to next station without navigation
   const playNextStation = () => {
     if (!station) return;
@@ -61,6 +135,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     const nextIndex = (currentIndex + 1) % stations.length;
     const nextStation = stations[nextIndex];
 
+    incrementStationChangeCount();
     setCurrentStation(nextStation);
   };
 
@@ -73,6 +148,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     const prevIndex = currentIndex === 0 ? stations.length - 1 : currentIndex - 1;
     const prevStation = stations[prevIndex];
 
+    incrementStationChangeCount();
     setCurrentStation(prevStation);
   };
 
@@ -81,6 +157,55 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     nextActionRef.current = playNextStation;
     prevActionRef.current = playPreviousStation;
   }, [station]);
+
+  // Check if ad should play on station change
+  useEffect(() => {
+    if (station && previousStationIdRef.current !== station.id) {
+      previousStationIdRef.current = station.id;
+      
+      // Check if we should play an ad
+      if (shouldPlayAdOnStationChange(stationChangeCount, adAnalytics.lastAdTimestamp)) {
+        console.log('Triggering ad on station change');
+        playAd();
+      }
+    }
+  }, [station, stationChangeCount]);
+
+  // Check for time-based ad intervals
+  useEffect(() => {
+    if (!isPlaying) return;
+
+    adIntervalCheckRef.current = setInterval(() => {
+      if (shouldPlayAdOnTimeInterval(adAnalytics.sessionStartTime, adAnalytics.lastAdTimestamp)) {
+        console.log('Triggering ad on time interval');
+        playAd();
+      }
+    }, 60000); // Check every minute
+
+    return () => {
+      if (adIntervalCheckRef.current) {
+        clearInterval(adIntervalCheckRef.current);
+      }
+    };
+  }, [isPlaying, adAnalytics]);
+
+  // Setup ad audio element
+  useEffect(() => {
+    const adAudio = adAudioRef.current;
+    if (!adAudio) return;
+
+    const handleAdLoaded = () => {
+      setAdDuration(Math.floor(adAudio.duration));
+    };
+
+    adAudio.addEventListener('loadedmetadata', handleAdLoaded);
+    adAudio.addEventListener('ended', handleAdEnded);
+
+    return () => {
+      adAudio.removeEventListener('loadedmetadata', handleAdLoaded);
+      adAudio.removeEventListener('ended', handleAdEnded);
+    };
+  }, []);
 
   useEffect(() => {
     if (station && audioRef.current) {
@@ -332,8 +457,11 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   return (
     <Card className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 relative overflow-hidden">
       <audio ref={audioRef} crossOrigin="anonymous" preload="auto" playsInline />
+      <audio ref={adAudioRef} preload="auto" />
 
-      <AudioVisualizer audioRef={audioRef} isPlaying={isPlaying} />
+      <AdOverlay isVisible={isPlayingAd} duration={adDuration} onSkip={skipAd} />
+
+      <AudioVisualizer audioRef={audioRef} isPlaying={isPlaying && !isPlayingAd} />
 
       <div className="container py-4 relative z-10 max-w-full">
         <div className="flex items-center gap-2 sm:gap-4 max-w-full">
