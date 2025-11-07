@@ -18,7 +18,7 @@ import { useEffect, useMemo } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
-  const { currentStation, setCurrentStation } = useAudio();
+  const { currentStation, setCurrentStation, setFilteredStations } = useAudio();
   const isMobile = useIsMobile();
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('search') || '';
@@ -40,18 +40,23 @@ const Index = () => {
     );
   }, [searchQuery, radioStations]);
 
+  // Update filtered stations in context
+  useEffect(() => {
+    setFilteredStations(searchQuery ? filteredStations : radioStations);
+  }, [filteredStations, radioStations, searchQuery, setFilteredStations]);
+
   // Featured tags
   const featuredTags = ['Bollywood', 'Hindi', 'Tamil', 'News', 'Devotional', 'Pop', 'Rock', 'Folk'];
 
-  // Auto-play Radio Mirchi Hindi on page load (desktop only)
+  // Auto-play Radio Mirchi Hindi on page load (desktop only, not on search pages)
   useEffect(() => {
-    if (!isMobile) {
+    if (!isMobile && !searchQuery) {
       const radioMirchiHindi = radioStations.find(s => s.id === "3");
       if (radioMirchiHindi && !currentStation) {
         setCurrentStation(radioMirchiHindi);
       }
     }
-  }, [isMobile]);
+  }, [isMobile, searchQuery]);
 
   
   // Featured stations by name
@@ -202,25 +207,27 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Radio Mirchi Hindi - Auto-playing section */}
-      <section className="py-8 bg-gradient-to-br from-primary/5 to-accent/5">
-        <div className="container">
-          <div className="max-w-3xl mx-auto">
-            {currentStation && currentStation.id === "3" && (
-              <div className="text-center space-y-4">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full">
-                  <Radio className="w-4 h-4 text-primary animate-pulse" />
-                  <span className="text-sm font-medium text-primary">Now Playing</span>
+      {/* Radio Mirchi Hindi - Auto-playing section (hide on search pages) */}
+      {!searchQuery && (
+        <section className="py-8 bg-gradient-to-br from-primary/5 to-accent/5">
+          <div className="container">
+            <div className="max-w-3xl mx-auto">
+              {currentStation && currentStation.id === "3" && (
+                <div className="text-center space-y-4">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full">
+                    <Radio className="w-4 h-4 text-primary animate-pulse" />
+                    <span className="text-sm font-medium text-primary">Now Playing</span>
+                  </div>
+                  <h2 className="text-2xl font-bold">{currentStation.name}</h2>
+                  <p className="text-muted-foreground">
+                    Your favorite Bollywood hits, live 24/7
+                  </p>
                 </div>
-                <h2 className="text-2xl font-bold">{currentStation.name}</h2>
-                <p className="text-muted-foreground">
-                  Your favorite Bollywood hits, live 24/7
-                </p>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Audio Player - Positioned above featured stations */}
       {currentStation && (

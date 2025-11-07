@@ -30,7 +30,7 @@ const StationDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [station, setStation] = useState<RadioStation | null>(null);
-  const { currentStation, setCurrentStation } = useAudio();
+  const { currentStation, setCurrentStation, setFilteredStations } = useAudio();
   const [relatedStations, setRelatedStations] = useState<RadioStation[]>([]);
 
   useEffect(() => {
@@ -48,6 +48,9 @@ const StationDetail = () => {
         .filter((s) => s.id !== found.id && (s.language === found.language || s.location === found.location))
         .slice(0, 8);
       setRelatedStations(related);
+      
+      // Set filtered stations to related stations for next/prev navigation
+      setFilteredStations([found, ...related]);
 
       // Scroll to show audio player control bar on mobile after a short delay
       setTimeout(() => {

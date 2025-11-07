@@ -56,7 +56,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const playNextStation = () => {
     if (!station) return;
 
-    const stations = getStationsWithSlugs();
+    const { filteredStations } = useAudio();
+    const stations = filteredStations.length > 0 ? filteredStations : getStationsWithSlugs();
     const currentIndex = stations.findIndex((s) => s.id === station.id);
     const nextIndex = (currentIndex + 1) % stations.length;
     const nextStation = stations[nextIndex];
@@ -68,7 +69,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const playPreviousStation = () => {
     if (!station) return;
 
-    const stations = getStationsWithSlugs();
+    const { filteredStations } = useAudio();
+    const stations = filteredStations.length > 0 ? filteredStations : getStationsWithSlugs();
     const currentIndex = stations.findIndex((s) => s.id === station.id);
     const prevIndex = currentIndex === 0 ? stations.length - 1 : currentIndex - 1;
     const prevStation = stations[prevIndex];

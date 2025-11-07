@@ -14,7 +14,7 @@ import { Tag } from "lucide-react";
 const TagFilter = () => {
   const { tag } = useParams<{ tag: string }>();
   const navigate = useNavigate();
-  const { currentStation, setCurrentStation } = useAudio();
+  const { currentStation, setCurrentStation, setFilteredStations } = useAudio();
   const decodedTag = decodeURIComponent(tag || "");
 
   // Stop playback when entering tag page
@@ -32,6 +32,11 @@ const TagFilter = () => {
         station.tags?.toLowerCase().split(',').some(tag => tag.trim().toLowerCase() === decodedTag.toLowerCase())
     );
   }, [decodedTag]);
+
+  // Update filtered stations in context
+  useEffect(() => {
+    setFilteredStations(filteredStations);
+  }, [filteredStations, setFilteredStations]);
 
   const handlePlay = (station: RadioStation) => {
     setCurrentStation(station);

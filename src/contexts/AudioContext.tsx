@@ -4,15 +4,18 @@ import { RadioStation } from "@/types/station";
 interface AudioContextType {
   currentStation: RadioStation | null;
   setCurrentStation: (station: RadioStation | null) => void;
+  filteredStations: RadioStation[];
+  setFilteredStations: (stations: RadioStation[]) => void;
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
 export const AudioProvider = ({ children }: { children: ReactNode }) => {
   const [currentStation, setCurrentStation] = useState<RadioStation | null>(null);
+  const [filteredStations, setFilteredStations] = useState<RadioStation[]>([]);
 
   return (
-    <AudioContext.Provider value={{ currentStation, setCurrentStation }}>
+    <AudioContext.Provider value={{ currentStation, setCurrentStation, filteredStations, setFilteredStations }}>
       {children}
     </AudioContext.Provider>
   );
