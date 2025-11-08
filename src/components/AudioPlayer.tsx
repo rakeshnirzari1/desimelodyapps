@@ -113,21 +113,26 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
   // Handle ad completion
   const handleAdEnded = () => {
-    console.log("Ad finished - resuming radio");
+    console.log("Ad finished - reloading live stream");
     setIsPlayingAd(false);
 
-    // Always resume radio stream after ad ends
+    // Reload the live stream to get the live edge (don't resume from pause)
     const activeAudio = getActiveAudio();
-    if (activeAudio) {
-      // Force play regardless of previous state
+    if (activeAudio && station) {
+      // Reload stream with cache-busting to get live edge
+      const sep = station.link.includes("?") ? "&" : "?";
+      activeAudio.src = `${station.link}${sep}ts=${Date.now()}`;
+      activeAudio.load();
+
+      // Play the reloaded stream
       activeAudio
         .play()
         .then(() => {
           setIsPlaying(true);
-          console.log("Radio resumed successfully");
+          console.log("Radio reloaded and playing from live edge");
         })
         .catch((error) => {
-          console.error("Failed to resume radio:", error);
+          console.error("Failed to reload radio:", error);
           // Try again after a short delay
           setTimeout(() => {
             activeAudio
