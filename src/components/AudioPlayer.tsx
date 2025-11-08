@@ -221,6 +221,18 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
   useEffect(() => {
     if (station && audioRef.current) {
+      // CRITICAL: Update media session BEFORE changing station for mobile locked screen
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: station.name,
+          artist: `${station.language || "Hindi"} • ${station.type}`,
+          album: "Desi Melody",
+          artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
+        });
+        // Keep playback state as "playing" during transition to maintain mobile controls
+        navigator.mediaSession.playbackState = "playing";
+      }
+
       setPlaybackTime(0);
       setIsLoading(true);
       setLoadError(false);
@@ -253,6 +265,10 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         playPromise
           .then(() => {
             setIsPlaying(true);
+            // Confirm media session state after successful play
+            if ("mediaSession" in navigator) {
+              navigator.mediaSession.playbackState = "playing";
+            }
           })
           .catch((error) => {
             console.log("Autoplay blocked:", error.name);
@@ -264,6 +280,10 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         setIsLoading(false);
         setLoadError(false);
         setIsPlaying(true);
+        // Ensure media session stays active
+        if ("mediaSession" in navigator) {
+          navigator.mediaSession.playbackState = "playing";
+        }
         if (stationTimeoutRef.current) {
           clearTimeout(stationTimeoutRef.current);
         }
@@ -305,6 +325,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   useEffect(() => {
     if (!station || !("mediaSession" in navigator)) return;
 
+    // Update metadata (may already be set in station change effect, but ensure it's current)
     navigator.mediaSession.metadata = new MediaMetadata({
       title: station.name,
       artist: `${station.language || "Hindi"} • ${station.type}`,
@@ -313,6 +334,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     });
 
     // Keep session active so next/prev work even while loading or screen is off
+    // CRITICAL: Keep as "playing" during loading to maintain mobile controls
     navigator.mediaSession.playbackState = isPlaying || isLoading ? "playing" : "paused";
 
     navigator.mediaSession.setActionHandler("play", async () => {
