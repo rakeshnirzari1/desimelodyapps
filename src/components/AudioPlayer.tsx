@@ -79,20 +79,23 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     try {
       const adUrl = await getAdUrlForRegion();
       const adAudio = adAudioRef.current;
-      const radioAudio = getActiveAudio();
 
-      if (!adAudio || !radioAudio) return;
+      if (!adAudio) return;
 
       console.log("Playing ad:", adUrl);
 
-      // Pause radio stream
-      if (isPlaying) {
-        radioAudio.pause();
+      // CRITICAL: Pause BOTH audio elements (mobile uses dual elements)
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      if (audioRef2.current) {
+        audioRef2.current.pause();
       }
 
       // Load and play ad
+      const activeAudio = getActiveAudio();
       adAudio.src = adUrl;
-      adAudio.volume = radioAudio.volume; // Match radio volume
+      adAudio.volume = activeAudio?.volume || 0.7; // Match radio volume
       setIsPlayingAd(true);
 
       await adAudio.play();
@@ -115,6 +118,16 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const handleAdEnded = () => {
     console.log("Ad finished - reloading live stream");
     setIsPlayingAd(false);
+
+    // CRITICAL: Ensure BOTH audio elements are stopped (mobile uses dual elements)
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    if (audioRef2.current) {
+      audioRef2.current.pause();
+      audioRef2.current.currentTime = 0;
+    }
 
     // Reload the live stream to get the live edge (don't resume from pause)
     const activeAudio = getActiveAudio();
