@@ -248,101 +248,170 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       setIsLoading(true);
       setLoadError(false);
 
-      // Get current active and inactive audio elements
-      const currentAudio = getActiveAudio();
-      const nextAudio = getInactiveAudio();
+      // MOBILE: Seamless transition with dual audio elements to maintain media controls
+      // DESKTOP: Simple immediate switch for reliability
+      if (isMobile) {
+        // Get current active and inactive audio elements
+        const currentAudio = getActiveAudio();
+        const nextAudio = getInactiveAudio();
 
-      if (!currentAudio || !nextAudio) return;
+        if (!currentAudio || !nextAudio) return;
 
-      // Load new station in the INACTIVE audio element (background loading)
-      nextAudio.src = station.link;
-      nextAudio.volume = currentAudio.volume; // Match volume
-      nextAudio.load();
+        // Load new station in the INACTIVE audio element (background loading)
+        nextAudio.src = station.link;
+        nextAudio.volume = currentAudio.volume; // Match volume
+        nextAudio.load();
 
-      // Set timeout for station loading - auto-skip if station doesn't load
-      stationTimeoutRef.current = setTimeout(() => {
-        if (nextAudio.readyState === 0 && nextAudio.paused) {
-          console.log("Station timed out - auto-skipping to next");
+        // Set timeout for station loading - auto-skip if station doesn't load
+        stationTimeoutRef.current = setTimeout(() => {
+          if (nextAudio.readyState === 0 && nextAudio.paused) {
+            console.log("Station timed out - auto-skipping to next");
+            setIsLoading(false);
+            setLoadError(true);
+            // Auto-skip to next station after 1 second
+            setTimeout(() => {
+              playNextStation();
+            }, 1000);
+          } else if (nextAudio.paused) {
+            console.log("Station loaded but autoplay blocked");
+            setIsLoading(false);
+            setIsPlaying(false);
+          }
+        }, STATION_TIMEOUT);
+
+        // Handler for when new station is ready to play
+        const handleCanPlay = () => {
+          console.log("New station ready - seamless switching");
+          
+          // Play the new station
+          const playPromise = nextAudio.play();
+          
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                // SUCCESS: New station is playing
+                // Now fade out and stop the old station
+                if (currentAudio && !currentAudio.paused) {
+                  currentAudio.pause();
+                  currentAudio.currentTime = 0;
+                }
+                
+                // Swap active audio reference
+                swapActiveAudio();
+                
+                setIsPlaying(true);
+                setIsLoading(false);
+                setLoadError(false);
+                
+                // Confirm media session state
+                if ("mediaSession" in navigator) {
+                  navigator.mediaSession.playbackState = "playing";
+                }
+                
+                if (stationTimeoutRef.current) {
+                  clearTimeout(stationTimeoutRef.current);
+                }
+              })
+              .catch((error) => {
+                console.log("Autoplay blocked on new station:", error.name);
+                setIsLoading(false);
+                setIsPlaying(false);
+              });
+          }
+        };
+
+        const handleError = () => {
+          console.log("Station error - auto-skipping to next");
           setIsLoading(false);
           setLoadError(true);
+          if (stationTimeoutRef.current) {
+            clearTimeout(stationTimeoutRef.current);
+          }
           // Auto-skip to next station after 1 second
           setTimeout(() => {
             playNextStation();
           }, 1000);
-        } else if (nextAudio.paused) {
-          console.log("Station loaded but autoplay blocked");
+        };
+
+        // Listen for when new station is ready
+        nextAudio.addEventListener("canplay", handleCanPlay);
+        nextAudio.addEventListener("error", handleError);
+
+        return () => {
+          nextAudio.removeEventListener("canplay", handleCanPlay);
+          nextAudio.removeEventListener("error", handleError);
+          if (stationTimeoutRef.current) {
+            clearTimeout(stationTimeoutRef.current);
+          }
+        };
+      } else {
+        // DESKTOP: Simple immediate switch (original behavior)
+        const audio = audioRef.current;
+        
+        audio.src = station.link;
+        audio.load();
+
+        // Set timeout for station loading
+        stationTimeoutRef.current = setTimeout(() => {
+          if (audio.readyState === 0 && audio.paused) {
+            console.log("Station timed out - auto-skipping to next");
+            setIsLoading(false);
+            setLoadError(true);
+            setTimeout(() => {
+              playNextStation();
+            }, 1000);
+          } else if (audio.paused) {
+            console.log("Station loaded but autoplay blocked");
+            setIsLoading(false);
+            setIsPlaying(false);
+          }
+        }, STATION_TIMEOUT);
+
+        const handleCanPlay = () => {
+          const playPromise = audio.play();
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                setIsPlaying(true);
+                setIsLoading(false);
+                setLoadError(false);
+                if (stationTimeoutRef.current) {
+                  clearTimeout(stationTimeoutRef.current);
+                }
+              })
+              .catch((error) => {
+                console.log("Autoplay blocked:", error.name);
+                setIsLoading(false);
+                setIsPlaying(false);
+              });
+          }
+        };
+
+        const handleError = () => {
+          console.log("Station error - auto-skipping to next");
           setIsLoading(false);
-          setIsPlaying(false);
-        }
-      }, STATION_TIMEOUT);
+          setLoadError(true);
+          if (stationTimeoutRef.current) {
+            clearTimeout(stationTimeoutRef.current);
+          }
+          setTimeout(() => {
+            playNextStation();
+          }, 1000);
+        };
 
-      // Handler for when new station is ready to play
-      const handleCanPlay = () => {
-        console.log("New station ready - seamless switching");
-        
-        // Play the new station
-        const playPromise = nextAudio.play();
-        
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              // SUCCESS: New station is playing
-              // Now fade out and stop the old station
-              if (currentAudio && !currentAudio.paused) {
-                currentAudio.pause();
-                currentAudio.currentTime = 0;
-              }
-              
-              // Swap active audio reference
-              swapActiveAudio();
-              
-              setIsPlaying(true);
-              setIsLoading(false);
-              setLoadError(false);
-              
-              // Confirm media session state
-              if ("mediaSession" in navigator) {
-                navigator.mediaSession.playbackState = "playing";
-              }
-              
-              if (stationTimeoutRef.current) {
-                clearTimeout(stationTimeoutRef.current);
-              }
-            })
-            .catch((error) => {
-              console.log("Autoplay blocked on new station:", error.name);
-              setIsLoading(false);
-              setIsPlaying(false);
-            });
-        }
-      };
+        audio.addEventListener("canplay", handleCanPlay);
+        audio.addEventListener("error", handleError);
 
-      const handleError = () => {
-        console.log("Station error - auto-skipping to next");
-        setIsLoading(false);
-        setLoadError(true);
-        if (stationTimeoutRef.current) {
-          clearTimeout(stationTimeoutRef.current);
-        }
-        // Auto-skip to next station after 1 second
-        setTimeout(() => {
-          playNextStation();
-        }, 1000);
-      };
-
-      // Listen for when new station is ready
-      nextAudio.addEventListener("canplay", handleCanPlay);
-      nextAudio.addEventListener("error", handleError);
-
-      return () => {
-        nextAudio.removeEventListener("canplay", handleCanPlay);
-        nextAudio.removeEventListener("error", handleError);
-        if (stationTimeoutRef.current) {
-          clearTimeout(stationTimeoutRef.current);
-        }
-      };
+        return () => {
+          audio.removeEventListener("canplay", handleCanPlay);
+          audio.removeEventListener("error", handleError);
+          if (stationTimeoutRef.current) {
+            clearTimeout(stationTimeoutRef.current);
+          }
+        };
+      }
     }
-  }, [station]);
+  }, [station, isMobile]);
 
   useEffect(() => {
     const activeAudio = getActiveAudio();
