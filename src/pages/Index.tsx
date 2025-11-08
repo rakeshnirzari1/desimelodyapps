@@ -1,4 +1,3 @@
-
 import { Helmet } from "react-helmet";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -21,14 +20,14 @@ const Index = () => {
   const { currentStation, setCurrentStation } = useAudio();
   const isMobile = useIsMobile();
   const [searchParams] = useSearchParams();
-  const searchQuery = searchParams.get('search') || '';
+  const searchQuery = searchParams.get("search") || "";
 
   const radioStations = getStationsWithSlugs();
 
   // Filter stations based on URL search parameter
   const filteredStations = useMemo(() => {
     if (!searchQuery) return radioStations;
-    
+
     const query = searchQuery.toLowerCase();
     return radioStations.filter(
       (station) =>
@@ -36,24 +35,23 @@ const Index = () => {
         station.language?.toLowerCase().includes(query) ||
         station.location?.toLowerCase().includes(query) ||
         station.type?.toLowerCase().includes(query) ||
-        station.tags?.toLowerCase().includes(query)
+        station.tags?.toLowerCase().includes(query),
     );
   }, [searchQuery, radioStations]);
 
   // Featured tags
-  const featuredTags = ['Bollywood', 'Hindi', 'Tamil', 'News', 'Devotional', 'Pop', 'Rock', 'Folk'];
+  const featuredTags = ["Bollywood", "Hindi", "Tamil", "News", "Devotional", "Pop", "Rock", "Folk"];
 
   // Auto-play Radio Mirchi Hindi on page load (desktop only)
   useEffect(() => {
     if (!isMobile && !searchQuery) {
-      const radioMirchiHindi = radioStations.find(s => s.id === "3");
+      const radioMirchiHindi = radioStations.find((s) => s.id === "3");
       if (radioMirchiHindi && !currentStation) {
         setCurrentStation(radioMirchiHindi);
       }
     }
   }, [isMobile, searchQuery]);
 
-  
   // Featured stations by name
   const featuredStationNames = [
     "Radio Mirchi Hindi",
@@ -63,16 +61,19 @@ const Index = () => {
     "Radio City Hindi",
     "City 92 FM",
     "Mirchi Love Hindi",
-    "Radio Bollywood Gaane Purane"
+    "Radio Bollywood Gaane Purane",
   ];
-  
+
   const featuredStations = filteredStations
-    .filter(station => featuredStationNames.some(name => 
-      station.name.toLowerCase().includes(name.toLowerCase()) || 
-      name.toLowerCase().includes(station.name.toLowerCase())
-    ))
+    .filter((station) =>
+      featuredStationNames.some(
+        (name) =>
+          station.name.toLowerCase().includes(name.toLowerCase()) ||
+          name.toLowerCase().includes(station.name.toLowerCase()),
+      ),
+    )
     .slice(0, 8);
-  
+
   // Popular stations by name
   const popularStationNames = [
     "Radio Mirchi USA",
@@ -82,14 +83,17 @@ const Index = () => {
     "Mirchi Love Hindi",
     "90's Tamil Melodies",
     "latamangeshkarradio",
-    "Red FM 93.5"
+    "Red FM 93.5",
   ];
-  
+
   const popularStations = filteredStations
-    .filter(station => popularStationNames.some(name => 
-      station.name.toLowerCase().includes(name.toLowerCase()) || 
-      name.toLowerCase().includes(station.name.toLowerCase())
-    ))
+    .filter((station) =>
+      popularStationNames.some(
+        (name) =>
+          station.name.toLowerCase().includes(name.toLowerCase()) ||
+          name.toLowerCase().includes(station.name.toLowerCase()),
+      ),
+    )
     .slice(0, 8);
 
   const handlePlay = (station: RadioStation) => {
@@ -102,7 +106,7 @@ const Index = () => {
   const handleShare = (platform: string) => {
     const encodedUrl = encodeURIComponent(shareUrl);
     const encodedTitle = encodeURIComponent(shareTitle);
-    
+
     let url = "";
     switch (platform) {
       case "facebook":
@@ -122,7 +126,7 @@ const Index = () => {
         toast.success("Link copied to clipboard!");
         return;
     }
-    
+
     if (url) {
       window.open(url, "_blank", "width=600,height=400");
     }
@@ -131,15 +135,24 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Helmet>
-        <title>Desi Melody - Stream 1100+ Live Radio Stations | India, Pakistan, Bangladesh, Sri Lanka</title>
-        <meta name="description" content="Listen to 1100+ live radio stations from India, Pakistan, Bangladesh, Sri Lanka. Stream Bollywood hits, regional classics, and more. Free online radio streaming." />
+        <title>DesiMelody.com - Stream 1100+ Live Radio Stations | India, Pakistan, Bangladesh, Sri Lanka</title>
+        <meta
+          name="description"
+          content="Listen to 1100+ live radio stations from India, Pakistan, Bangladesh, Sri Lanka. Stream Bollywood hits, regional classics, and more. Free online radio streaming."
+        />
         <meta property="og:title" content="Desi Melody - Stream 1100+ Live Radio Stations from South Asia" />
-        <meta property="og:description" content="Listen to 1100+ live radio stations from India, Pakistan, Bangladesh, Sri Lanka. Stream Bollywood hits, regional classics, and more. Free online radio streaming." />
+        <meta
+          property="og:description"
+          content="Listen to 1100+ live radio stations from India, Pakistan, Bangladesh, Sri Lanka. Stream Bollywood hits, regional classics, and more. Free online radio streaming."
+        />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Desi Melody - Stream 1100+ Live Radio Stations from South Asia" />
-        <meta name="twitter:description" content="Listen to 1100+ live radio stations from India, Pakistan, Bangladesh, Sri Lanka. Stream Bollywood hits, regional classics, and more. Free online radio streaming." />
+        <meta
+          name="twitter:description"
+          content="Listen to 1100+ live radio stations from India, Pakistan, Bangladesh, Sri Lanka. Stream Bollywood hits, regional classics, and more. Free online radio streaming."
+        />
       </Helmet>
       <Header />
 
@@ -157,7 +170,8 @@ const Index = () => {
                   <span className="hidden md:inline">Desi Melody - </span>Endless Vibes
                 </h1>
                 <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Stream live radio from India, Pakistan, Bangladesh, Sri Lanka and across South Asia. From Bollywood hits to regional classics.
+                  Stream live radio from India, Pakistan, Bangladesh, Sri Lanka and across South Asia. From Bollywood
+                  hits to regional classics.
                 </p>
               </>
             ) : (
@@ -166,11 +180,11 @@ const Index = () => {
                   Search Results for "{searchQuery}"
                 </h1>
                 <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Found {filteredStations.length} station{filteredStations.length !== 1 ? 's' : ''}
+                  Found {filteredStations.length} station{filteredStations.length !== 1 ? "s" : ""}
                 </p>
               </>
             )}
-            
+
             <div className="pt-4">
               <SearchBar onStationSelect={handlePlay} />
             </div>
@@ -180,8 +194,8 @@ const Index = () => {
               <Tag className="w-4 h-4 text-muted-foreground" />
               {featuredTags.map((tag) => (
                 <Link key={tag} to={`/tag/${tag.toLowerCase()}`}>
-                  <Badge 
-                    variant="secondary" 
+                  <Badge
+                    variant="secondary"
                     className="px-3 py-1 text-sm hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer"
                   >
                     {tag}
@@ -214,9 +228,7 @@ const Index = () => {
                     <span className="text-sm font-medium text-primary">Now Playing</span>
                   </div>
                   <h2 className="text-2xl font-bold">{currentStation.name}</h2>
-                  <p className="text-muted-foreground">
-                    Your favorite Bollywood hits, live 24/7
-                  </p>
+                  <p className="text-muted-foreground">Your favorite Bollywood hits, live 24/7</p>
                 </div>
               )}
             </div>
@@ -241,9 +253,7 @@ const Index = () => {
                   <Radio className="w-8 h-8 text-primary" />
                   Search Results
                 </h2>
-                <p className="text-muted-foreground mt-2">
-                  Stations matching your search
-                </p>
+                <p className="text-muted-foreground mt-2">Stations matching your search</p>
               </div>
               <Link to="/">
                 <Button variant="ghost" className="gap-2">
@@ -255,11 +265,7 @@ const Index = () => {
             {filteredStations.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {filteredStations.map((station) => (
-                  <StationCard
-                    key={station.id}
-                    station={station}
-                    onPlay={handlePlay}
-                  />
+                  <StationCard key={station.id} station={station} onPlay={handlePlay} />
                 ))}
               </div>
             ) : (
@@ -296,11 +302,7 @@ const Index = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {featuredStations.map((station) => (
-                <StationCard
-                  key={station.id}
-                  station={station}
-                  onPlay={handlePlay}
-                />
+                <StationCard key={station.id} station={station} onPlay={handlePlay} />
               ))}
             </div>
           </div>
@@ -333,11 +335,7 @@ const Index = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {popularStations.map((station) => (
-                <StationCard
-                  key={station.id}
-                  station={station}
-                  onPlay={handlePlay}
-                />
+                <StationCard key={station.id} station={station} onPlay={handlePlay} />
               ))}
             </div>
           </div>
@@ -415,12 +413,13 @@ const Index = () => {
             </p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {['Hindi', 'Tamil', 'Malayalam', 'Kannada', 'Telugu', 'Punjabi', 'Bengali', 'Marathi'].map((lang) => (
+            {["Hindi", "Tamil", "Malayalam", "Kannada", "Telugu", "Punjabi", "Bengali", "Marathi"].map((lang) => (
               <Link key={lang} to={`/browse?language=${lang.toLowerCase()}`}>
                 <div className="p-6 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 hover:from-primary/20 hover:to-accent/20 transition-all cursor-pointer text-center">
                   <h4 className="font-semibold text-lg">{lang}</h4>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {radioStations.filter(s => s.language?.toLowerCase().includes(lang.toLowerCase())).length} stations
+                    {radioStations.filter((s) => s.language?.toLowerCase().includes(lang.toLowerCase())).length}{" "}
+                    stations
                   </p>
                 </div>
               </Link>
@@ -437,15 +436,13 @@ const Index = () => {
               <Tag className="w-8 h-8 text-primary" />
               Browse by Tags
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Find stations by popular tags and genres
-            </p>
+            <p className="text-muted-foreground max-w-2xl mx-auto">Find stations by popular tags and genres</p>
           </div>
           <div className="flex flex-wrap justify-center gap-3">
-            {['MP3', 'Bollywood', 'Classical', 'Devotional', 'Pop', 'Rock', 'Folk', 'News'].map((tag) => (
+            {["MP3", "Bollywood", "Classical", "Devotional", "Pop", "Rock", "Folk", "News"].map((tag) => (
               <Link key={tag} to={`/tag/${tag.toLowerCase()}`}>
-                <Badge 
-                  variant="outline" 
+                <Badge
+                  variant="outline"
                   className="px-4 py-2 text-base hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer"
                 >
                   {tag}
@@ -504,10 +501,7 @@ const Index = () => {
               >
                 <Mail className="w-5 h-5" />
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => handleShare("copy")}
-              >
+              <Button variant="outline" onClick={() => handleShare("copy")}>
                 Copy Link
               </Button>
             </div>
