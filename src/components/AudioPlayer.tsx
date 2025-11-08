@@ -21,9 +21,9 @@ interface AudioPlayerProps {
   onClose: () => void;
 }
 
-// Shorter timeout for mobile to prevent media controls from disappearing
-const STATION_TIMEOUT = 8000; // 8 seconds for all devices
-const MOBILE_STATION_TIMEOUT = 4000; // 4 seconds for mobile devices
+// Balance between giving stations time to load and keeping media controls active
+const STATION_TIMEOUT = 12000; // 12 seconds for desktop
+const MOBILE_STATION_TIMEOUT = 6000; // 6 seconds for mobile - keep under 8s to maintain controls
 
 export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -235,8 +235,12 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
       stationTimeoutRef.current = setTimeout(() => {
         if (audioRef.current) {
-          if (audioRef.current.readyState === 0 || audioRef.current.paused) {
-            console.log(`Station timed out after ${timeoutDuration}ms - auto-skipping to next`);
+          // Check if we're receiving any data (readyState > 0) or if playback has started
+          const isReceivingData = audioRef.current.readyState > 0;
+          const hasStartedPlaying = !audioRef.current.paused && audioRef.current.currentTime > 0;
+
+          if (!isReceivingData && !hasStartedPlaying) {
+            console.log(`Station timed out after ${timeoutDuration}ms - no data received`);
             setIsLoading(false);
             setLoadError(true);
             // Auto-skip to next station immediately on mobile, or after 1 second on desktop
@@ -244,7 +248,24 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
             setTimeout(() => {
               playNextStation();
             }, skipDelay);
-          } else if (audioRef.current.paused) {
+          } else if (isReceivingData && !hasStartedPlaying) {
+            // Station is loading but hasn't started playing yet - give it a few more seconds
+            console.log("Station is loading but hasn't started playing - extending timeout");
+            const extraTime = isMobile ? 2000 : 4000;
+            stationTimeoutRef.current = setTimeout(() => {
+              if (audioRef.current && audioRef.current.paused) {
+                console.log("Station failed to start playing after extended timeout");
+                setIsLoading(false);
+                setLoadError(true);
+                setTimeout(
+                  () => {
+                    playNextStation();
+                  },
+                  isMobile ? 0 : 1000,
+                );
+              }
+            }, extraTime);
+          } else {
             console.log("Station loaded but autoplay blocked");
             setIsLoading(false);
             setIsPlaying(false);
