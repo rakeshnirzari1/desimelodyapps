@@ -34,7 +34,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const [adDuration, setAdDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
   const audioRef2 = useRef<HTMLAudioElement>(null); // Second audio for seamless transitions
-  const activeAudioRef = useRef<'audio1' | 'audio2'>('audio1'); // Track which audio is active
+  const activeAudioRef = useRef<"audio1" | "audio2">("audio1"); // Track which audio is active
   const adAudioRef = useRef<HTMLAudioElement>(null);
   const playbackTimerRef = useRef<NodeJS.Timeout | null>(null);
   const stationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -51,10 +51,10 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const prevActionRef = useRef<() => void>(() => {});
 
   // Helper to get active and inactive audio elements
-  const getActiveAudio = () => activeAudioRef.current === 'audio1' ? audioRef.current : audioRef2.current;
-  const getInactiveAudio = () => activeAudioRef.current === 'audio1' ? audioRef2.current : audioRef.current;
+  const getActiveAudio = () => (activeAudioRef.current === "audio1" ? audioRef.current : audioRef2.current);
+  const getInactiveAudio = () => (activeAudioRef.current === "audio1" ? audioRef2.current : audioRef.current);
   const swapActiveAudio = () => {
-    activeAudioRef.current = activeAudioRef.current === 'audio1' ? 'audio2' : 'audio1';
+    activeAudioRef.current = activeAudioRef.current === "audio1" ? "audio2" : "audio1";
   };
 
   // Playback timer
@@ -237,7 +237,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: station.name,
           artist: `${station.language || "Hindi"} • ${station.type}`,
-          album: "Desi Melody",
+          album: "DesiMelody.com",
           artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
         });
         // Keep playback state as "playing" during transition to maintain mobile controls
@@ -282,10 +282,10 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         // Handler for when new station is ready to play
         const handleCanPlay = () => {
           console.log("New station ready - seamless switching");
-          
+
           // Play the new station
           const playPromise = nextAudio.play();
-          
+
           if (playPromise !== undefined) {
             playPromise
               .then(() => {
@@ -295,19 +295,19 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
                   currentAudio.pause();
                   currentAudio.currentTime = 0;
                 }
-                
+
                 // Swap active audio reference
                 swapActiveAudio();
-                
+
                 setIsPlaying(true);
                 setIsLoading(false);
                 setLoadError(false);
-                
+
                 // Confirm media session state
                 if ("mediaSession" in navigator) {
                   navigator.mediaSession.playbackState = "playing";
                 }
-                
+
                 if (stationTimeoutRef.current) {
                   clearTimeout(stationTimeoutRef.current);
                 }
@@ -347,7 +347,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       } else {
         // DESKTOP: Simple immediate switch (original behavior)
         const audio = audioRef.current;
-        
+
         audio.src = station.link;
         audio.load();
 
@@ -416,7 +416,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   useEffect(() => {
     const activeAudio = getActiveAudio();
     const inactiveAudio = getInactiveAudio();
-    
+
     if (activeAudio) {
       activeAudio.volume = isMuted ? 0 : volume / 100;
     }
@@ -433,7 +433,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     navigator.mediaSession.metadata = new MediaMetadata({
       title: station.name,
       artist: `${station.language || "Hindi"} • ${station.type}`,
-      album: "Desi Melody",
+      album: "DesiMelody.com",
       artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
     });
 
@@ -603,7 +603,10 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
       <AdOverlay isVisible={isPlayingAd} duration={adDuration} onSkip={skipAd} />
 
-      <AudioVisualizer audioRef={getActiveAudio() === audioRef.current ? audioRef : audioRef2} isPlaying={isPlaying && !isPlayingAd} />
+      <AudioVisualizer
+        audioRef={getActiveAudio() === audioRef.current ? audioRef : audioRef2}
+        isPlaying={isPlaying && !isPlayingAd}
+      />
 
       <div className="container py-4 relative z-10 max-w-full">
         <div className="flex items-center gap-2 sm:gap-4 max-w-full">
