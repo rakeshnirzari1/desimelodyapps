@@ -23,7 +23,9 @@ interface AudioPlayerProps {
 
 // Balance between giving stations time to load and keeping media controls active
 const STATION_TIMEOUT = 12000; // 12 seconds for desktop
-const MOBILE_STATION_TIMEOUT = 6000; // 6 seconds for mobile - keep under 8s to maintain controls
+const MOBILE_STATION_TIMEOUT = 7500; // 7.5 seconds for mobile - keep under 8s to maintain controls
+const MOBILE_EXTRA_TIME = 3000; // Additional 3s for mobile if receiving data
+const DESKTOP_EXTRA_TIME = 4000; // Additional 4s for desktop if receiving data
 
 export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -235,25 +237,35 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
       stationTimeoutRef.current = setTimeout(() => {
         if (audioRef.current) {
-          // Check if we're receiving any data (readyState > 0) or if playback has started
-          const isReceivingData = audioRef.current.readyState > 0;
+          // More detailed loading state checks
+          const readyState = audioRef.current.readyState;
+          const networkState = audioRef.current.networkState;
+          const isReceivingData = readyState > 0;
           const hasStartedPlaying = !audioRef.current.paused && audioRef.current.currentTime > 0;
+          const isConnecting = networkState === 2; // NETWORK_LOADING
 
-          if (!isReceivingData && !hasStartedPlaying) {
+          console.log(
+            `Loading state - ReadyState: ${readyState}, NetworkState: ${networkState}, Receiving: ${isReceivingData}, Playing: ${hasStartedPlaying}`,
+          );
+
+          // On mobile, consider connecting state as receiving data
+          const isEffectivelyReceivingData = isMobile ? isReceivingData || isConnecting : isReceivingData;
+
+          if (!isEffectivelyReceivingData && !hasStartedPlaying) {
             console.log(`Station timed out after ${timeoutDuration}ms - no data received`);
             setIsLoading(false);
             setLoadError(true);
-            // Auto-skip to next station immediately on mobile, or after 1 second on desktop
-            const skipDelay = isMobile ? 0 : 1000;
+            // Give a tiny bit more time on mobile before skipping
+            const skipDelay = isMobile ? 500 : 1000;
             setTimeout(() => {
               playNextStation();
             }, skipDelay);
-          } else if (isReceivingData && !hasStartedPlaying) {
-            // Station is loading but hasn't started playing yet - give it a few more seconds
-            console.log("Station is loading but hasn't started playing - extending timeout");
-            const extraTime = isMobile ? 2000 : 4000;
+          } else if (isEffectivelyReceivingData && !hasStartedPlaying) {
+            // Station is loading but hasn't started playing yet - give it more time
+            console.log("Station is receiving data but hasn't started playing - extending timeout");
+            const extraTime = isMobile ? MOBILE_EXTRA_TIME : DESKTOP_EXTRA_TIME;
             stationTimeoutRef.current = setTimeout(() => {
-              if (audioRef.current && audioRef.current.paused) {
+              if (audioRef.current && (audioRef.current.paused || audioRef.current.currentTime === 0)) {
                 console.log("Station failed to start playing after extended timeout");
                 setIsLoading(false);
                 setLoadError(true);
@@ -261,7 +273,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
                   () => {
                     playNextStation();
                   },
-                  isMobile ? 0 : 1000,
+                  isMobile ? 500 : 1000,
                 );
               }
             }, extraTime);
