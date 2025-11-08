@@ -36,6 +36,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const audioRef2 = useRef<HTMLAudioElement>(null); // Second audio for seamless transitions
   const activeAudioRef = useRef<"audio1" | "audio2">("audio1"); // Track which audio is active
   const adAudioRef = useRef<HTMLAudioElement>(null);
+  const adInProgressRef = useRef(false); // Stable ref to prevent race conditions
   const playbackTimerRef = useRef<NodeJS.Timeout | null>(null);
   const stationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const adIntervalCheckRef = useRef<NodeJS.Timeout | null>(null);
@@ -57,6 +58,11 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     activeAudioRef.current = activeAudioRef.current === "audio1" ? "audio2" : "audio1";
   };
 
+  // Sync adInProgressRef with isPlayingAd state
+  useEffect(() => {
+    adInProgressRef.current = isPlayingAd;
+  }, [isPlayingAd]);
+
   // Playback timer
   useEffect(() => {
     if (isPlaying) {
@@ -76,6 +82,12 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
   // Play ad with regional targeting
   const playAd = async () => {
+    // Prevent concurrent ads
+    if (adInProgressRef.current) {
+      console.log("Ad already playing - skipping new ad trigger");
+      return;
+    }
+
     try {
       const adUrl = await getAdUrlForRegion();
       const adAudio = adAudioRef.current;
@@ -83,20 +95,22 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       if (!adAudio) return;
 
       console.log("Playing ad:", adUrl);
+      setIsPlayingAd(true); // Set this FIRST to update adInProgressRef
 
-      // CRITICAL: Pause BOTH audio elements (mobile uses dual elements)
+      // CRITICAL: Pause BOTH audio elements and reset to prevent overlap
       if (audioRef.current) {
         audioRef.current.pause();
+        audioRef.current.currentTime = 0;
       }
       if (audioRef2.current) {
         audioRef2.current.pause();
+        audioRef2.current.currentTime = 0;
       }
 
       // Load and play ad
       const activeAudio = getActiveAudio();
       adAudio.src = adUrl;
       adAudio.volume = activeAudio?.volume || 0.7; // Match radio volume
-      setIsPlayingAd(true);
 
       await adAudio.play();
 
@@ -299,6 +313,12 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
         // Handler for when new station is ready to play
         const handleCanPlay = () => {
+          // GUARD: Don't start station if ad is playing
+          if (adInProgressRef.current) {
+            console.log("New station ready but ad is playing - delaying start");
+            return;
+          }
+
           console.log("New station ready - seamless switching");
 
           // Play the new station
@@ -386,6 +406,12 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         }, STATION_TIMEOUT);
 
         const handleCanPlay = () => {
+          // GUARD: Don't start station if ad is playing
+          if (adInProgressRef.current) {
+            console.log("New station ready but ad is playing - delaying start");
+            return;
+          }
+
           const playPromise = audio.play();
           if (playPromise !== undefined) {
             playPromise
@@ -460,6 +486,12 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     navigator.mediaSession.playbackState = isPlaying || isLoading ? "playing" : "paused";
 
     navigator.mediaSession.setActionHandler("play", async () => {
+      // GUARD: Don't allow play during ad
+      if (adInProgressRef.current) {
+        console.log("Play action blocked - ad is playing");
+        return;
+      }
+
       const audio = getActiveAudio();
       if (!audio) return;
       try {
@@ -544,6 +576,12 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   }, []);
 
   const togglePlay = async () => {
+    // GUARD: Don't allow play toggle during ad
+    if (adInProgressRef.current) {
+      console.log("Play toggle blocked - ad is playing");
+      return;
+    }
+
     const audio = getActiveAudio();
     if (!audio) return;
 
