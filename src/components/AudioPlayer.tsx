@@ -22,6 +22,7 @@ interface AudioPlayerProps {
 }
 
 const STATION_TIMEOUT = 15000; // 15 seconds
+const LONG_PAUSE_SKIP_MS = 15 * 60 * 1000; // 15 minutes
 
 export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -538,48 +539,16 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         return;
       }
 
-      const audio = getActiveAudio();
-      if (!audio) return;
-      try {
-        // Resume AudioContext (iOS) in response to user gesture
-        try {
-          const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
-          if (AC) {
-            const ac = new AC();
-            if (ac.state === "suspended") await ac.resume();
-            await ac.close();
-          }
-        } catch {}
+      const pausedForMs = lastPausedAtRef.current ? Date.now() - lastPausedAtRef.current : 0;
 
-        const pausedForMs = lastPausedAtRef.current ? Date.now() - lastPausedAtRef.current : 0;
-        const needHardReload =
-          isMobile &&
-          (wasBackgroundedRef.current || pausedForMs > 60000 || audio.readyState === 0 || audio.networkState === 3);
-
-        if (needHardReload) {
-          const base = station?.link ?? audio.src;
-          if (base) {
-            const sep = base.includes("?") ? "&" : "?";
-            audio.src = `${base}${sep}ts=${Date.now()}`;
-          } else {
-            audio.load();
-          }
-          setIsLoading(true);
-          setLoadError(false);
-          wasBackgroundedRef.current = false;
-        } else {
-          if (audio.readyState === 0) {
-            audio.load();
-          }
-        }
-
-        await audio.play();
-        seekToLiveEdgeIfPossible(audio);
-        setIsPlaying(true);
-      } catch (error) {
-        console.error("Play error:", error);
-        setIsPlaying(false);
+      // If paused for a long time (>= 15 min), skip to next station for a fresh live stream
+      if (pausedForMs >= LONG_PAUSE_SKIP_MS) {
+        playNextStation();
+        return;
       }
+
+      // Otherwise always reload the current stream from the live edge (avoid catch-up)
+      await reloadFromLiveAndPlay();
     });
 
     navigator.mediaSession.setActionHandler("pause", () => {
@@ -712,30 +681,15 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       } catch {}
 
       const pausedForMs = lastPausedAtRef.current ? Date.now() - lastPausedAtRef.current : 0;
-      const needHardReload =
-        isMobile &&
-        (wasBackgroundedRef.current || pausedForMs > 60000 || audio.readyState === 0 || audio.networkState === 3);
 
-      if (needHardReload) {
-        const base = station?.link ?? audio.src;
-        if (base) {
-          const sep = base.includes("?") ? "&" : "?";
-          audio.src = `${base}${sep}ts=${Date.now()}`; // cache-bust to force fresh stream
-        } else {
-          audio.load();
-        }
-        setIsLoading(true);
-        setLoadError(false);
-        wasBackgroundedRef.current = false;
-      } else {
-        if (audio.readyState === 0) {
-          audio.load();
-        }
+      // Long pause (>= 15 min) -> skip to next station to ensure a clean live start
+      if (pausedForMs >= LONG_PAUSE_SKIP_MS) {
+        playNextStation();
+        return;
       }
 
-      await audio.play();
-      seekToLiveEdgeIfPossible(audio);
-      setIsPlaying(true);
+      // Otherwise always reload the current station from the live edge to avoid catch-up
+      await reloadFromLiveAndPlay();
     } catch (error) {
       console.log("Play failed:", error);
       setIsPlaying(false);
