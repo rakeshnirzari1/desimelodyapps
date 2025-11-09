@@ -22,7 +22,6 @@ interface AudioPlayerProps {
 }
 
 const STATION_TIMEOUT = 15000; // 15 seconds
-const LONG_PAUSE_SKIP_MS = 15 * 60 * 1000; // 15 minutes
 
 export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -41,55 +40,12 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const playbackTimerRef = useRef<NodeJS.Timeout | null>(null);
   const stationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const adIntervalCheckRef = useRef<NodeJS.Timeout | null>(null);
-  const {
-    setCurrentStation,
-    stationChangeCount,
-    incrementStationChangeCount,
-    adAnalytics,
-    updateAdAnalytics,
-    filteredStations,
-  } = useAudio();
+  const { setCurrentStation, stationChangeCount, incrementStationChangeCount, adAnalytics, updateAdAnalytics, filteredStations } =
+    useAudio();
   const isMobile = useIsMobile();
   const lastPausedAtRef = useRef<number | null>(null);
   const wasBackgroundedRef = useRef(false);
   const previousStationIdRef = useRef<string | null>(null);
-
-  // Track playback to auto-resume after network changes
-  const wasPlayingBeforeOfflineRef = useRef(false);
-
-  // Jump to live edge if the stream supports seeking
-  const seekToLiveEdgeIfPossible = (audio: HTMLAudioElement) => {
-    try {
-      const ranges = audio.seekable;
-      if (ranges && ranges.length > 0) {
-        const live = ranges.end(ranges.length - 1);
-        if (Number.isFinite(live)) {
-          audio.currentTime = live - 0.5;
-        }
-      }
-    } catch {}
-  };
-
-  // Reload stream with cache-busting and start from live edge
-  const reloadFromLiveAndPlay = async () => {
-    const audio = getActiveAudio();
-    if (!audio || !station) return;
-    const base = station.link;
-    const sep = base.includes("?") ? "&" : "?";
-    audio.src = `${base}${sep}ts=${Date.now()}`;
-    setIsLoading(true);
-    setLoadError(false);
-    audio.load();
-    try {
-      await audio.play();
-      seekToLiveEdgeIfPossible(audio);
-      setIsPlaying(true);
-      console.log("Radio reloaded and playing from live edge (network/pause)");
-    } catch (err) {
-      console.error("Failed to resume from live edge:", err);
-      setIsPlaying(false);
-    }
-  };
 
   // Persistent refs for Media Session next/prev handlers
   const nextActionRef = useRef<() => void>(() => {});
@@ -199,7 +155,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       activeAudio
         .play()
         .then(() => {
-          seekToLiveEdgeIfPossible(activeAudio);
           setIsPlaying(true);
           console.log("Radio reloaded and playing from live edge");
         })
@@ -539,16 +494,47 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         return;
       }
 
-      const pausedForMs = lastPausedAtRef.current ? Date.now() - lastPausedAtRef.current : 0;
+      const audio = getActiveAudio();
+      if (!audio) return;
+      try {
+        // Resume AudioContext (iOS) in response to user gesture
+        try {
+          const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
+          if (AC) {
+            const ac = new AC();
+            if (ac.state === "suspended") await ac.resume();
+            await ac.close();
+          }
+        } catch {}
 
-      // If paused for a long time (>= 15 min), skip to next station for a fresh live stream
-      if (pausedForMs >= LONG_PAUSE_SKIP_MS) {
-        playNextStation();
-        return;
+        const pausedForMs = lastPausedAtRef.current ? Date.now() - lastPausedAtRef.current : 0;
+        const needHardReload =
+          isMobile &&
+          (wasBackgroundedRef.current || pausedForMs > 60000 || audio.readyState === 0 || audio.networkState === 3);
+
+        if (needHardReload) {
+          const base = station?.link ?? audio.src;
+          if (base) {
+            const sep = base.includes("?") ? "&" : "?";
+            audio.src = `${base}${sep}ts=${Date.now()}`;
+          } else {
+            audio.load();
+          }
+          setIsLoading(true);
+          setLoadError(false);
+          wasBackgroundedRef.current = false;
+        } else {
+          if (audio.readyState === 0) {
+            audio.load();
+          }
+        }
+
+        await audio.play();
+        setIsPlaying(true);
+      } catch (error) {
+        console.error("Play error:", error);
+        setIsPlaying(false);
       }
-
-      // Otherwise always reload the current stream from the live edge (avoid catch-up)
-      await reloadFromLiveAndPlay();
     });
 
     navigator.mediaSession.setActionHandler("pause", () => {
@@ -556,8 +542,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       if (audio) {
         audio.pause();
         setIsPlaying(false);
-        // Track when paused for reconnection logic
-        lastPausedAtRef.current = Date.now();
       }
     });
 
@@ -567,28 +551,20 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     };
   }, [station, isPlaying, isLoading]);
 
-  // Register next/prev handlers - disable during ads
+  // Register next/prev handlers once to remain active during screen-off
   useEffect(() => {
     if (!("mediaSession" in navigator)) return;
-
-    // Disable next/prev during ads to prevent skipping
-    if (isPlayingAd) {
-      navigator.mediaSession.setActionHandler("nexttrack", null);
-      navigator.mediaSession.setActionHandler("previoustrack", null);
-    } else {
-      navigator.mediaSession.setActionHandler("nexttrack", () => {
-        nextActionRef.current();
-      });
-      navigator.mediaSession.setActionHandler("previoustrack", () => {
-        prevActionRef.current();
-      });
-    }
-
+    navigator.mediaSession.setActionHandler("nexttrack", () => {
+      nextActionRef.current();
+    });
+    navigator.mediaSession.setActionHandler("previoustrack", () => {
+      prevActionRef.current();
+    });
     return () => {
       navigator.mediaSession.setActionHandler("nexttrack", null);
       navigator.mediaSession.setActionHandler("previoustrack", null);
     };
-  }, [isPlayingAd]);
+  }, []);
 
   // Track backgrounding to refresh stream on mobile resume
   useEffect(() => {
@@ -600,56 +576,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     document.addEventListener("visibilitychange", onVisibility);
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
-
-  // Auto-recover on network changes (Wi‑Fi <-> mobile data)
-  useEffect(() => {
-    const onOffline = () => {
-      const audio = getActiveAudio();
-      if (audio && isPlaying && !isPlayingAd) {
-        wasPlayingBeforeOfflineRef.current = true;
-      } else {
-        wasPlayingBeforeOfflineRef.current = false;
-      }
-      if (audio) audio.pause();
-      setIsPlaying(false);
-    };
-
-    const resumeIfNeeded = () => {
-      if (adInProgressRef.current) return;
-      if (wasPlayingBeforeOfflineRef.current) {
-        reloadFromLiveAndPlay();
-        wasPlayingBeforeOfflineRef.current = false;
-      }
-    };
-
-    window.addEventListener("offline", onOffline);
-    window.addEventListener("online", resumeIfNeeded);
-
-    const conn: any = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
-    if (conn) {
-      try {
-        if (typeof conn.addEventListener === "function") {
-          conn.addEventListener("change", resumeIfNeeded);
-        } else if ("onchange" in conn) {
-          conn.onchange = resumeIfNeeded;
-        }
-      } catch {}
-    }
-
-    return () => {
-      window.removeEventListener("offline", onOffline);
-      window.removeEventListener("online", resumeIfNeeded);
-      if (conn) {
-        try {
-          if (typeof conn.removeEventListener === "function") {
-            conn.removeEventListener("change", resumeIfNeeded);
-          } else if ("onchange" in conn) {
-            conn.onchange = null;
-          }
-        } catch {}
-      }
-    };
-  }, [isPlaying, isPlayingAd, station]);
 
   const togglePlay = async () => {
     // GUARD: Don't allow play toggle during ad
@@ -681,15 +607,29 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       } catch {}
 
       const pausedForMs = lastPausedAtRef.current ? Date.now() - lastPausedAtRef.current : 0;
+      const needHardReload =
+        isMobile &&
+        (wasBackgroundedRef.current || pausedForMs > 60000 || audio.readyState === 0 || audio.networkState === 3);
 
-      // Long pause (>= 15 min) -> skip to next station to ensure a clean live start
-      if (pausedForMs >= LONG_PAUSE_SKIP_MS) {
-        playNextStation();
-        return;
+      if (needHardReload) {
+        const base = station?.link ?? audio.src;
+        if (base) {
+          const sep = base.includes("?") ? "&" : "?";
+          audio.src = `${base}${sep}ts=${Date.now()}`; // cache-bust to force fresh stream
+        } else {
+          audio.load();
+        }
+        setIsLoading(true);
+        setLoadError(false);
+        wasBackgroundedRef.current = false;
+      } else {
+        if (audio.readyState === 0) {
+          audio.load();
+        }
       }
 
-      // Otherwise always reload the current station from the live edge to avoid catch-up
-      await reloadFromLiveAndPlay();
+      await audio.play();
+      setIsPlaying(true);
     } catch (error) {
       console.log("Play failed:", error);
       setIsPlaying(false);
@@ -770,7 +710,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
                   variant="outline"
                   className="rounded-full w-8 h-8 sm:w-10 sm:h-10"
                   title="Previous Station"
-                  disabled={isPlayingAd}
                 >
                   <SkipBack className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
@@ -794,7 +733,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
                   variant="outline"
                   className="rounded-full w-8 h-8 sm:w-10 sm:h-10"
                   title="Next Station"
-                  disabled={isPlayingAd}
                 >
                   <SkipForward className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
