@@ -21,6 +21,9 @@ export const Header = () => {
           <Link to="/browse" className="text-xs sm:text-sm font-medium hover:text-primary transition-colors">
             Browse
           </Link>
+          <Link to="/advertise" className="text-xs sm:text-sm font-medium hover:text-primary transition-colors">
+            Advertise
+          </Link>
           <Link to="/about" className="text-xs sm:text-sm font-medium hover:text-primary transition-colors">
             About
           </Link>

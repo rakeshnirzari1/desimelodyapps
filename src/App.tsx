@@ -12,6 +12,11 @@ import TagFilter from "./pages/TagFilter";
 import AdminRefresh from "./pages/AdminRefresh";
 import AdminAds from "./pages/AdminAds";
 import NotFound from "./pages/NotFound";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Contact from "./pages/Contact";
+import Advertise from "./pages/Advertise";
+import India from "./pages/India";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +30,11 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/browse" element={<Browse />} />
+            <Route path="/india" element={<India />} />
+            <Route path="/advertise" element={<Advertise />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/tag/:tag" element={<TagFilter />} />
             <Route path="/admin-refresh-stations" element={<AdminRefresh />} />
             <Route path="/admin/ads" element={<AdminAds />} />

@@ -141,6 +141,15 @@ const StationDetail = () => {
           <div className="flex flex-col justify-center space-y-6">
             <div>
               <h1 className="text-4xl md:text-5xl font-bold mb-2">{station.name}</h1>
+              
+              {/* Advertise Banner */}
+              <Link 
+                to="/advertise" 
+                className="inline-block mb-4 px-4 py-2 bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 rounded-lg hover:from-primary/20 hover:to-accent/20 transition-all"
+              >
+                <span className="text-sm font-medium text-primary">📢 Advertise Here</span>
+              </Link>
+
               <div className="flex flex-wrap gap-3 mt-4">
                 <Link to={`/tag/${encodeURIComponent(station.location)}`}>
                   <Badge variant="outline" className="cursor-pointer hover:bg-primary/20 transition-colors px-4 py-2 text-sm">

@@ -167,12 +167,8 @@ const Index = () => {
             {!searchQuery ? (
               <>
                 <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent leading-tight">
-                  <span className="hidden md:inline">Desi Melody - </span>Endless Vibes
+                  Desi Melody
                 </h1>
-                <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Stream live radio from India, Pakistan, Bangladesh, Sri Lanka and across South Asia. From Bollywood
-                  hits to regional classics.
-                </p>
               </>
             ) : (
               <>
@@ -282,15 +278,13 @@ const Index = () => {
           <div className="container space-y-8">
             <div className="flex items-center justify-between">
               <div>
-                <div>
-                  <h2 className="text-3xl font-bold flex items-center gap-2">
-                    <Radio className="w-8 h-8 text-primary" />
-                    Top Stations
-                  </h2>
-                  <p className="text-muted-foreground mt-2">
-                    Handpicked stations with the best music and entertainment
-                  </p>
-                </div>
+                <h2 className="text-3xl font-bold flex items-center gap-2">
+                  <Radio className="w-8 h-8 text-primary" />
+                  Top Stations
+                </h2>
+                <p className="text-muted-foreground mt-2 hidden md:block">
+                  Handpicked stations with the best music and entertainment
+                </p>
               </div>
               <Link to="/browse">
                 <Button variant="ghost" className="gap-2">
@@ -315,15 +309,13 @@ const Index = () => {
           <div className="container space-y-8">
             <div className="flex items-center justify-between">
               <div>
-                <div>
-                  <h2 className="text-3xl font-bold flex items-center gap-2">
-                    <TrendingUp className="w-8 h-8 text-primary" />
-                    Hot Today
-                  </h2>
-                  <p className="text-muted-foreground mt-2">
-                    Top-rated stations loved by millions of listeners across South Asia
-                  </p>
-                </div>
+                <h2 className="text-3xl font-bold flex items-center gap-2">
+                  <TrendingUp className="w-8 h-8 text-primary" />
+                  Hot Today
+                </h2>
+                <p className="text-muted-foreground mt-2 hidden md:block">
+                  Top-rated stations loved by millions of listeners across South Asia
+                </p>
               </div>
               <Link to="/browse">
                 <Button variant="ghost" className="gap-2">
