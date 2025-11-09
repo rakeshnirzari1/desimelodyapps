@@ -164,23 +164,6 @@ const Index = () => {
             <div className="flex justify-center mb-4">
               <OnlineListeners />
             </div>
-            {!searchQuery ? (
-              <>
-                <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent leading-tight">
-                  Desi Melody
-                </h1>
-              </>
-            ) : (
-              <>
-                <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent leading-tight">
-                  Search Results for "{searchQuery}"
-                </h1>
-                <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Found {filteredStations.length} station{filteredStations.length !== 1 ? "s" : ""}
-                </p>
-              </>
-            )}
-
             <div className="pt-4">
               <SearchBar onStationSelect={handlePlay} />
             </div>

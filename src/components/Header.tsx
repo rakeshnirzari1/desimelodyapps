@@ -1,7 +1,11 @@
 import { Link } from "react-router-dom";
-import { Radio } from "lucide-react";
+import { Radio, Menu, X } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 export const Header = () => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
       <div className="container flex h-16 items-center justify-between">
@@ -14,21 +18,68 @@ export const Header = () => {
           </span>
         </Link>
         
-        <nav className="flex items-center gap-3 sm:gap-6">
-          <Link to="/" className="text-xs sm:text-sm font-medium hover:text-primary transition-colors">
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center gap-6">
+          <Link to="/" className="text-sm font-medium hover:text-primary transition-colors">
             Home
           </Link>
-          <Link to="/browse" className="text-xs sm:text-sm font-medium hover:text-primary transition-colors">
+          <Link to="/browse" className="text-sm font-medium hover:text-primary transition-colors">
             Browse
           </Link>
-          <Link to="/advertise" className="text-xs sm:text-sm font-medium hover:text-primary transition-colors">
+          <Link to="/advertise" className="text-sm font-medium hover:text-primary transition-colors">
             Advertise
           </Link>
-          <Link to="/about" className="text-xs sm:text-sm font-medium hover:text-primary transition-colors">
+          <Link to="/about" className="text-sm font-medium hover:text-primary transition-colors">
             About
           </Link>
         </nav>
+
+        {/* Mobile Hamburger */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
+          {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </Button>
       </div>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t bg-card">
+          <nav className="container py-4 flex flex-col gap-4">
+            <Link 
+              to="/" 
+              className="text-sm font-medium hover:text-primary transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Home
+            </Link>
+            <Link 
+              to="/browse" 
+              className="text-sm font-medium hover:text-primary transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Browse
+            </Link>
+            <Link 
+              to="/advertise" 
+              className="text-sm font-medium hover:text-primary transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Advertise
+            </Link>
+            <Link 
+              to="/about" 
+              className="text-sm font-medium hover:text-primary transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              About
+            </Link>
+          </nav>
+        </div>
+      )}
     </header>
   );
 };

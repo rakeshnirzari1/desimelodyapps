@@ -40,7 +40,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const playbackTimerRef = useRef<NodeJS.Timeout | null>(null);
   const stationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const adIntervalCheckRef = useRef<NodeJS.Timeout | null>(null);
-  const { setCurrentStation, stationChangeCount, incrementStationChangeCount, adAnalytics, updateAdAnalytics } =
+  const { setCurrentStation, stationChangeCount, incrementStationChangeCount, adAnalytics, updateAdAnalytics, filteredStations } =
     useAudio();
   const isMobile = useIsMobile();
   const lastPausedAtRef = useRef<number | null>(null);
@@ -185,7 +185,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const playNextStation = () => {
     if (!station) return;
 
-    const stations = getStationsWithSlugs();
+    // Use filtered stations if available (search/tag results), otherwise use all stations
+    const stations = filteredStations || getStationsWithSlugs();
     const currentIndex = stations.findIndex((s) => s.id === station.id);
     const nextIndex = (currentIndex + 1) % stations.length;
     const nextStation = stations[nextIndex];
@@ -198,7 +199,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const playPreviousStation = () => {
     if (!station) return;
 
-    const stations = getStationsWithSlugs();
+    // Use filtered stations if available (search/tag results), otherwise use all stations
+    const stations = filteredStations || getStationsWithSlugs();
     const currentIndex = stations.findIndex((s) => s.id === station.id);
     const prevIndex = currentIndex === 0 ? stations.length - 1 : currentIndex - 1;
     const prevStation = stations[prevIndex];
@@ -211,7 +213,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   useEffect(() => {
     nextActionRef.current = playNextStation;
     prevActionRef.current = playPreviousStation;
-  }, [station]);
+  }, [station, filteredStations]);
 
   // Check if ad should play on station change
   useEffect(() => {

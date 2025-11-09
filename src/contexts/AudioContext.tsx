@@ -9,6 +9,8 @@ interface AudioContextType {
   incrementStationChangeCount: () => void;
   adAnalytics: AdAnalytics;
   updateAdAnalytics: (analytics: AdAnalytics) => void;
+  filteredStations: RadioStation[] | null;
+  setFilteredStations: (stations: RadioStation[] | null) => void;
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
@@ -17,6 +19,7 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
   const [currentStation, setCurrentStation] = useState<RadioStation | null>(null);
   const [stationChangeCount, setStationChangeCount] = useState(0);
   const [adAnalytics, setAdAnalytics] = useState<AdAnalytics>(() => loadAdAnalytics());
+  const [filteredStations, setFilteredStations] = useState<RadioStation[] | null>(null);
 
   // Save analytics whenever they change
   useEffect(() => {
@@ -39,7 +42,9 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
         stationChangeCount,
         incrementStationChangeCount,
         adAnalytics,
-        updateAdAnalytics
+        updateAdAnalytics,
+        filteredStations,
+        setFilteredStations
       }}
     >
       {children}

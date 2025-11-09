@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -11,8 +11,9 @@ import { useAudio } from "@/contexts/AudioContext";
 import { Search, Radio } from "lucide-react";
 
 const India = () => {
-  const { currentStation, setCurrentStation } = useAudio();
+  const { currentStation, setCurrentStation, setFilteredStations } = useAudio();
   const [searchQuery, setSearchQuery] = useState("");
+  const [displayCount, setDisplayCount] = useState(20);
 
   const radioStations = getStationsWithSlugs();
 
@@ -28,6 +29,31 @@ const India = () => {
       )
       .sort((a, b) => (b.votes + b.clicks) - (a.votes + a.clicks));
   }, [radioStations, searchQuery]);
+
+  // Update filtered context when stations change
+  useEffect(() => {
+    setFilteredStations(filteredStations);
+    return () => setFilteredStations(null);
+  }, [filteredStations, setFilteredStations]);
+
+  // Infinite scroll handler
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 500) {
+        setDisplayCount(prev => Math.min(prev + 20, filteredStations.length));
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [filteredStations.length]);
+
+  // Reset display count when search changes
+  useEffect(() => {
+    setDisplayCount(20);
+  }, [searchQuery]);
+
+  const displayedStations = filteredStations.slice(0, displayCount);
 
   const handlePlay = useCallback((station: RadioStation) => {
     setCurrentStation(station);
@@ -76,16 +102,23 @@ const India = () => {
             </div>
           </div>
 
-          {filteredStations.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredStations.map((station) => (
-                <StationCard
-                  key={station.id}
-                  station={station}
-                  onPlay={handlePlay}
-                />
-              ))}
-            </div>
+          {displayedStations.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {displayedStations.map((station) => (
+                  <StationCard
+                    key={station.id}
+                    station={station}
+                    onPlay={handlePlay}
+                  />
+                ))}
+              </div>
+              {displayCount < filteredStations.length && (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Loading more stations...</p>
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-16">
               <p className="text-lg text-muted-foreground">
