@@ -514,12 +514,9 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         } catch {}
 
         const pausedForMs = lastPausedAtRef.current ? Date.now() - lastPausedAtRef.current : 0;
-        // Force a hard reload on resume to ensure we hit the live edge.
-        // Previously this only triggered after 60s; change to reload whenever the stream
-        // was paused (pausedForMs > 0) or the page was backgrounded or the audio has no source.
         const needHardReload =
           isMobile &&
-          (wasBackgroundedRef.current || pausedForMs > 0 || audio.readyState === 0 || audio.networkState === 3);
+          (wasBackgroundedRef.current || pausedForMs > 60000 || audio.readyState === 0 || audio.networkState === 3);
 
         if (needHardReload) {
           const base = station?.link ?? audio.src;
@@ -626,12 +623,9 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       } catch {}
 
       const pausedForMs = lastPausedAtRef.current ? Date.now() - lastPausedAtRef.current : 0;
-      // Force a hard reload on resume to ensure we hit the live edge.
-      // Previously this only triggered after 60s; change to reload whenever the stream
-      // was paused (pausedForMs > 0) or the page was backgrounded or the audio has no source.
       const needHardReload =
         isMobile &&
-        (wasBackgroundedRef.current || pausedForMs > 0 || audio.readyState === 0 || audio.networkState === 3);
+        (wasBackgroundedRef.current || pausedForMs > 60000 || audio.readyState === 0 || audio.networkState === 3);
 
       if (needHardReload) {
         const base = station?.link ?? audio.src;
