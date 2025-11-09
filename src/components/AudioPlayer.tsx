@@ -542,6 +542,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       if (audio) {
         audio.pause();
         setIsPlaying(false);
+        // Track when paused for reconnection logic
+        lastPausedAtRef.current = Date.now();
       }
     });
 
@@ -551,20 +553,28 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     };
   }, [station, isPlaying, isLoading]);
 
-  // Register next/prev handlers once to remain active during screen-off
+  // Register next/prev handlers - disable during ads
   useEffect(() => {
     if (!("mediaSession" in navigator)) return;
-    navigator.mediaSession.setActionHandler("nexttrack", () => {
-      nextActionRef.current();
-    });
-    navigator.mediaSession.setActionHandler("previoustrack", () => {
-      prevActionRef.current();
-    });
+    
+    // Disable next/prev during ads to prevent skipping
+    if (isPlayingAd) {
+      navigator.mediaSession.setActionHandler("nexttrack", null);
+      navigator.mediaSession.setActionHandler("previoustrack", null);
+    } else {
+      navigator.mediaSession.setActionHandler("nexttrack", () => {
+        nextActionRef.current();
+      });
+      navigator.mediaSession.setActionHandler("previoustrack", () => {
+        prevActionRef.current();
+      });
+    }
+    
     return () => {
       navigator.mediaSession.setActionHandler("nexttrack", null);
       navigator.mediaSession.setActionHandler("previoustrack", null);
     };
-  }, []);
+  }, [isPlayingAd]);
 
   // Track backgrounding to refresh stream on mobile resume
   useEffect(() => {
@@ -710,6 +720,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
                   variant="outline"
                   className="rounded-full w-8 h-8 sm:w-10 sm:h-10"
                   title="Previous Station"
+                  disabled={isPlayingAd}
                 >
                   <SkipBack className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
@@ -733,6 +744,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
                   variant="outline"
                   className="rounded-full w-8 h-8 sm:w-10 sm:h-10"
                   title="Next Station"
+                  disabled={isPlayingAd}
                 >
                   <SkipForward className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
