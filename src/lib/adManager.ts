@@ -27,9 +27,9 @@ const DEFAULT_AD_CONFIG: Record<string, string> = {
   default: "/ad.mp3",
 };
 
-export const AD_FREQUENCY = 10; // Every 10th station change
+export const AD_FREQUENCY = 6; // Every 6th station change
 export const AD_TIME_INTERVAL = 15 * 60 * 1000; // 15 minutes
-export const AD_COOLDOWN = 14 * 60 * 1000; // 14 minutes minimum between ads
+export const AD_COOLDOWN = 3 * 60 * 1000; // 3 minutes minimum between ads
 
 // Supported countries for ads
 export const AD_COUNTRIES = [
