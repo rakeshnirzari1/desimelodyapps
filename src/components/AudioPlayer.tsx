@@ -53,6 +53,43 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const wasBackgroundedRef = useRef(false);
   const previousStationIdRef = useRef<string | null>(null);
 
+  // Track playback to auto-resume after network changes
+  const wasPlayingBeforeOfflineRef = useRef(false);
+
+  // Jump to live edge if the stream supports seeking
+  const seekToLiveEdgeIfPossible = (audio: HTMLAudioElement) => {
+    try {
+      const ranges = audio.seekable;
+      if (ranges && ranges.length > 0) {
+        const live = ranges.end(ranges.length - 1);
+        if (Number.isFinite(live)) {
+          audio.currentTime = live - 0.5;
+        }
+      }
+    } catch {}
+  };
+
+  // Reload stream with cache-busting and start from live edge
+  const reloadFromLiveAndPlay = async () => {
+    const audio = getActiveAudio();
+    if (!audio || !station) return;
+    const base = station.link;
+    const sep = base.includes("?") ? "&" : "?";
+    audio.src = `${base}${sep}ts=${Date.now()}`;
+    setIsLoading(true);
+    setLoadError(false);
+    audio.load();
+    try {
+      await audio.play();
+      seekToLiveEdgeIfPossible(audio);
+      setIsPlaying(true);
+      console.log("Radio reloaded and playing from live edge (network/pause)");
+    } catch (err) {
+      console.error("Failed to resume from live edge:", err);
+      setIsPlaying(false);
+    }
+  };
+
   // Persistent refs for Media Session next/prev handlers
   const nextActionRef = useRef<() => void>(() => {});
   const prevActionRef = useRef<() => void>(() => {});
@@ -161,6 +198,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       activeAudio
         .play()
         .then(() => {
+          seekToLiveEdgeIfPossible(activeAudio);
           setIsPlaying(true);
           console.log("Radio reloaded and playing from live edge");
         })
@@ -536,6 +574,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         }
 
         await audio.play();
+        seekToLiveEdgeIfPossible(audio);
         setIsPlaying(true);
       } catch (error) {
         console.error("Play error:", error);
@@ -593,6 +632,56 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
 
+  // Auto-recover on network changes (Wi‑Fi <-> mobile data)
+  useEffect(() => {
+    const onOffline = () => {
+      const audio = getActiveAudio();
+      if (audio && isPlaying && !isPlayingAd) {
+        wasPlayingBeforeOfflineRef.current = true;
+      } else {
+        wasPlayingBeforeOfflineRef.current = false;
+      }
+      if (audio) audio.pause();
+      setIsPlaying(false);
+    };
+
+    const resumeIfNeeded = () => {
+      if (adInProgressRef.current) return;
+      if (wasPlayingBeforeOfflineRef.current) {
+        reloadFromLiveAndPlay();
+        wasPlayingBeforeOfflineRef.current = false;
+      }
+    };
+
+    window.addEventListener("offline", onOffline);
+    window.addEventListener("online", resumeIfNeeded);
+
+    const conn: any = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+    if (conn) {
+      try {
+        if (typeof conn.addEventListener === "function") {
+          conn.addEventListener("change", resumeIfNeeded);
+        } else if ("onchange" in conn) {
+          conn.onchange = resumeIfNeeded;
+        }
+      } catch {}
+    }
+
+    return () => {
+      window.removeEventListener("offline", onOffline);
+      window.removeEventListener("online", resumeIfNeeded);
+      if (conn) {
+        try {
+          if (typeof conn.removeEventListener === "function") {
+            conn.removeEventListener("change", resumeIfNeeded);
+          } else if ("onchange" in conn) {
+            conn.onchange = null;
+          }
+        } catch {}
+      }
+    };
+  }, [isPlaying, isPlayingAd, station]);
+
   const togglePlay = async () => {
     // GUARD: Don't allow play toggle during ad
     if (adInProgressRef.current) {
@@ -645,6 +734,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       }
 
       await audio.play();
+      seekToLiveEdgeIfPossible(audio);
       setIsPlaying(true);
     } catch (error) {
       console.log("Play failed:", error);
