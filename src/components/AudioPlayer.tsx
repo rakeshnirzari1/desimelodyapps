@@ -51,6 +51,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const isMobile = useIsMobile();
   const lastPausedAtRef = useRef<number | null>(null);
   const wasBackgroundedRef = useRef(false);
+  const wasPlayingBeforeOfflineRef = useRef(false);
   const previousStationIdRef = useRef<string | null>(null);
 
   // Persistent refs for Media Session next/prev handlers
@@ -516,7 +517,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         const pausedForMs = lastPausedAtRef.current ? Date.now() - lastPausedAtRef.current : 0;
         const needHardReload =
           isMobile &&
-          (wasBackgroundedRef.current || pausedForMs > 60000 || audio.readyState === 0 || audio.networkState === 3);
+          (wasBackgroundedRef.current || pausedForMs > 900000 || audio.readyState === 0 || audio.networkState === 3);
 
         if (needHardReload) {
           const base = station?.link ?? audio.src;
@@ -534,6 +535,14 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
             audio.load();
           }
         }
+
+        // Always jump to live edge to avoid catching up after pause
+        try {
+          if (audio.seekable && audio.seekable.length > 0) {
+            const end = audio.seekable.end(audio.seekable.length - 1);
+            audio.currentTime = Math.max(0, end - 0.5);
+          }
+        } catch {}
 
         await audio.play();
         setIsPlaying(true);
@@ -593,6 +602,54 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
 
+  // Handle network changes (Wi‑Fi ⇄ mobile data) and offline/online recovery
+  useEffect(() => {
+    const onOffline = () => {
+      wasPlayingBeforeOfflineRef.current = isPlaying;
+      const a = getActiveAudio();
+      if (a && !a.paused) {
+        a.pause();
+        setIsPlaying(false);
+      }
+    };
+
+    const resumeFromNetwork = () => {
+      if (adInProgressRef.current) return;
+      const a = getActiveAudio();
+      if (!a) return;
+      const base = station?.link ?? a.src;
+      if (!base) return;
+      const sep = base.includes("?") ? "&" : "?";
+      a.src = `${base}${sep}ts=${Date.now()}`;
+      a.load();
+      a.play().then(() => setIsPlaying(true)).catch(() => {});
+    };
+
+    const onOnline = () => {
+      if (wasPlayingBeforeOfflineRef.current) {
+        setTimeout(resumeFromNetwork, 300);
+        wasPlayingBeforeOfflineRef.current = false;
+      }
+    };
+
+    window.addEventListener("offline", onOffline);
+    window.addEventListener("online", onOnline);
+
+    const conn: any = (navigator as any).connection;
+    const onConnChange = () => {
+      if (isPlaying && !adInProgressRef.current) {
+        resumeFromNetwork();
+      }
+    };
+    if (conn && conn.addEventListener) conn.addEventListener("change", onConnChange);
+
+    return () => {
+      window.removeEventListener("offline", onOffline);
+      window.removeEventListener("online", onOnline);
+      if (conn && conn.removeEventListener) conn.removeEventListener("change", onConnChange);
+    };
+  }, [station, isPlaying]);
+
   const togglePlay = async () => {
     // GUARD: Don't allow play toggle during ad
     if (adInProgressRef.current) {
@@ -625,7 +682,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       const pausedForMs = lastPausedAtRef.current ? Date.now() - lastPausedAtRef.current : 0;
       const needHardReload =
         isMobile &&
-        (wasBackgroundedRef.current || pausedForMs > 60000 || audio.readyState === 0 || audio.networkState === 3);
+        (wasBackgroundedRef.current || pausedForMs > 900000 || audio.readyState === 0 || audio.networkState === 3);
 
       if (needHardReload) {
         const base = station?.link ?? audio.src;
@@ -643,6 +700,14 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           audio.load();
         }
       }
+
+      // Always jump to live edge to avoid catching up after pause
+      try {
+        if (audio.seekable && audio.seekable.length > 0) {
+          const end = audio.seekable.end(audio.seekable.length - 1);
+          audio.currentTime = Math.max(0, end - 0.5);
+        }
+      } catch {}
 
       await audio.play();
       setIsPlaying(true);
