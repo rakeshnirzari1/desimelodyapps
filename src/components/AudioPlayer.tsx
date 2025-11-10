@@ -22,6 +22,8 @@ interface AudioPlayerProps {
 }
 
 const STATION_TIMEOUT = 15000; // 15 seconds
+// If user pauses for longer than this (seconds), resume should reload from live edge
+const PAUSE_TO_LIVE_THRESHOLD = 8; // seconds
 
 export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -40,8 +42,14 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const playbackTimerRef = useRef<NodeJS.Timeout | null>(null);
   const stationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const adIntervalCheckRef = useRef<NodeJS.Timeout | null>(null);
-  const { setCurrentStation, stationChangeCount, incrementStationChangeCount, adAnalytics, updateAdAnalytics, filteredStations } =
-    useAudio();
+  const {
+    setCurrentStation,
+    stationChangeCount,
+    incrementStationChangeCount,
+    adAnalytics,
+    updateAdAnalytics,
+    filteredStations,
+  } = useAudio();
   const isMobile = useIsMobile();
   const lastPausedAtRef = useRef<number | null>(null);
   const wasBackgroundedRef = useRef(false);
@@ -67,9 +75,9 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   // Force reload from live edge with retry logic
   const reloadFromLiveEdge = async (audio: HTMLAudioElement, retryCount = 0): Promise<void> => {
     const MAX_RETRIES = 3;
-    
+
     console.log(`Reloading from live edge (attempt ${retryCount + 1}/${MAX_RETRIES})`);
-    
+
     return new Promise((resolve, reject) => {
       if (!station) {
         reject(new Error("No station"));
@@ -83,7 +91,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       // Force reload with cache-buster
       const sep = station.link.includes("?") ? "&" : "?";
       audio.src = `${station.link}${sep}ts=${Date.now()}`;
-      
+
       const handleCanPlay = () => {
         // Seek to live edge
         if (audio.seekable.length > 0) {
@@ -96,7 +104,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         }
 
         // Play
-        audio.play()
+        audio
+          .play()
           .then(() => {
             console.log("Successfully playing from live edge");
             setIsPlaying(true);
@@ -107,12 +116,17 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           .catch((error) => {
             console.error("Play failed:", error);
             cleanup();
-            
+
             // Retry if we haven't exceeded max retries
             if (retryCount < MAX_RETRIES - 1) {
-              setTimeout(() => {
-                reloadFromLiveEdge(audio, retryCount + 1).then(resolve).catch(reject);
-              }, 500 * (retryCount + 1)); // Exponential backoff
+              setTimeout(
+                () => {
+                  reloadFromLiveEdge(audio, retryCount + 1)
+                    .then(resolve)
+                    .catch(reject);
+                },
+                500 * (retryCount + 1),
+              ); // Exponential backoff
             } else {
               setIsPlaying(false);
               setIsLoading(false);
@@ -124,11 +138,16 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       const handleError = () => {
         console.error("Load error");
         cleanup();
-        
+
         if (retryCount < MAX_RETRIES - 1) {
-          setTimeout(() => {
-            reloadFromLiveEdge(audio, retryCount + 1).then(resolve).catch(reject);
-          }, 500 * (retryCount + 1));
+          setTimeout(
+            () => {
+              reloadFromLiveEdge(audio, retryCount + 1)
+                .then(resolve)
+                .catch(reject);
+            },
+            500 * (retryCount + 1),
+          );
         } else {
           setIsPlaying(false);
           setIsLoading(false);
@@ -591,29 +610,53 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           }
         } catch {}
 
-      // ALWAYS reload from live edge on mobile to prevent "catching up"
-      if (isMobile) {
-        console.log("Mobile resume - reloading from live edge");
-        setIsLoading(true);
-        setLoadError(false);
-        wasBackgroundedRef.current = false;
-        wasPlayingBeforeOfflineRef.current = false;
-        
-        try {
-          await reloadFromLiveEdge(audio);
-        } catch (error) {
-          console.error("Failed to reload from live edge:", error);
-          setIsPlaying(false);
-          setIsLoading(false);
+        // MOBILE: Decide whether to reload from live edge or resume buffered playback.
+        // If the user paused for longer than PAUSE_TO_LIVE_THRESHOLD, or the app was
+        // backgrounded, or we were offline, prefer reloading to avoid resuming from
+        // a buffered position.
+        const now = Date.now();
+        const pausedAt = lastPausedAtRef.current;
+        const pausedDurationSec = pausedAt ? (now - pausedAt) / 1000 : 0;
+
+        // Always pause inactive audio to avoid two streams running
+        const inactive = getInactiveAudio();
+        if (inactive && !inactive.paused) {
+          try {
+            inactive.pause();
+            inactive.currentTime = 0;
+          } catch {}
         }
-      } else {
-        // Desktop - simple play
-        if (audio.readyState === 0) {
-          audio.load();
+
+        if (
+          isMobile &&
+          (wasBackgroundedRef.current ||
+            wasPlayingBeforeOfflineRef.current ||
+            pausedDurationSec > PAUSE_TO_LIVE_THRESHOLD)
+        ) {
+          console.log("Mobile resume - paused long or backgrounded, reloading from live edge");
+          setIsLoading(true);
+          setLoadError(false);
+          // reset background/offline flags — reloadFromLiveEdge will set playing state on success
+          wasBackgroundedRef.current = false;
+          wasPlayingBeforeOfflineRef.current = false;
+
+          try {
+            await reloadFromLiveEdge(audio);
+            lastPausedAtRef.current = null;
+          } catch (error) {
+            console.error("Failed to reload from live edge:", error);
+            setIsPlaying(false);
+            setIsLoading(false);
+          }
+        } else {
+          // Desktop or short pause on mobile - try a simple resume
+          if (audio.readyState === 0) {
+            audio.load();
+          }
+          await audio.play();
+          setIsPlaying(true);
+          lastPausedAtRef.current = null;
         }
-        await audio.play();
-        setIsPlaying(true);
-      }
       } catch (error) {
         console.error("Play error:", error);
         setIsPlaying(false);
@@ -638,7 +681,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   // Register next/prev handlers - disable during ads
   useEffect(() => {
     if (!("mediaSession" in navigator)) return;
-    
+
     if (isPlayingAd) {
       // Disable controls during ad
       navigator.mediaSession.setActionHandler("nexttrack", null);
@@ -652,7 +695,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         prevActionRef.current();
       });
     }
-    
+
     return () => {
       navigator.mediaSession.setActionHandler("nexttrack", null);
       navigator.mediaSession.setActionHandler("previoustrack", null);
@@ -677,7 +720,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     const handleOnline = () => {
       console.log("Network back online");
       const audio = getActiveAudio();
-      
+
       // If was playing before offline, auto-resume from live edge
       if (audio && wasPlayingBeforeOfflineRef.current && !adInProgressRef.current) {
         console.log("Auto-resuming playback after network restored");
@@ -701,7 +744,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     const handleConnectionChange = () => {
       console.log("Network type changed");
       const audio = getActiveAudio();
-      
+
       // If playing and network changed, reload to ensure continuity
       if (audio && isPlaying && !adInProgressRef.current && navigator.onLine) {
         console.log("Reloading stream due to network change");
@@ -713,9 +756,10 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
-    
+
     // Connection API for detecting network type changes (WiFi <-> Mobile Data)
-    const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+    const connection =
+      (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
     if (connection) {
       connection.addEventListener("change", handleConnectionChange);
     }
@@ -758,28 +802,51 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         }
       } catch {}
 
-      // ALWAYS reload from live edge on mobile to prevent "catching up"
-      if (isMobile) {
-        console.log("Mobile toggle play - reloading from live edge");
+      // MOBILE/DESKTOP: Decide whether to reload from live edge or resume buffered playback.
+      // If the user paused for longer than PAUSE_TO_LIVE_THRESHOLD, or the app was
+      // backgrounded, or we were offline, prefer reloading to avoid resuming from
+      // a buffered position.
+      const now = Date.now();
+      const pausedAt = lastPausedAtRef.current;
+      const pausedDurationSec = pausedAt ? (now - pausedAt) / 1000 : 0;
+
+      // Always pause inactive audio to avoid two streams running
+      const inactive = getInactiveAudio();
+      if (inactive && !inactive.paused) {
+        try {
+          inactive.pause();
+          inactive.currentTime = 0;
+        } catch {}
+      }
+
+      if (
+        isMobile &&
+        (wasBackgroundedRef.current ||
+          wasPlayingBeforeOfflineRef.current ||
+          pausedDurationSec > PAUSE_TO_LIVE_THRESHOLD)
+      ) {
+        console.log("Mobile toggle play - paused long or backgrounded, reloading from live edge");
         setIsLoading(true);
         setLoadError(false);
         wasBackgroundedRef.current = false;
         wasPlayingBeforeOfflineRef.current = false;
-        
+
         try {
           await reloadFromLiveEdge(audio);
+          lastPausedAtRef.current = null;
         } catch (error) {
           console.error("Failed to reload from live edge:", error);
           setIsPlaying(false);
           setIsLoading(false);
         }
       } else {
-        // Desktop - simple play
+        // Desktop or short pause on mobile - try a simple resume
         if (audio.readyState === 0) {
           audio.load();
         }
         await audio.play();
         setIsPlaying(true);
+        lastPausedAtRef.current = null;
       }
     } catch (error) {
       console.log("Play failed:", error);
