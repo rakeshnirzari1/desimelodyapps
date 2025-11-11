@@ -43,7 +43,7 @@ const Mobile = () => {
       setDisplayedStations(allStations.slice(0, INITIAL_LOAD));
       // Load rest after a short delay to prioritize first station
       setTimeout(() => {
-        setDisplayedStations(allStations.slice(0, Math.min(100, allStations.length)));
+        setDisplayedStations(allStations.slice(0, Math.min(300, allStations.length)));
       }, 1000);
     }
   }, [allStations]);
