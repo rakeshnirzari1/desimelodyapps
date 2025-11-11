@@ -56,6 +56,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const wasBackgroundedRef = useRef(false);
   const previousStationIdRef = useRef<string | null>(null);
   const wasPlayingBeforeOfflineRef = useRef(false);
+  const wasPlayingBeforeCallRef = useRef(false); // Track if radio was playing before a call
+  const isInCallRef = useRef(false); // Track current call state
 
   // Persistent refs for Media Session next/prev handlers
   const nextActionRef = useRef<() => void>(() => {});
@@ -701,6 +703,91 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     document.addEventListener("visibilitychange", onVisibility);
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
+
+  // Call state detection and auto-resume on iOS/Android
+  // Detects incoming calls, outgoing calls, and call end events
+  // Auto-resumes radio from live edge when call ends
+  useEffect(() => {
+    if (!isMobile) return;
+
+    // iOS: Use default playback interception and visibility/audio interruption detection
+    const handleAudioInterrupt = () => {
+      console.log("Audio interrupted (likely by call or system alert)");
+      // iOS will auto-pause; we'll detect resume via Media Session play handler
+    };
+
+    // Detect when audio resumes after interrupt (call ended)
+    const handleAudioResume = () => {
+      console.log("Audio interrupted state changed - call may have ended");
+      const audio = getActiveAudio();
+      if (audio && isPlaying && !adInProgressRef.current) {
+        // Audio was playing before interrupt, auto-reload from live edge
+        console.log("Auto-resuming radio after call/interrupt");
+        setIsLoading(true);
+        reloadFromLiveEdge(audio).catch((error) => {
+          console.error("Failed to resume after call:", error);
+        });
+      }
+    };
+
+    // Listen for visibility changes that might indicate call end
+    // (when user returns to the app after a call)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        const audio = getActiveAudio();
+        // If app comes back to foreground and was playing, check if we need to reload
+        if (audio && isPlaying && !adInProgressRef.current && wasPlayingBeforeCallRef.current) {
+          console.log("App returned to foreground after possible call - auto-resuming from live edge");
+          wasPlayingBeforeCallRef.current = false;
+          setIsLoading(true);
+          reloadFromLiveEdge(audio).catch((error) => {
+            console.error("Failed to resume after call:", error);
+          });
+        }
+      }
+    };
+
+    // On visibility hidden (call might be coming), mark that we were playing
+    const handleVisibilityHidden = () => {
+      if (isPlaying) {
+        wasPlayingBeforeCallRef.current = true;
+      }
+    };
+
+    // Try to detect call state via Audio Context state changes (iOS Safari)
+    try {
+      const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
+      if (AC) {
+        const ac = new AC();
+        const handleStateChange = () => {
+          console.log("AudioContext state changed:", ac.state);
+          // If interrupted and resuming, attempt auto-resume
+          if (ac.state === "running" && wasPlayingBeforeCallRef.current && isPlaying) {
+            handleAudioResume();
+            wasPlayingBeforeCallRef.current = false;
+          }
+        };
+        ac.addEventListener("statechange", handleStateChange);
+        return () => {
+          ac.removeEventListener("statechange", handleStateChange);
+          ac.close();
+        };
+      }
+    } catch {}
+
+    // Fallback: listen to visibility changes
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        handleVisibilityChange();
+      } else {
+        handleVisibilityHidden();
+      }
+    });
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [isMobile, isPlaying]);
 
   // Network switching - handle WiFi to mobile data transitions
   useEffect(() => {
