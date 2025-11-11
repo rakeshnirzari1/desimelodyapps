@@ -16,11 +16,12 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
   const [bufferingMessage, setBufferingMessage] = useState("");
   const audioRef = useRef<HTMLAudioElement>(null);
   const audioContextRef = useRef<any>(null);
-  const wasPlayingBeforeCallRef = useRef(false);
+  const wasPlayingBeforeInterruptionRef = useRef(false);
   const mediaSessionInitializedRef = useRef(false);
   const autoPlayAttemptedRef = useRef(false);
   const keepAliveIntervalRef = useRef<number | null>(null);
-  const callDetectionIntervalRef = useRef<number | null>(null);
+  const networkChangeTimeoutRef = useRef<number | null>(null);
+  const stationLoadTimeoutRef = useRef<number | null>(null);
 
   // Initialize AudioContext for mobile
   useEffect(() => {
@@ -40,70 +41,94 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     };
   }, []);
 
-  // Enhanced phone call detection with multiple checks
+  // Network change detection - handle Wi-Fi to mobile data switches
   useEffect(() => {
-    let wasInterrupted = false;
-    
-    const handleVisibilityChange = () => {
-      if (document.hidden && isPlaying) {
-        console.log("Screen hidden while playing - pausing");
-        wasPlayingBeforeCallRef.current = true;
-        wasInterrupted = true;
-        const audio = audioRef.current;
-        if (audio) {
-          audio.pause();
-          setIsPlaying(false);
-        }
-      } else if (!document.hidden && wasPlayingBeforeCallRef.current) {
-        console.log("Screen visible again - resuming playback");
-        wasInterrupted = false;
+    const handleOnline = () => {
+      console.log("Network back online");
+      setBufferingMessage("Network restored, resuming...");
+      if (wasPlayingBeforeInterruptionRef.current || isPlaying) {
         setTimeout(() => {
           handlePlay();
-          wasPlayingBeforeCallRef.current = false;
+          wasPlayingBeforeInterruptionRef.current = false;
         }, 500);
       }
     };
 
-    // Additional check for audio interruptions (calls, alarms, etc.)
+    const handleOffline = () => {
+      console.log("Network offline");
+      setBufferingMessage("Network lost, reconnecting...");
+      wasPlayingBeforeInterruptionRef.current = isPlaying;
+    };
+
+    // Handle network type changes (Wi-Fi to mobile data, etc.)
+    const handleNetworkChange = () => {
+      if (!isPlaying) return;
+      
+      console.log("Network change detected");
+      setBufferingMessage("Switching network, please wait...");
+      
+      // Clear any existing timeout
+      if (networkChangeTimeoutRef.current) {
+        clearTimeout(networkChangeTimeoutRef.current);
+      }
+      
+      // Reload stream after brief delay to allow network to stabilize
+      networkChangeTimeoutRef.current = window.setTimeout(() => {
+        handlePlay();
+      }, 1000);
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    
+    // Monitor connection type changes
+    const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+    if (connection) {
+      connection.addEventListener("change", handleNetworkChange);
+    }
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+      if (connection) {
+        connection.removeEventListener("change", handleNetworkChange);
+      }
+      if (networkChangeTimeoutRef.current) {
+        clearTimeout(networkChangeTimeoutRef.current);
+      }
+    };
+  }, [isPlaying]);
+
+  // Enhanced call and interruption detection
+  useEffect(() => {
     const audio = audioRef.current;
-    const handleAudioInterruption = () => {
+    if (!audio) return;
+
+    // Detect audio interruptions (calls, Siri, alarms, etc.)
+    const handleAudioInterruption = (e: Event) => {
+      console.log("Audio interrupted - system event");
       if (isPlaying) {
-        console.log("Audio interrupted - likely a call");
-        wasPlayingBeforeCallRef.current = true;
-        wasInterrupted = true;
+        wasPlayingBeforeInterruptionRef.current = true;
         setIsPlaying(false);
       }
     };
-    
-    const handleAudioResume = () => {
-      if (wasInterrupted && wasPlayingBeforeCallRef.current) {
-        console.log("Audio interruption ended - resuming");
-        wasInterrupted = false;
-        setTimeout(() => {
-          handlePlay();
-          wasPlayingBeforeCallRef.current = false;
-        }, 1000);
-      }
-    };
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    audio?.addEventListener("pause", handleAudioInterruption);
-    
-    // Poll for call state changes
-    callDetectionIntervalRef.current = window.setInterval(() => {
-      if (wasPlayingBeforeCallRef.current && !document.hidden && !isPlaying) {
-        console.log("Call ended detected - attempting resume");
+    // Listen for the audio element being paused by the system
+    audio.addEventListener("pause", handleAudioInterruption);
+
+    // Use a more reliable approach for detecting when interruptions end
+    const checkForResume = setInterval(() => {
+      // If we were playing before an interruption and audio is now paused
+      if (wasPlayingBeforeInterruptionRef.current && !isPlaying && !document.hidden) {
+        console.log("Interruption ended - auto-resuming");
         handlePlay();
-        wasPlayingBeforeCallRef.current = false;
+        wasPlayingBeforeInterruptionRef.current = false;
       }
-    }, 2000);
+    }, 1000);
 
     return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      audio?.removeEventListener("pause", handleAudioInterruption);
-      if (callDetectionIntervalRef.current) {
-        clearInterval(callDetectionIntervalRef.current);
-      }
+      audio.removeEventListener("pause", handleAudioInterruption);
+      clearInterval(checkForResume);
     };
   }, [isPlaying]);
 
@@ -145,13 +170,40 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       console.error("Station load error");
       setIsLoading(false);
       setBufferingMessage("Station unavailable, skipping...");
-      setIsPlaying(false);
+      
+      // Keep Media Session alive during skip
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.playbackState = "paused";
+      }
+      
       // Auto-skip to next station after error
       setTimeout(() => {
         setBufferingMessage("");
         onNext();
-      }, 2000);
+      }, 1500);
     };
+
+    // Set timeout for station load - skip if takes too long
+    if (stationLoadTimeoutRef.current) {
+      clearTimeout(stationLoadTimeoutRef.current);
+    }
+    
+    stationLoadTimeoutRef.current = window.setTimeout(() => {
+      if (isLoading) {
+        console.warn("Station load timeout - skipping to next");
+        setBufferingMessage("Station timeout, skipping...");
+        
+        // Keep Media Session alive
+        if ("mediaSession" in navigator) {
+          navigator.mediaSession.playbackState = "paused";
+        }
+        
+        setTimeout(() => {
+          setBufferingMessage("");
+          onNext();
+        }, 1000);
+      }
+    }, 15000); // 15 second timeout
 
     audio.addEventListener("canplay", handleCanPlay);
     audio.addEventListener("waiting", handleWaiting);
@@ -163,8 +215,12 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       audio.removeEventListener("waiting", handleWaiting);
       audio.removeEventListener("playing", handlePlaying);
       audio.removeEventListener("error", handleError);
+      
+      if (stationLoadTimeoutRef.current) {
+        clearTimeout(stationLoadTimeoutRef.current);
+      }
     };
-  }, [station]);
+  }, [station, onNext]);
 
   // Media Session API for lock screen controls - maintain after long pauses
   useEffect(() => {
@@ -282,18 +338,24 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       await audio.play();
       setIsPlaying(true);
       setBufferingMessage("");
-      wasPlayingBeforeCallRef.current = false;
+      wasPlayingBeforeInterruptionRef.current = false;
 
-      // Ensure Media Session stays active (critical for calls and long pauses)
+      // Ensure Media Session stays active (critical for calls, network changes, and long pauses)
       if ("mediaSession" in navigator) {
         navigator.mediaSession.playbackState = "playing";
-        // Re-set metadata to keep session alive
+        // Re-set metadata and handlers to keep session alive
         navigator.mediaSession.metadata = new MediaMetadata({
           title: station.name,
           artist: `${station.language || "Hindi"} • ${station.type}`,
           album: "DesiMelody.com",
           artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
         });
+        
+        // Re-register handlers to ensure they persist
+        navigator.mediaSession.setActionHandler("play", () => handlePlay());
+        navigator.mediaSession.setActionHandler("pause", () => handlePauseAction());
+        navigator.mediaSession.setActionHandler("nexttrack", () => onNext());
+        navigator.mediaSession.setActionHandler("previoustrack", () => onPrevious());
       }
       
       console.log("Playback started successfully");
@@ -302,6 +364,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       setBufferingMessage("Connection issue, retrying...");
       setIsPlaying(false);
       
+      // Keep Media Session alive even on error
       if ("mediaSession" in navigator) {
         navigator.mediaSession.playbackState = "paused";
       }
