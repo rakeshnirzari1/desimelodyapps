@@ -233,14 +233,22 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     }
 
     stationLoadTimeoutRef.current = window.setTimeout(() => {
+      console.log("⏱️ Station loading timeout - auto-skipping to next");
       if (audio.readyState === 0) {
-        console.log("Station timed out - auto-skipping to next");
         setIsLoading(false);
         setBufferingMessage("Station timeout, skipping...");
+
+        if ("mediaSession" in navigator) {
+          // Keep metadata on lock screen
+          navigator.mediaSession.playbackState = "paused";
+        }
+
+        // Auto-skip quickly
         setTimeout(() => {
+          console.log("⏭️ Calling onNext() due to timeout");
           setBufferingMessage("");
           onNext();
-        }, 1000);
+        }, 500);
       }
     }, 15000); // 15 second timeout
 
@@ -299,19 +307,48 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     };
 
     const handleError = () => {
-      console.log("Station error - auto-skipping to next");
+      console.log("❌ Station error - auto-skipping to next");
       setIsLoading(false);
       setBufferingMessage("Station unavailable, skipping...");
 
+      // CRITICAL: Keep MediaSession controls visible even during error
       if ("mediaSession" in navigator) {
+        // Don't clear metadata - keep it visible on lock screen
+        // Just update playback state
         navigator.mediaSession.playbackState = "paused";
       }
 
+      // Auto-skip to next station quickly (500ms instead of 1s)
       setTimeout(() => {
+        console.log("⏭️ Calling onNext() to skip bad station");
         setBufferingMessage("");
         onNext();
-      }, 1000);
+      }, 500);
     };
+
+    // Timeout handler - also auto-skip with error recovery
+    const handleLoadTimeout = () => {
+      console.log("⏱️ Station loading timeout - auto-skipping to next");
+      if (audio.readyState === 0) {
+        setIsLoading(false);
+        setBufferingMessage("Station timeout, skipping...");
+
+        if ("mediaSession" in navigator) {
+          // Keep metadata on lock screen
+          navigator.mediaSession.playbackState = "paused";
+        }
+
+        // Auto-skip quickly
+        setTimeout(() => {
+          console.log("⏭️ Calling onNext() due to timeout");
+          setBufferingMessage("");
+          onNext();
+        }, 500);
+      }
+    };
+
+    // Start timeout for this station
+    const timeout = window.setTimeout(handleLoadTimeout, 15000); // 15 seconds
 
     audio.addEventListener("canplay", handleCanPlay);
     audio.addEventListener("waiting", handleWaiting);
@@ -323,6 +360,8 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       audio.removeEventListener("waiting", handleWaiting);
       audio.removeEventListener("playing", handlePlaying);
       audio.removeEventListener("error", handleError);
+
+      clearTimeout(timeout);
 
       if (stationLoadTimeoutRef.current) {
         clearTimeout(stationLoadTimeoutRef.current);
@@ -360,17 +399,18 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       console.warn("Error setting playback state:", e);
     }
 
-    // SafeKeeper: Re-register handlers EVERY 1 second to ensure they never get lost
-    // This is aggressive but necessary for reliable car Bluetooth controls
+    // SafeKeeper: Re-register handlers EVERY second to ensure they never get lost
+    // Even more critical when stations are failing - refreshes every second
     if (mediaSessionSafeKeeperRef.current) {
       clearInterval(mediaSessionSafeKeeperRef.current);
     }
 
     mediaSessionSafeKeeperRef.current = window.setInterval(() => {
-      console.log("🔄 SafeKeeper: Re-registering MediaSession handlers...");
-      registerMediaSessionHandlers();
-
       try {
+        // ALWAYS re-register handlers (critical for failed stations)
+        registerMediaSessionHandlers();
+
+        // ALWAYS update metadata (keeps lock screen controls visible)
         if (station) {
           navigator.mediaSession.metadata = new MediaMetadata({
             title: station.name,
@@ -379,11 +419,18 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
             artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
           });
         }
+
+        // ALWAYS sync playback state
         navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+
+        // If we're loading or have an error message, that's when we need SafeKeeper most!
+        if (isLoading || bufferingMessage) {
+          console.log("🔄 SafeKeeper: Recovering from error state - handlers refreshed");
+        }
       } catch (e) {
-        console.warn("SafeKeeper update error:", e);
+        console.warn("SafeKeeper error:", e);
       }
-    }, 1000); // Every 1 second
+    }, 1000); // Every 1 second (aggressive)
 
     return () => {
       if (mediaSessionSafeKeeperRef.current) {
@@ -391,7 +438,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
         mediaSessionSafeKeeperRef.current = null;
       }
     };
-  }, [station, isPlaying, onNext, onPrevious]);
+  }, [station, isPlaying, bufferingMessage, isLoading, onNext, onPrevious]);
 
   // Load and play from live edge
   const playFromLiveEdge = async (retryCount = 0): Promise<void> => {
