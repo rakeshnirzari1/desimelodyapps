@@ -61,6 +61,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const previousStationIdRef = useRef<string | null>(null);
   const wasPlayingBeforeOfflineRef = useRef(false);
   const isUserPausedRef = useRef(false);
+  const stationChangeAutoplayRef = useRef(false);
 
   // Persistent refs for Media Session next/prev handlers
   const nextActionRef = useRef<() => void>(() => {});
@@ -343,6 +344,9 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const playNextStation = () => {
     if (!station) return;
 
+    // Store current playing state before switching
+    const wasPlaying = isPlaying;
+
     // Use filtered stations if available (search/tag results), otherwise use all stations
     const stations = filteredStations || getStationsWithSlugs();
     const currentIndex = stations.findIndex((s) => s.id === station.id);
@@ -350,12 +354,19 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     const nextStation = stations[nextIndex];
 
     incrementStationChangeCount();
+
+    // Set station change flag to maintain autoplay
+    stationChangeAutoplayRef.current = wasPlaying;
+
     setCurrentStation(nextStation);
   };
 
   // Change to previous station without navigation
   const playPreviousStation = () => {
     if (!station) return;
+
+    // Store current playing state before switching
+    const wasPlaying = isPlaying;
 
     // Use filtered stations if available (search/tag results), otherwise use all stations
     const stations = filteredStations || getStationsWithSlugs();
@@ -364,6 +375,10 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     const prevStation = stations[prevIndex];
 
     incrementStationChangeCount();
+
+    // Set station change flag to maintain autoplay
+    stationChangeAutoplayRef.current = wasPlaying;
+
     setCurrentStation(prevStation);
   };
 
@@ -467,7 +482,24 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           } else if (nextAudio.paused) {
             console.log("Station loaded but autoplay blocked");
             setIsLoading(false);
-            setIsPlaying(false);
+            // Try to force play if this was during station change
+            if (stationChangeAutoplayRef.current) {
+              console.log("Attempting to force play due to station change...");
+              nextAudio
+                .play()
+                .then(() => {
+                  console.log("Force play successful");
+                  setIsPlaying(true);
+                  stationChangeAutoplayRef.current = false;
+                })
+                .catch(() => {
+                  console.log("Force play failed");
+                  setIsPlaying(false);
+                  stationChangeAutoplayRef.current = false;
+                });
+            } else {
+              setIsPlaying(false);
+            }
           }
         }, STATION_TIMEOUT);
 
@@ -480,6 +512,13 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           }
 
           console.log("New station ready - seamless switching");
+
+          // Force autoplay if station was changed during playback
+          const shouldAutoplay = stationChangeAutoplayRef.current;
+          if (shouldAutoplay) {
+            console.log("Force autoplay due to station change during active playback");
+            stationChangeAutoplayRef.current = false; // Reset flag
+          }
 
           // Play the new station
           const playPromise = nextAudio.play();
@@ -513,7 +552,36 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
               .catch((error) => {
                 console.log("Autoplay blocked on new station:", error.name);
                 setIsLoading(false);
-                setIsPlaying(false);
+
+                // If this was during station change from active playback, retry after short delay
+                if (shouldAutoplay) {
+                  console.log("Retrying autoplay after station change on mobile...");
+                  setTimeout(() => {
+                    nextAudio
+                      .play()
+                      .then(() => {
+                        console.log("Mobile retry successful");
+                        // Success: Now fade out and stop the old station
+                        if (currentAudio && !currentAudio.paused) {
+                          currentAudio.pause();
+                          currentAudio.currentTime = 0;
+                        }
+                        // Swap active audio reference
+                        swapActiveAudio();
+                        setIsPlaying(true);
+                        // Confirm media session state
+                        if ("mediaSession" in navigator) {
+                          navigator.mediaSession.playbackState = "playing";
+                        }
+                      })
+                      .catch(() => {
+                        console.log("Mobile retry failed - user interaction required");
+                        setIsPlaying(false);
+                      });
+                  }, 500);
+                } else {
+                  setIsPlaying(false);
+                }
               });
           }
         };
@@ -561,7 +629,24 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           } else if (audio.paused) {
             console.log("Station loaded but autoplay blocked");
             setIsLoading(false);
-            setIsPlaying(false);
+            // Try to force play if this was during station change
+            if (stationChangeAutoplayRef.current) {
+              console.log("Attempting to force play due to station change (desktop)...");
+              audio
+                .play()
+                .then(() => {
+                  console.log("Desktop force play successful");
+                  setIsPlaying(true);
+                  stationChangeAutoplayRef.current = false;
+                })
+                .catch(() => {
+                  console.log("Desktop force play failed");
+                  setIsPlaying(false);
+                  stationChangeAutoplayRef.current = false;
+                });
+            } else {
+              setIsPlaying(false);
+            }
           }
         }, STATION_TIMEOUT);
 
@@ -570,6 +655,13 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           if (adInProgressRef.current) {
             console.log("New station ready but ad is playing - delaying start");
             return;
+          }
+
+          // Force autoplay if station was changed during playback
+          const shouldAutoplay = stationChangeAutoplayRef.current;
+          if (shouldAutoplay) {
+            console.log("Force autoplay due to station change during active playback - desktop");
+            stationChangeAutoplayRef.current = false; // Reset flag
           }
 
           const playPromise = audio.play();
@@ -586,7 +678,25 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
               .catch((error) => {
                 console.log("Autoplay blocked:", error.name);
                 setIsLoading(false);
-                setIsPlaying(false);
+
+                // If this was during station change from active playback, retry after short delay
+                if (shouldAutoplay) {
+                  console.log("Retrying autoplay after station change...");
+                  setTimeout(() => {
+                    audio
+                      .play()
+                      .then(() => {
+                        console.log("Retry successful");
+                        setIsPlaying(true);
+                      })
+                      .catch(() => {
+                        console.log("Retry failed - user interaction required");
+                        setIsPlaying(false);
+                      });
+                  }, 500);
+                } else {
+                  setIsPlaying(false);
+                }
               });
           }
         };
