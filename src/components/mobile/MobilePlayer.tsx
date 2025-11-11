@@ -23,6 +23,42 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
   const sessionKeepaliveRef = useRef<number | null>(null);
   const inCallRef = useRef(false);
   const stationLoadTimeoutRef = useRef<number | null>(null);
+  const mediaSessionSafeKeeperRef = useRef<number | null>(null);
+
+  // Register MediaSession handlers - used by SafeKeeper
+  const registerMediaSessionHandlers = () => {
+    if (!("mediaSession" in navigator)) return;
+
+    const handleMediaPlay = async () => {
+      console.log("🎵 Media Session PLAY from lock screen/car controls");
+      await handlePlay();
+    };
+
+    const handleMediaPause = () => {
+      console.log("⏸️ Media Session PAUSE from lock screen/car controls");
+      handlePauseAction();
+    };
+
+    const handleMediaNext = () => {
+      console.log("⏭️ Media Session NEXT from car controls");
+      onNext();
+    };
+
+    const handleMediaPrevious = () => {
+      console.log("⏮️ Media Session PREVIOUS from car controls");
+      onPrevious();
+    };
+
+    try {
+      navigator.mediaSession.setActionHandler("play", handleMediaPlay);
+      navigator.mediaSession.setActionHandler("pause", handleMediaPause);
+      navigator.mediaSession.setActionHandler("nexttrack", handleMediaNext);
+      navigator.mediaSession.setActionHandler("previoustrack", handleMediaPrevious);
+      console.log("✅ MediaSession handlers registered successfully");
+    } catch (e) {
+      console.warn("Error registering MediaSession handlers:", e);
+    }
+  };
 
   // Initialize AudioContext for mobile
   useEffect(() => {
@@ -294,50 +330,65 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     };
   }, [station, onNext]);
 
-  // Media Session API for lock screen controls
+  // Media Session API for lock screen controls - PERSISTENT with SafeKeeper
   useEffect(() => {
-    if (!station || !("mediaSession" in navigator)) return;
+    if (!("mediaSession" in navigator)) return;
 
-    const handleMediaPlay = async () => {
-      console.log("Media Session PLAY from lock screen");
-      await handlePlay();
-    };
+    console.log("🔒 Starting MediaSession SafeKeeper");
 
-    const handleMediaPause = () => {
-      console.log("Media Session PAUSE from lock screen");
-      handlePauseAction();
-    };
+    // Register handlers immediately
+    registerMediaSessionHandlers();
 
-    const handleMediaNext = () => {
-      console.log("Media Session NEXT");
-      onNext();
-    };
-
-    const handleMediaPrevious = () => {
-      console.log("Media Session PREVIOUS");
-      onPrevious();
-    };
-
-    navigator.mediaSession.setActionHandler("play", handleMediaPlay);
-    navigator.mediaSession.setActionHandler("pause", handleMediaPause);
-    navigator.mediaSession.setActionHandler("nexttrack", handleMediaNext);
-    navigator.mediaSession.setActionHandler("previoustrack", handleMediaPrevious);
-
-    // Keep session alive with periodic updates
-    if (keepAliveIntervalRef.current) {
-      clearInterval(keepAliveIntervalRef.current);
+    // Update metadata
+    if (station) {
+      try {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: station.name,
+          artist: `${station.language || "Hindi"} • ${station.type}`,
+          album: "DesiMelody.com",
+          artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
+        });
+      } catch (e) {
+        console.warn("Error setting metadata:", e);
+      }
     }
 
-    keepAliveIntervalRef.current = window.setInterval(() => {
-      if ("mediaSession" in navigator && navigator.mediaSession.metadata) {
+    // Update playback state
+    try {
+      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+    } catch (e) {
+      console.warn("Error setting playback state:", e);
+    }
+
+    // SafeKeeper: Re-register handlers EVERY 1 second to ensure they never get lost
+    // This is aggressive but necessary for reliable car Bluetooth controls
+    if (mediaSessionSafeKeeperRef.current) {
+      clearInterval(mediaSessionSafeKeeperRef.current);
+    }
+
+    mediaSessionSafeKeeperRef.current = window.setInterval(() => {
+      console.log("🔄 SafeKeeper: Re-registering MediaSession handlers...");
+      registerMediaSessionHandlers();
+
+      try {
+        if (station) {
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: station.name,
+            artist: `${station.language || "Hindi"} • ${station.type}`,
+            album: "DesiMelody.com",
+            artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
+          });
+        }
         navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+      } catch (e) {
+        console.warn("SafeKeeper update error:", e);
       }
-    }, 5000);
+    }, 1000); // Every 1 second
 
     return () => {
-      if (keepAliveIntervalRef.current) {
-        clearInterval(keepAliveIntervalRef.current);
-        keepAliveIntervalRef.current = null;
+      if (mediaSessionSafeKeeperRef.current) {
+        clearInterval(mediaSessionSafeKeeperRef.current);
+        mediaSessionSafeKeeperRef.current = null;
       }
     };
   }, [station, isPlaying, onNext, onPrevious]);
