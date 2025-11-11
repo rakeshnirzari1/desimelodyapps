@@ -701,63 +701,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     document.addEventListener("visibilitychange", onVisibility);
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
-
-  // Handle call interruptions - auto-resume after call ends
-  useEffect(() => {
-    if (!isMobile) return;
-
-    let interruptionWasActive = false;
-
-    const handleAudioSessionInterruption = async () => {
-      const audio = getActiveAudio();
-      if (!audio) return;
-
-      // Detect if interruption began (call started)
-      if (!audio.paused && audio.currentTime > 0) {
-        // Audio was playing, call likely coming in - mark that we were playing
-        interruptionWasActive = true;
-        console.log("Call interruption detected - radio paused");
-      }
-    };
-
-    // Listen for pause events that might indicate call interruption
-    const activeAudio = getActiveAudio();
-    if (activeAudio) {
-      activeAudio.addEventListener("pause", handleAudioSessionInterruption);
-    }
-
-    // Use visibility change to detect resume after call
-    const handleVisibilityChange = async () => {
-      if (document.visibilityState === "visible" && interruptionWasActive && !isPlaying && !adInProgressRef.current) {
-        const audio = getActiveAudio();
-        if (audio) {
-          console.log("App resumed from call - auto-resuming radio from live edge");
-          setIsLoading(true);
-          setLoadError(false);
-
-          try {
-            await reloadFromLiveEdge(audio);
-          } catch (error) {
-            console.error("Failed to resume after call:", error);
-            setIsPlaying(false);
-            setIsLoading(false);
-          }
-
-          interruptionWasActive = false;
-        }
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      if (activeAudio) {
-        activeAudio.removeEventListener("pause", handleAudioSessionInterruption);
-      }
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [isMobile, isPlaying]);
-
   // Network switching - handle WiFi to mobile data transitions
   useEffect(() => {
     if (!isMobile) return;
