@@ -158,15 +158,18 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
   // Session keepalive - touch audio every 5 minutes to prevent session loss
   useEffect(() => {
     if (isPlaying) {
-      sessionKeepaliveRef.current = window.setInterval(() => {
-        const audio = getActiveAudio();
-        if (audio && !audio.paused) {
-          console.log("Session keepalive: touching audio element");
-          // Touch the audio element to keep session alive
-          const currentVol = audio.volume;
-          audio.volume = currentVol; // No-op but keeps session active
-        }
-      }, 5 * 60 * 1000); // Every 5 minutes
+      sessionKeepaliveRef.current = window.setInterval(
+        () => {
+          const audio = getActiveAudio();
+          if (audio && !audio.paused) {
+            console.log("Session keepalive: touching audio element");
+            // Touch the audio element to keep session alive
+            const currentVol = audio.volume;
+            audio.volume = currentVol; // No-op but keeps session active
+          }
+        },
+        5 * 60 * 1000,
+      ); // Every 5 minutes
     } else {
       if (sessionKeepaliveRef.current) {
         clearInterval(sessionKeepaliveRef.current);
@@ -426,7 +429,10 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
 
     setIsLoading(true);
     setBufferingMessage("Loading station...");
+    // CRITICAL: Reset autoplay flag for each new station
     autoPlayAttemptedRef.current = false;
+    // Clear user pause flag so new stations autoplay even if previously paused
+    isUserPausedRef.current = false;
 
     // Get current active and inactive audio elements
     const currentAudio = getActiveAudio();
@@ -460,16 +466,30 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
           setBufferingMessage("");
           onNext();
         }, 1000);
-      } else if (nextAudio.paused && !autoPlayAttemptedRef.current) {
-        console.log("Station loaded - attempting autoplay");
+      } else if (nextAudio.readyState > 2 && !autoPlayAttemptedRef.current) {
+        // If audio has data and autoplay hasn't been attempted, try autoplay now
+        console.log("Station data available but canplay event may not have fired - attempting autoplay");
         setIsLoading(false);
         autoPlayAttemptedRef.current = true;
-        setTimeout(() => handlePlay(), 50);
+
+        // Resume AudioContext before playing
+        if (audioContextRef.current && audioContextRef.current.state === "suspended") {
+          try {
+            audioContextRef.current.resume().then(() => {
+              setTimeout(() => handleCanPlay(), 50);
+            });
+          } catch (e) {
+            console.warn("Failed to resume AudioContext in timeout:", e);
+            setTimeout(() => handleCanPlay(), 50);
+          }
+        } else {
+          setTimeout(() => handleCanPlay(), 50);
+        }
       }
     }, 15000); // 15 second timeout
 
     // Handler for when new station is ready to play
-    const handleCanPlay = () => {
+    const handleCanPlay = async () => {
       console.log("New station ready - seamless switching");
       setIsLoading(false);
       setBufferingMessage("");
@@ -477,6 +497,16 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       // Auto-play immediately for first load
       if (!autoPlayAttemptedRef.current) {
         autoPlayAttemptedRef.current = true;
+
+        // CRITICAL: Resume AudioContext BEFORE attempting to play (handles screen-off scenario)
+        if (audioContextRef.current && audioContextRef.current.state === "suspended") {
+          try {
+            console.log("Resuming suspended AudioContext in handleCanPlay");
+            await audioContextRef.current.resume();
+          } catch (e) {
+            console.warn("Failed to resume AudioContext in handleCanPlay:", e);
+          }
+        }
 
         const playPromise = nextAudio.play();
         if (playPromise !== undefined) {
@@ -505,7 +535,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
                 clearTimeout(stationLoadTimeoutRef.current);
               }
             })
-            .catch((error) => {
+            .catch((error: any) => {
               console.log("Autoplay blocked on new station:", error.name);
               setIsLoading(false);
               setIsPlaying(false);
@@ -607,7 +637,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     if (keepAliveIntervalRef.current) {
       clearInterval(keepAliveIntervalRef.current);
     }
-    
+
     keepAliveIntervalRef.current = window.setInterval(() => {
       if ("mediaSession" in navigator && navigator.mediaSession.metadata) {
         // Refresh playback state to keep session active
@@ -755,23 +785,13 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       <div className="px-4 py-4">
         {/* Station Info */}
         <div className="flex items-center gap-3 mb-4">
-          <img
-            src={station.image}
-            alt={station.name}
-            className="w-16 h-16 rounded-lg object-cover shadow-md"
-          />
+          <img src={station.image} alt={station.name} className="w-16 h-16 rounded-lg object-cover shadow-md" />
           <div className="flex-1 min-w-0">
-            <h2 className="font-semibold text-base text-foreground truncate">
-              {station.name}
-            </h2>
+            <h2 className="font-semibold text-base text-foreground truncate">{station.name}</h2>
             <p className="text-sm text-muted-foreground truncate">
               {station.language} • {station.type}
             </p>
-            {bufferingMessage && (
-              <p className="text-xs text-primary mt-1 animate-pulse">
-                {bufferingMessage}
-              </p>
-            )}
+            {bufferingMessage && <p className="text-xs text-primary mt-1 animate-pulse">{bufferingMessage}</p>}
           </div>
         </div>
 
@@ -803,13 +823,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
             )}
           </Button>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onNext}
-            className="h-12 w-12 rounded-full"
-            disabled={isLoading}
-          >
+          <Button variant="ghost" size="icon" onClick={onNext} className="h-12 w-12 rounded-full" disabled={isLoading}>
             <SkipForward className="h-6 w-6" />
           </Button>
         </div>
