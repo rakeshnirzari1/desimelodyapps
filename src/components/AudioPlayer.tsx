@@ -701,6 +701,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     document.addEventListener("visibilitychange", onVisibility);
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
+
   // Network switching - handle WiFi to mobile data transitions
   useEffect(() => {
     if (!isMobile) return;
