@@ -43,6 +43,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const playbackTimerRef = useRef<NodeJS.Timeout | null>(null);
   const stationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const adIntervalCheckRef = useRef<NodeJS.Timeout | null>(null);
+  const sessionKeepaliveRef = useRef<NodeJS.Timeout | null>(null);
+  const audioInterruptedRef = useRef(false);
   const {
     setCurrentStation,
     stationChangeCount,
@@ -167,22 +169,46 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     });
   };
 
-  // Playback timer
+  // Playback timer + Session Keepalive for mobile
   useEffect(() => {
     if (isPlaying) {
       playbackTimerRef.current = setInterval(() => {
         setPlaybackTime((prev) => prev + 1);
       }, 1000);
-    } else if (playbackTimerRef.current) {
-      clearInterval(playbackTimerRef.current);
+
+      // MOBILE: Keep session alive every 5 minutes to prevent session loss
+      if (isMobile) {
+        sessionKeepaliveRef.current = setInterval(
+          () => {
+            const audio = getActiveAudio();
+            if (audio && !audio.paused) {
+              console.log("Session keepalive: touching audio element");
+              // Touch the audio element to keep session alive
+              const currentVol = audio.volume;
+              audio.volume = currentVol; // No-op but keeps session active
+            }
+          },
+          5 * 60 * 1000,
+        ); // Every 5 minutes
+      }
+    } else {
+      if (playbackTimerRef.current) {
+        clearInterval(playbackTimerRef.current);
+      }
+      if (sessionKeepaliveRef.current) {
+        clearInterval(sessionKeepaliveRef.current);
+      }
     }
 
     return () => {
       if (playbackTimerRef.current) {
         clearInterval(playbackTimerRef.current);
       }
+      if (sessionKeepaliveRef.current) {
+        clearInterval(sessionKeepaliveRef.current);
+      }
     };
-  }, [isPlaying]);
+  }, [isPlaying, isMobile]);
 
   // Play ad with regional targeting
   const playAd = async () => {
@@ -620,14 +646,14 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           } catch {}
         }
 
-        // ALWAYS-RELOAD on mobile: every resume reloads from live edge to guarantee live playback
+        // ALWAYS-RELOAD: every resume reloads from live edge regardless of pause duration
         if (isMobile) {
-          console.log("Mobile resume - always reloading from live edge");
+          console.log("Mobile resume from lock screen - always reloading from live edge");
           setIsLoading(true);
           setLoadError(false);
-          // reset background/offline flags
           wasBackgroundedRef.current = false;
           wasPlayingBeforeOfflineRef.current = false;
+          audioInterruptedRef.current = false;
 
           try {
             await reloadFromLiveEdge(audio);
@@ -665,7 +691,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       navigator.mediaSession.setActionHandler("play", null);
       navigator.mediaSession.setActionHandler("pause", null);
     };
-  }, [station, isPlaying, isLoading]);
+  }, [station, isPlaying, isLoading, isMobile]);
 
   // Register next/prev handlers - disable during ads
   useEffect(() => {
@@ -701,6 +727,95 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     document.addEventListener("visibilitychange", onVisibility);
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
+
+  // Audio Interruption Handler - for phone calls, Siri, etc.
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const audio = getActiveAudio();
+    if (!audio) return;
+
+    const handleInterruptionStart = () => {
+      console.log("Audio interrupted (call/Siri) - pausing");
+      if (!audio.paused) {
+        audioInterruptedRef.current = true;
+        audio.pause();
+        setIsPlaying(false);
+      }
+    };
+
+    const handleInterruptionEnd = () => {
+      console.log("Audio interruption ended - resuming from live edge");
+      if (audioInterruptedRef.current && !adInProgressRef.current) {
+        audioInterruptedRef.current = false;
+        setIsLoading(true);
+        reloadFromLiveEdge(audio)
+          .then(() => {
+            console.log("Successfully resumed after interruption");
+          })
+          .catch((error) => {
+            console.error("Failed to resume after interruption:", error);
+          });
+      }
+    };
+
+    // iOS interruption events (phone calls, Siri, alarms)
+    audio.addEventListener("pause", (e) => {
+      // Only handle system pauses, not user-initiated pauses
+      if (!e.isTrusted) return;
+
+      // If we didn't explicitly pause it, it's an interruption
+      const timeSinceLastPause = lastPausedAtRef.current ? Date.now() - lastPausedAtRef.current : Infinity;
+      if (timeSinceLastPause > 1000) {
+        handleInterruptionStart();
+      }
+    });
+
+    // Android and modern iOS use AudioContext state changes
+    try {
+      const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
+      if (AC) {
+        const checkAudioContext = async () => {
+          const ac = new AC();
+
+          ac.addEventListener("statechange", () => {
+            if (ac.state === "interrupted") {
+              handleInterruptionStart();
+            } else if (ac.state === "running" && audioInterruptedRef.current) {
+              handleInterruptionEnd();
+            }
+          });
+
+          await ac.close();
+        };
+        checkAudioContext();
+      }
+    } catch (error) {
+      console.log("AudioContext interruption handling not available:", error);
+    }
+
+    // Visibility change with focus detection for calls
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Check if audio is still playing - if it stopped, it's likely a call
+        setTimeout(() => {
+          if (audio.paused && isPlaying) {
+            console.log("Detected audio stopped while backgrounded - likely a call");
+            audioInterruptedRef.current = true;
+          }
+        }, 100);
+      } else if (audioInterruptedRef.current) {
+        // Coming back to foreground after interruption
+        handleInterruptionEnd();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [isMobile, isPlaying]);
 
   // Network switching - handle WiFi to mobile data transitions
   useEffect(() => {
@@ -807,6 +922,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         setLoadError(false);
         wasBackgroundedRef.current = false;
         wasPlayingBeforeOfflineRef.current = false;
+        audioInterruptedRef.current = false;
 
         try {
           await reloadFromLiveEdge(audio);
