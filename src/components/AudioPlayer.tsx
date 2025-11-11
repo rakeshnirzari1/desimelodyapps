@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { RadioStation } from "@/types/station";
 import { Button } from "@/components/ui/button";
 import { Play, Pause, Volume2, VolumeX, X, SkipForward, SkipBack } from "lucide-react";
@@ -56,9 +56,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const wasBackgroundedRef = useRef(false);
   const previousStationIdRef = useRef<string | null>(null);
   const wasPlayingBeforeOfflineRef = useRef(false);
-  const userInitiatedPauseRef = useRef(false); // Track if pause was user-initiated
-  const wasInterruptedByCallRef = useRef(false); // Track if interrupted by phone call
-  const callResumeCheckRef = useRef<NodeJS.Timeout | null>(null); // Timer to check for call end
+  const wasPlayingBeforeCallRef = useRef(false); // Track if radio was playing before call
+  const callStateRef = useRef<"none" | "incoming" | "outgoing" | "active">("none"); // Track call state
 
   // Persistent refs for Media Session next/prev handlers
   const nextActionRef = useRef<() => void>(() => {});
@@ -75,67 +74,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   useEffect(() => {
     adInProgressRef.current = isPlayingAd;
   }, [isPlayingAd]);
-
-  // Auto-resume after phone call ends
-  const checkAndResumeAfterCall = useCallback(async () => {
-    // Clear any existing check timer
-    if (callResumeCheckRef.current) {
-      clearTimeout(callResumeCheckRef.current);
-      callResumeCheckRef.current = null;
-    }
-
-    // Only resume if we were interrupted by a call and not playing an ad
-    if (!wasInterruptedByCallRef.current || adInProgressRef.current || !station) {
-      return;
-    }
-
-    const audio = getActiveAudio();
-    if (!audio) return;
-
-    // Check if audio is still paused (call might still be active)
-    if (audio.paused && !userInitiatedPauseRef.current) {
-      // Try to resume - if it fails, the call might still be active
-      try {
-        // Resume AudioContext (iOS) if needed
-        try {
-          const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
-          if (AC) {
-            const ac = new AC();
-            if (ac.state === "suspended") await ac.resume();
-            await ac.close();
-          }
-        } catch {}
-
-        // On mobile, reload from live edge for fresh stream
-        if (isMobile) {
-          console.log("Auto-resuming after call - reloading from live edge");
-          setIsLoading(true);
-          await reloadFromLiveEdge(audio);
-        } else {
-          // Desktop - simple resume
-          if (audio.readyState === 0) {
-            audio.load();
-          }
-          await audio.play();
-          setIsPlaying(true);
-        }
-
-        // Successfully resumed
-        wasInterruptedByCallRef.current = false;
-        userInitiatedPauseRef.current = false;
-        console.log("Radio auto-resumed after call");
-      } catch (error) {
-        // Call might still be active, check again in a bit
-        console.log("Could not resume yet, will retry:", error);
-        callResumeCheckRef.current = setTimeout(() => {
-          checkAndResumeAfterCall();
-        }, 1000); // Retry after 1 second
-      }
-    } else {
-      // Audio is playing or user paused it - clear the flag
-      wasInterruptedByCallRef.current = false;
-    }
-  }, [station, isMobile]);
 
   // Force reload from live edge with retry logic
   const reloadFromLiveEdge = async (audio: HTMLAudioElement, retryCount = 0): Promise<void> => {
@@ -656,6 +594,10 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     navigator.mediaSession.playbackState = isPlaying || isLoading ? "playing" : "paused";
 
     navigator.mediaSession.setActionHandler("play", async () => {
+      // Reset call state when user manually plays
+      callStateRef.current = "none";
+      wasPlayingBeforeCallRef.current = false;
+
       // GUARD: Don't allow play during ad
       if (adInProgressRef.current) {
         console.log("Play action blocked - ad is playing");
@@ -684,23 +626,31 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           } catch {}
         }
 
-        // ALWAYS-RELOAD from live edge: every resume reloads from live edge to guarantee live playback
-        // This ensures users always hear the current live stream, not buffered/paused content
-        console.log("Resuming playback - reloading from live edge");
-        setIsLoading(true);
-        setLoadError(false);
-        // reset background/offline flags
-        wasBackgroundedRef.current = false;
-        wasPlayingBeforeOfflineRef.current = false;
+        // ALWAYS-RELOAD on mobile: every resume reloads from live edge to guarantee live playback
+        if (isMobile) {
+          console.log("Mobile resume - always reloading from live edge");
+          setIsLoading(true);
+          setLoadError(false);
+          // reset background/offline flags
+          wasBackgroundedRef.current = false;
+          wasPlayingBeforeOfflineRef.current = false;
 
-        try {
-          await reloadFromLiveEdge(audio);
+          try {
+            await reloadFromLiveEdge(audio);
+            lastPausedAtRef.current = null;
+          } catch (error) {
+            console.error("Failed to reload from live edge:", error);
+            setIsPlaying(false);
+            setIsLoading(false);
+          }
+        } else {
+          // Desktop - try a simple resume
+          if (audio.readyState === 0) {
+            audio.load();
+          }
+          await audio.play();
+          setIsPlaying(true);
           lastPausedAtRef.current = null;
-          userInitiatedPauseRef.current = false; // Clear user pause flag
-        } catch (error) {
-          console.error("Failed to reload from live edge:", error);
-          setIsPlaying(false);
-          setIsLoading(false);
         }
       } catch (error) {
         console.error("Play error:", error);
@@ -711,11 +661,9 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     navigator.mediaSession.setActionHandler("pause", () => {
       const audio = getActiveAudio();
       if (audio) {
-        userInitiatedPauseRef.current = true; // Mark as user-initiated
         audio.pause();
         setIsPlaying(false);
         lastPausedAtRef.current = Date.now(); // Track pause time
-        wasInterruptedByCallRef.current = false; // Clear call interruption flag
       }
     });
 
@@ -754,126 +702,11 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     const onVisibility = () => {
       if (document.visibilityState === "hidden") {
         wasBackgroundedRef.current = true;
-      } else if (document.visibilityState === "visible") {
-        // Page became visible - check if we should resume after call
-        if (wasInterruptedByCallRef.current) {
-          // Wait a bit for call to fully end, then check
-          setTimeout(() => {
-            checkAndResumeAfterCall();
-          }, 500);
-        }
       }
     };
-
-    const onFocus = () => {
-      // Window gained focus - check if we should resume after call
-      if (wasInterruptedByCallRef.current) {
-        setTimeout(() => {
-          checkAndResumeAfterCall();
-        }, 500);
-      }
-    };
-
     document.addEventListener("visibilitychange", onVisibility);
-    window.addEventListener("focus", onFocus);
-    return () => {
-      document.removeEventListener("visibilitychange", onVisibility);
-      window.removeEventListener("focus", onFocus);
-    };
-  }, [station, isMobile, checkAndResumeAfterCall]);
-
-  // Detect phone call interruptions on audio elements
-  useEffect(() => {
-    const audio1 = audioRef.current;
-    const audio2 = audioRef2.current;
-
-    const handlePause1 = () => {
-      if (!audio1) return;
-      // Only treat as call interruption if:
-      // 1. We were playing (isPlaying was true)
-      // 2. Pause was NOT user-initiated
-      // 3. Not playing an ad
-      // 4. Audio is actually paused
-      if (isPlaying && !userInitiatedPauseRef.current && !adInProgressRef.current && audio1.paused && station) {
-        console.log("Audio paused by system (likely phone call) on audio1");
-        wasInterruptedByCallRef.current = true;
-        setIsPlaying(false);
-
-        // Start checking for call end
-        callResumeCheckRef.current = setTimeout(() => {
-          checkAndResumeAfterCall();
-        }, 1000); // Check after 1 second
-      }
-    };
-
-    const handlePause2 = () => {
-      if (!audio2) return;
-      // Only treat as call interruption if:
-      // 1. We were playing (isPlaying was true)
-      // 2. Pause was NOT user-initiated
-      // 3. Not playing an ad
-      // 4. Audio is actually paused
-      if (isPlaying && !userInitiatedPauseRef.current && !adInProgressRef.current && audio2.paused && station) {
-        console.log("Audio paused by system (likely phone call) on audio2");
-        wasInterruptedByCallRef.current = true;
-        setIsPlaying(false);
-
-        // Start checking for call end
-        callResumeCheckRef.current = setTimeout(() => {
-          checkAndResumeAfterCall();
-        }, 1000); // Check after 1 second
-      }
-    };
-
-    const handlePlay1 = () => {
-      // If audio starts playing and we were interrupted, clear the flag
-      if (wasInterruptedByCallRef.current) {
-        console.log("Audio resumed - clearing call interruption flag");
-        wasInterruptedByCallRef.current = false;
-        userInitiatedPauseRef.current = false;
-        if (callResumeCheckRef.current) {
-          clearTimeout(callResumeCheckRef.current);
-          callResumeCheckRef.current = null;
-        }
-      }
-    };
-
-    const handlePlay2 = () => {
-      // If audio starts playing and we were interrupted, clear the flag
-      if (wasInterruptedByCallRef.current) {
-        console.log("Audio resumed - clearing call interruption flag");
-        wasInterruptedByCallRef.current = false;
-        userInitiatedPauseRef.current = false;
-        if (callResumeCheckRef.current) {
-          clearTimeout(callResumeCheckRef.current);
-          callResumeCheckRef.current = null;
-        }
-      }
-    };
-
-    if (audio1) {
-      audio1.addEventListener("pause", handlePause1);
-      audio1.addEventListener("play", handlePlay1);
-    }
-    if (audio2) {
-      audio2.addEventListener("pause", handlePause2);
-      audio2.addEventListener("play", handlePlay2);
-    }
-
-    return () => {
-      if (audio1) {
-        audio1.removeEventListener("pause", handlePause1);
-        audio1.removeEventListener("play", handlePlay1);
-      }
-      if (audio2) {
-        audio2.removeEventListener("pause", handlePause2);
-        audio2.removeEventListener("play", handlePlay2);
-      }
-      if (callResumeCheckRef.current) {
-        clearTimeout(callResumeCheckRef.current);
-      }
-    };
-  }, [isPlaying, station, isMobile, checkAndResumeAfterCall]);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
 
   // Network switching - handle WiFi to mobile data transitions
   useEffect(() => {
@@ -935,6 +768,110 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     };
   }, [isMobile, isPlaying]);
 
+  // Phone call detection and auto-resume functionality
+  useEffect(() => {
+    if (!isMobile) return;
+
+    // Check if the PhoneStateListener API is available (Android WebView)
+    const handlePhoneStateChange = (state: string) => {
+      console.log("Phone state changed:", state);
+
+      switch (state) {
+        case "ringing":
+        case "offhook":
+          // Phone is ringing or in call - pause radio if playing
+          callStateRef.current = state === "ringing" ? "incoming" : "active";
+          if (isPlaying && !adInProgressRef.current) {
+            console.log("Pausing radio for phone call");
+            wasPlayingBeforeCallRef.current = true;
+            const audio = getActiveAudio();
+            if (audio) {
+              audio.pause();
+              setIsPlaying(false);
+            }
+          }
+          break;
+
+        case "idle":
+          // Phone is idle - resume radio if it was playing before call
+          if (callStateRef.current !== "none" && wasPlayingBeforeCallRef.current) {
+            console.log("Resuming radio after phone call");
+            callStateRef.current = "none";
+            wasPlayingBeforeCallRef.current = false;
+
+            // Auto-resume radio after a short delay to ensure call audio has finished
+            setTimeout(() => {
+              const audio = getActiveAudio();
+              if (audio && !adInProgressRef.current) {
+                setIsLoading(true);
+                reloadFromLiveEdge(audio)
+                  .then(() => {
+                    console.log("Radio resumed after call");
+                  })
+                  .catch((error) => {
+                    console.error("Failed to resume radio after call:", error);
+                    setIsPlaying(false);
+                    setIsLoading(false);
+                  });
+              }
+            }, 1000); // 1 second delay
+          } else {
+            callStateRef.current = "none";
+          }
+          break;
+      }
+    };
+
+    // Try to detect phone calls through various methods
+    // Method 1: Custom event (if app sends it)
+    const handleCustomPhoneEvent = (event: CustomEvent) => {
+      handlePhoneStateChange(event.detail.state);
+    };
+
+    // Method 2: Check for audio interruption (iOS Safari)
+    let audioInterrupted = false;
+    const handleAudioInterruption = () => {
+      if (!audioInterrupted) {
+        audioInterrupted = true;
+        // Assume this is a phone call
+        handlePhoneStateChange("offhook");
+
+        // Reset after a delay assuming call has ended
+        setTimeout(() => {
+          if (audioInterrupted) {
+            audioInterrupted = false;
+            handlePhoneStateChange("idle");
+          }
+        }, 5000); // 5 seconds - adjust as needed
+      }
+    };
+
+    // Add listeners
+    window.addEventListener("phoneStateChange", handleCustomPhoneEvent as EventListener);
+
+    // For iOS, we can detect audio interruptions
+    // This is a simplified approach - in a real app, you'd use more sophisticated detection
+    const audioElement = getActiveAudio();
+    if (audioElement) {
+      audioElement.addEventListener("interruptbegin", handleAudioInterruption);
+      audioElement.addEventListener("interruptend", () => {
+        // Audio interruption ended, might be call ended
+        setTimeout(() => {
+          if (wasPlayingBeforeCallRef.current) {
+            handlePhoneStateChange("idle");
+          }
+        }, 1000);
+      });
+    }
+
+    return () => {
+      window.removeEventListener("phoneStateChange", handleCustomPhoneEvent as EventListener);
+      if (audioElement) {
+        audioElement.removeEventListener("interruptbegin", handleAudioInterruption);
+      }
+    };
+  }, [isPlaying, isMobile]);
+
   const togglePlay = async () => {
     // GUARD: Don't allow play toggle during ad
     if (adInProgressRef.current) {
@@ -946,12 +883,10 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     if (!audio) return;
 
     if (isPlaying) {
-      userInitiatedPauseRef.current = true; // Mark as user-initiated
       lastPausedAtRef.current = Date.now();
       wasBackgroundedRef.current = false;
       audio.pause();
       setIsPlaying(false);
-      wasInterruptedByCallRef.current = false; // Clear call interruption flag
       return;
     }
 
@@ -975,22 +910,30 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         } catch {}
       }
 
-      // ALWAYS-RELOAD from live edge: every resume reloads from live edge to guarantee live playback
-      // This ensures users always hear the current live stream, not buffered/paused content
-      console.log("Resuming playback - reloading from live edge");
-      setIsLoading(true);
-      setLoadError(false);
-      wasBackgroundedRef.current = false;
-      wasPlayingBeforeOfflineRef.current = false;
+      // ALWAYS-RELOAD on mobile: every resume reloads from live edge to guarantee live playback
+      if (isMobile) {
+        console.log("Mobile toggle play - always reloading from live edge");
+        setIsLoading(true);
+        setLoadError(false);
+        wasBackgroundedRef.current = false;
+        wasPlayingBeforeOfflineRef.current = false;
 
-      try {
-        await reloadFromLiveEdge(audio);
+        try {
+          await reloadFromLiveEdge(audio);
+          lastPausedAtRef.current = null;
+        } catch (error) {
+          console.error("Failed to reload from live edge:", error);
+          setIsPlaying(false);
+          setIsLoading(false);
+        }
+      } else {
+        // Desktop - try a simple resume
+        if (audio.readyState === 0) {
+          audio.load();
+        }
+        await audio.play();
+        setIsPlaying(true);
         lastPausedAtRef.current = null;
-        userInitiatedPauseRef.current = false; // Clear user pause flag
-      } catch (error) {
-        console.error("Failed to reload from live edge:", error);
-        setIsPlaying(false);
-        setIsLoading(false);
       }
     } catch (error) {
       console.log("Play failed:", error);
