@@ -8,10 +8,10 @@ import { Search, Radio } from "lucide-react";
 import { Helmet } from "react-helmet";
 
 const Mobile = () => {
-  // Sort stations with Mirchi stations at top
-  const [stations] = useState<RadioStation[]>(() => {
-    const allStations = getStationsWithSlugs();
-    return allStations.sort((a, b) => {
+  // All stations sorted with Mirchi at top
+  const [allStations] = useState<RadioStation[]>(() => {
+    const stations = getStationsWithSlugs();
+    return stations.sort((a, b) => {
       const aHasMirchi = a.name.toLowerCase().includes('mirchi');
       const bHasMirchi = b.name.toLowerCase().includes('mirchi');
       const aIsRadioMirchiHindi = a.name === 'Radio Mirchi Hindi';
@@ -24,22 +24,35 @@ const Mobile = () => {
       return 0;
     });
   });
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [currentStation, setCurrentStation] = useState<RadioStation | null>(null);
+  const [displayedStations, setDisplayedStations] = useState<RadioStation[]>([]);
   const [filteredStations, setFilteredStations] = useState<RadioStation[]>([]);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  
+  const INITIAL_LOAD = 20; // Load first 20 stations quickly
+  const LOAD_MORE = 50; // Load 50 more on scroll
 
-  // Auto-play first station on load
+  // Initial load - load first station immediately for fast auto-play
   useEffect(() => {
-    if (stations.length > 0 && !currentStation) {
-      setCurrentStation(stations[0]);
+    if (allStations.length > 0 && !currentStation) {
+      // Set first station immediately for auto-play
+      setCurrentStation(allStations[0]);
+      // Load initial batch of stations
+      setDisplayedStations(allStations.slice(0, INITIAL_LOAD));
+      // Load rest after a short delay to prioritize first station
+      setTimeout(() => {
+        setDisplayedStations(allStations.slice(0, Math.min(100, allStations.length)));
+      }, 1000);
     }
-  }, [stations]);
+  }, [allStations]);
 
-  // Filter stations based on search (maintain Mirchi sorting)
+  // Filter stations based on search
   useEffect(() => {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      const filtered = stations.filter(
+      const filtered = allStations.filter(
         (station) =>
           station.name.toLowerCase().includes(query) ||
           station.language.toLowerCase().includes(query) ||
@@ -47,9 +60,38 @@ const Mobile = () => {
       );
       setFilteredStations(filtered);
     } else {
-      setFilteredStations(stations);
+      setFilteredStations(displayedStations);
     }
-  }, [searchQuery, stations]);
+  }, [searchQuery, displayedStations, allStations]);
+  
+  // Lazy load more stations on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (searchQuery.trim()) return; // Don't lazy load during search
+      
+      const scrollContainer = document.querySelector('.station-list-container');
+      if (!scrollContainer) return;
+      
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
+      const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
+      
+      if (scrollPercentage > 0.8 && !isLoadingMore && displayedStations.length < allStations.length) {
+        setIsLoadingMore(true);
+        setTimeout(() => {
+          const nextBatch = Math.min(
+            displayedStations.length + LOAD_MORE,
+            allStations.length
+          );
+          setDisplayedStations(allStations.slice(0, nextBatch));
+          setIsLoadingMore(false);
+        }, 100);
+      }
+    };
+    
+    const scrollContainer = document.querySelector('.station-list-container');
+    scrollContainer?.addEventListener('scroll', handleScroll);
+    return () => scrollContainer?.removeEventListener('scroll', handleScroll);
+  }, [displayedStations, allStations, searchQuery, isLoadingMore]);
 
   const handleStationSelect = (station: RadioStation) => {
     setCurrentStation(station);
@@ -116,12 +158,17 @@ const Mobile = () => {
         )}
 
         {/* Station List - Scrollable */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto station-list-container">
           <MobileStationList
             stations={filteredStations}
             currentStation={currentStation}
             onStationSelect={handleStationSelect}
           />
+          {isLoadingMore && !searchQuery && (
+            <div className="py-4 text-center">
+              <div className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
+            </div>
+          )}
         </div>
       </div>
     </>

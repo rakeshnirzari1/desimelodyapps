@@ -13,12 +13,14 @@ interface MobilePlayerProps {
 export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: MobilePlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [bufferingMessage, setBufferingMessage] = useState("");
   const audioRef = useRef<HTMLAudioElement>(null);
   const audioContextRef = useRef<any>(null);
   const wasPlayingBeforeCallRef = useRef(false);
   const mediaSessionInitializedRef = useRef(false);
   const autoPlayAttemptedRef = useRef(false);
   const keepAliveIntervalRef = useRef<number | null>(null);
+  const callDetectionIntervalRef = useRef<number | null>(null);
 
   // Initialize AudioContext for mobile
   useEffect(() => {
@@ -38,19 +40,23 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     };
   }, []);
 
-  // Phone call detection and auto-resume
+  // Enhanced phone call detection with multiple checks
   useEffect(() => {
+    let wasInterrupted = false;
+    
     const handleVisibilityChange = () => {
       if (document.hidden && isPlaying) {
-        // Phone might be in a call or screen locked
+        console.log("Screen hidden while playing - pausing");
         wasPlayingBeforeCallRef.current = true;
+        wasInterrupted = true;
         const audio = audioRef.current;
         if (audio) {
           audio.pause();
           setIsPlaying(false);
         }
       } else if (!document.hidden && wasPlayingBeforeCallRef.current) {
-        // Resume after call ends - wait a bit for audio system to be ready
+        console.log("Screen visible again - resuming playback");
+        wasInterrupted = false;
         setTimeout(() => {
           handlePlay();
           wasPlayingBeforeCallRef.current = false;
@@ -58,50 +64,104 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       }
     };
 
+    // Additional check for audio interruptions (calls, alarms, etc.)
+    const audio = audioRef.current;
+    const handleAudioInterruption = () => {
+      if (isPlaying) {
+        console.log("Audio interrupted - likely a call");
+        wasPlayingBeforeCallRef.current = true;
+        wasInterrupted = true;
+        setIsPlaying(false);
+      }
+    };
+    
+    const handleAudioResume = () => {
+      if (wasInterrupted && wasPlayingBeforeCallRef.current) {
+        console.log("Audio interruption ended - resuming");
+        wasInterrupted = false;
+        setTimeout(() => {
+          handlePlay();
+          wasPlayingBeforeCallRef.current = false;
+        }, 1000);
+      }
+    };
+
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    audio?.addEventListener("pause", handleAudioInterruption);
+    
+    // Poll for call state changes
+    callDetectionIntervalRef.current = window.setInterval(() => {
+      if (wasPlayingBeforeCallRef.current && !document.hidden && !isPlaying) {
+        console.log("Call ended detected - attempting resume");
+        handlePlay();
+        wasPlayingBeforeCallRef.current = false;
+      }
+    }, 2000);
 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      audio?.removeEventListener("pause", handleAudioInterruption);
+      if (callDetectionIntervalRef.current) {
+        clearInterval(callDetectionIntervalRef.current);
+      }
     };
   }, [isPlaying]);
 
-  // Load and auto-play station immediately
+  // Load and auto-play station immediately with fast buffering
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !station) return;
 
     setIsLoading(true);
+    setBufferingMessage("Loading station...");
     autoPlayAttemptedRef.current = false;
 
-    // Force reload with cache-buster
+    // Force reload with cache-buster for fresh stream
     const sep = station.link.includes("?") ? "&" : "?";
     audio.src = `${station.link}${sep}ts=${Date.now()}`;
     audio.load();
 
     const handleCanPlay = () => {
       setIsLoading(false);
+      setBufferingMessage("");
       
       // Auto-play immediately
       if (!autoPlayAttemptedRef.current) {
         autoPlayAttemptedRef.current = true;
-        // Use setTimeout to ensure audio context is ready
-        setTimeout(() => handlePlay(), 100);
+        // Immediate play for first station
+        setTimeout(() => handlePlay(), 50);
       }
+    };
+    
+    const handleWaiting = () => {
+      setBufferingMessage("Buffering, please wait...");
+    };
+    
+    const handlePlaying = () => {
+      setBufferingMessage("");
     };
 
     const handleError = () => {
       console.error("Station load error");
       setIsLoading(false);
+      setBufferingMessage("Station unavailable, skipping...");
       setIsPlaying(false);
       // Auto-skip to next station after error
-      setTimeout(onNext, 2000);
+      setTimeout(() => {
+        setBufferingMessage("");
+        onNext();
+      }, 2000);
     };
 
     audio.addEventListener("canplay", handleCanPlay);
+    audio.addEventListener("waiting", handleWaiting);
+    audio.addEventListener("playing", handlePlaying);
     audio.addEventListener("error", handleError);
 
     return () => {
       audio.removeEventListener("canplay", handleCanPlay);
+      audio.removeEventListener("waiting", handleWaiting);
+      audio.removeEventListener("playing", handlePlaying);
       audio.removeEventListener("error", handleError);
     };
   }, [station]);
@@ -173,13 +233,14 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
 
     try {
       console.log("Starting playback...");
+      setBufferingMessage("Buffering, please wait...");
       
       // Resume AudioContext if suspended
       if (audioContextRef.current && audioContextRef.current.state === "suspended") {
         await audioContextRef.current.resume();
       }
 
-      // Always reload from live edge (important for long pauses)
+      // Always reload from live edge (critical for long pauses and calls)
       const sep = station.link.includes("?") ? "&" : "?";
       audio.src = `${station.link}${sep}ts=${Date.now()}`;
       
@@ -210,22 +271,23 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
         audio.addEventListener("error", handleLoadError);
         audio.load();
         
-        // Timeout after 15 seconds (longer for mobile)
+        // Timeout after 10 seconds for faster feedback
         setTimeout(() => {
           audio.removeEventListener("canplay", handleCanPlay);
           audio.removeEventListener("error", handleLoadError);
           reject(new Error("Load timeout"));
-        }, 15000);
+        }, 10000);
       });
 
       await audio.play();
       setIsPlaying(true);
+      setBufferingMessage("");
       wasPlayingBeforeCallRef.current = false;
 
-      // Ensure Media Session stays active
+      // Ensure Media Session stays active (critical for calls and long pauses)
       if ("mediaSession" in navigator) {
         navigator.mediaSession.playbackState = "playing";
-        // Re-set metadata to ensure it's fresh
+        // Re-set metadata to keep session alive
         navigator.mediaSession.metadata = new MediaMetadata({
           title: station.name,
           artist: `${station.language || "Hindi"} • ${station.type}`,
@@ -237,6 +299,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       console.log("Playback started successfully");
     } catch (error) {
       console.error("Play error:", error);
+      setBufferingMessage("Connection issue, retrying...");
       setIsPlaying(false);
       
       if ("mediaSession" in navigator) {
@@ -247,7 +310,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       setTimeout(() => {
         console.log("Retrying playback...");
         handlePlay();
-      }, 1000);
+      }, 1500);
     }
   };
 
@@ -288,6 +351,11 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
             <p className="text-sm text-muted-foreground truncate">
               {station.language} • {station.type}
             </p>
+            {bufferingMessage && (
+              <p className="text-xs text-primary mt-1 animate-pulse">
+                {bufferingMessage}
+              </p>
+            )}
           </div>
         </div>
 

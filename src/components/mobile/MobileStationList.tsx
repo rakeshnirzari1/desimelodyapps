@@ -46,13 +46,16 @@ export const MobileStationList = ({
                 <p className="text-sm text-muted-foreground truncate">
                   {station.language} • {station.type}
                 </p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                    {station.kbps}
-                  </span>
-                  {station.location && (
-                    <span className="text-xs text-muted-foreground truncate">
-                      {station.location}
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  {station.tags ? (
+                    station.tags.split(',').slice(0, 3).map((tag, idx) => (
+                      <span key={idx} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                        {tag.trim()}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs text-muted-foreground italic">
+                      No tags
                     </span>
                   )}
                 </div>
