@@ -22,10 +22,9 @@ interface AudioPlayerProps {
 }
 
 const STATION_TIMEOUT = 15000; // 15 seconds
-// If user pauses for longer than this (seconds), resume should reload from live edge
-// Increase this to cover long holds from car controls / locked screen (e.g. 2-5 minutes)
-// You can adjust this value to 120 (2 minutes) or 300 (5 minutes) as needed.
-const PAUSE_TO_LIVE_THRESHOLD = 300; // seconds (5 minutes)
+// ALWAYS-RELOAD: Every resume reloads from live edge to guarantee live playback.
+// This ensures users always hear the current live stream, not buffered/paused content.
+// Trade-off: every resume takes ~1-2 seconds to reload, but guarantees live content.
 
 export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -612,14 +611,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           }
         } catch {}
 
-        // MOBILE: Decide whether to reload from live edge or resume buffered playback.
-        // If the user paused for longer than PAUSE_TO_LIVE_THRESHOLD, or the app was
-        // backgrounded, or we were offline, prefer reloading to avoid resuming from
-        // a buffered position.
-        const now = Date.now();
-        const pausedAt = lastPausedAtRef.current;
-        const pausedDurationSec = pausedAt ? (now - pausedAt) / 1000 : 0;
-
         // Always pause inactive audio to avoid two streams running
         const inactive = getInactiveAudio();
         if (inactive && !inactive.paused) {
@@ -629,16 +620,12 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           } catch {}
         }
 
-        if (
-          isMobile &&
-          (wasBackgroundedRef.current ||
-            wasPlayingBeforeOfflineRef.current ||
-            pausedDurationSec > PAUSE_TO_LIVE_THRESHOLD)
-        ) {
-          console.log("Mobile resume - paused long or backgrounded, reloading from live edge");
+        // ALWAYS-RELOAD on mobile: every resume reloads from live edge to guarantee live playback
+        if (isMobile) {
+          console.log("Mobile resume - always reloading from live edge");
           setIsLoading(true);
           setLoadError(false);
-          // reset background/offline flags — reloadFromLiveEdge will set playing state on success
+          // reset background/offline flags
           wasBackgroundedRef.current = false;
           wasPlayingBeforeOfflineRef.current = false;
 
@@ -651,7 +638,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
             setIsLoading(false);
           }
         } else {
-          // Desktop or short pause on mobile - try a simple resume
+          // Desktop - try a simple resume
           if (audio.readyState === 0) {
             audio.load();
           }
@@ -804,14 +791,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         }
       } catch {}
 
-      // MOBILE/DESKTOP: Decide whether to reload from live edge or resume buffered playback.
-      // If the user paused for longer than PAUSE_TO_LIVE_THRESHOLD, or the app was
-      // backgrounded, or we were offline, prefer reloading to avoid resuming from
-      // a buffered position.
-      const now = Date.now();
-      const pausedAt = lastPausedAtRef.current;
-      const pausedDurationSec = pausedAt ? (now - pausedAt) / 1000 : 0;
-
       // Always pause inactive audio to avoid two streams running
       const inactive = getInactiveAudio();
       if (inactive && !inactive.paused) {
@@ -821,13 +800,9 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         } catch {}
       }
 
-      if (
-        isMobile &&
-        (wasBackgroundedRef.current ||
-          wasPlayingBeforeOfflineRef.current ||
-          pausedDurationSec > PAUSE_TO_LIVE_THRESHOLD)
-      ) {
-        console.log("Mobile toggle play - paused long or backgrounded, reloading from live edge");
+      // ALWAYS-RELOAD on mobile: every resume reloads from live edge to guarantee live playback
+      if (isMobile) {
+        console.log("Mobile toggle play - always reloading from live edge");
         setIsLoading(true);
         setLoadError(false);
         wasBackgroundedRef.current = false;
@@ -842,7 +817,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           setIsLoading(false);
         }
       } else {
-        // Desktop or short pause on mobile - try a simple resume
+        // Desktop - try a simple resume
         if (audio.readyState === 0) {
           audio.load();
         }
