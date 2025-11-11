@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { RadioStation } from "@/types/station";
 import { Button } from "@/components/ui/button";
 import { Play, Pause, Volume2, VolumeX, X, SkipForward, SkipBack } from "lucide-react";
@@ -56,8 +56,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const wasBackgroundedRef = useRef(false);
   const previousStationIdRef = useRef<string | null>(null);
   const wasPlayingBeforeOfflineRef = useRef(false);
-  const wasPlayingBeforeCallRef = useRef(false); // Track if radio was playing before a call
-  const isInCallRef = useRef(false); // Track current call state
 
   // Persistent refs for Media Session next/prev handlers
   const nextActionRef = useRef<() => void>(() => {});
@@ -577,15 +575,11 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     }
   }, [volume, isMuted]);
 
-  // Restore Media Session when app returns from background/call
-  // CRITICAL: When iOS suspends the app (due to call, etc), Media Session handlers are lost.
-  // We need to aggressively restore them when the app returns to foreground.
-  const restoreMediaSession = useCallback(() => {
+  // Media Session API for car controls and lock screen controls
+  useEffect(() => {
     if (!station || !("mediaSession" in navigator)) return;
 
-    console.log("Restoring Media Session after app resume");
-
-    // Restore metadata
+    // Update metadata (may already be set in station change effect, but ensure it's current)
     navigator.mediaSession.metadata = new MediaMetadata({
       title: station.name,
       artist: `${station.language || "Hindi"} • ${station.type}`,
@@ -593,11 +587,12 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
     });
 
-    // Restore playback state
+    // Keep session active so next/prev work even while loading or screen is off
+    // CRITICAL: Keep as "playing" during loading to maintain mobile controls
     navigator.mediaSession.playbackState = isPlaying || isLoading ? "playing" : "paused";
 
-    // Restore play/pause handlers
     navigator.mediaSession.setActionHandler("play", async () => {
+      // GUARD: Don't allow play during ad
       if (adInProgressRef.current) {
         console.log("Play action blocked - ad is playing");
         return;
@@ -606,6 +601,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       const audio = getActiveAudio();
       if (!audio) return;
       try {
+        // Resume AudioContext (iOS) in response to user gesture
         try {
           const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
           if (AC) {
@@ -615,6 +611,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           }
         } catch {}
 
+        // Always pause inactive audio to avoid two streams running
         const inactive = getInactiveAudio();
         if (inactive && !inactive.paused) {
           try {
@@ -623,10 +620,12 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           } catch {}
         }
 
+        // ALWAYS-RELOAD on mobile: every resume reloads from live edge to guarantee live playback
         if (isMobile) {
           console.log("Mobile resume - always reloading from live edge");
           setIsLoading(true);
           setLoadError(false);
+          // reset background/offline flags
           wasBackgroundedRef.current = false;
           wasPlayingBeforeOfflineRef.current = false;
 
@@ -639,6 +638,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
             setIsLoading(false);
           }
         } else {
+          // Desktop - try a simple resume
           if (audio.readyState === 0) {
             audio.load();
           }
@@ -657,33 +657,39 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       if (audio) {
         audio.pause();
         setIsPlaying(false);
-        lastPausedAtRef.current = Date.now();
+        lastPausedAtRef.current = Date.now(); // Track pause time
       }
     });
-
-    navigator.mediaSession.setActionHandler("nexttrack", () => {
-      nextActionRef.current();
-    });
-
-    navigator.mediaSession.setActionHandler("previoustrack", () => {
-      prevActionRef.current();
-    });
-  }, [station, isPlaying, isLoading, isMobile]);
-
-  // Media Session API for car controls and lock screen controls
-  useEffect(() => {
-    if (!station || !("mediaSession" in navigator)) return;
-
-    // Use restoreMediaSession to set up all handlers
-    restoreMediaSession();
 
     return () => {
       navigator.mediaSession.setActionHandler("play", null);
       navigator.mediaSession.setActionHandler("pause", null);
+    };
+  }, [station, isPlaying, isLoading]);
+
+  // Register next/prev handlers - disable during ads
+  useEffect(() => {
+    if (!("mediaSession" in navigator)) return;
+
+    if (isPlayingAd) {
+      // Disable controls during ad
+      navigator.mediaSession.setActionHandler("nexttrack", null);
+      navigator.mediaSession.setActionHandler("previoustrack", null);
+    } else {
+      // Enable controls when not playing ad
+      navigator.mediaSession.setActionHandler("nexttrack", () => {
+        nextActionRef.current();
+      });
+      navigator.mediaSession.setActionHandler("previoustrack", () => {
+        prevActionRef.current();
+      });
+    }
+
+    return () => {
       navigator.mediaSession.setActionHandler("nexttrack", null);
       navigator.mediaSession.setActionHandler("previoustrack", null);
     };
-  }, [station, isPlaying, isLoading, restoreMediaSession]);
+  }, [isPlayingAd]);
 
   // Track backgrounding to refresh stream on mobile resume
   useEffect(() => {
@@ -695,148 +701,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     document.addEventListener("visibilitychange", onVisibility);
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
-
-  // Restore Media Session when app returns from background/call
-  // CRITICAL: When iOS suspends the app (due to call, etc), Media Session handlers are lost.
-  // We need to aggressively restore them when the app returns to foreground.
-  const restoreMediaSession = useCallback(() => {
-    if (!station || !("mediaSession" in navigator)) return;
-
-    console.log("Restoring Media Session after app resume");
-
-    // Restore metadata
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: station.name,
-      artist: `${station.language || "Hindi"} • ${station.type}`,
-      album: "DesiMelody.com",
-      artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
-    });
-
-    // Restore playback state
-    navigator.mediaSession.playbackState = isPlaying || isLoading ? "playing" : "paused";
-
-    // Restore play/pause handlers
-    navigator.mediaSession.setActionHandler("play", async () => {
-      if (adInProgressRef.current) {
-        console.log("Play action blocked - ad is playing");
-        return;
-      }
-
-      const audio = getActiveAudio();
-      if (!audio) return;
-      try {
-        try {
-          const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
-          if (AC) {
-            const ac = new AC();
-            if (ac.state === "suspended") await ac.resume();
-            await ac.close();
-          }
-        } catch {}
-
-        const inactive = getInactiveAudio();
-        if (inactive && !inactive.paused) {
-          try {
-            inactive.pause();
-            inactive.currentTime = 0;
-          } catch {}
-        }
-
-        if (isMobile) {
-          console.log("Mobile resume - always reloading from live edge");
-          setIsLoading(true);
-          setLoadError(false);
-          wasBackgroundedRef.current = false;
-          wasPlayingBeforeOfflineRef.current = false;
-
-          try {
-            await reloadFromLiveEdge(audio);
-            lastPausedAtRef.current = null;
-          } catch (error) {
-            console.error("Failed to reload from live edge:", error);
-            setIsPlaying(false);
-            setIsLoading(false);
-          }
-        } else {
-          if (audio.readyState === 0) {
-            audio.load();
-          }
-          await audio.play();
-          setIsPlaying(true);
-          lastPausedAtRef.current = null;
-        }
-      } catch (error) {
-        console.error("Play error:", error);
-        setIsPlaying(false);
-      }
-    });
-
-    navigator.mediaSession.setActionHandler("pause", () => {
-      const audio = getActiveAudio();
-      if (audio) {
-        audio.pause();
-        setIsPlaying(false);
-        lastPausedAtRef.current = Date.now();
-      }
-    });
-
-    navigator.mediaSession.setActionHandler("nexttrack", () => {
-      nextActionRef.current();
-    });
-
-    navigator.mediaSession.setActionHandler("previoustrack", () => {
-      prevActionRef.current();
-    });
-  }, [station, isPlaying, isLoading, isMobile]);
-
-  // Call state detection and auto-resume on iOS/Android
-  // Detects incoming calls, outgoing calls, and call end events
-  // Auto-resumes radio from live edge when call ends
-  useEffect(() => {
-    if (!isMobile) return;
-
-    // Listen for visibility changes that might indicate call end
-    // (when user returns to the app after a call)
-    const handleVisibilityChange = () => {
-      console.log("Visibility changed:", document.visibilityState);
-
-      if (document.visibilityState === "visible") {
-        // App returned to foreground - likely from a call
-        console.log("App returned to foreground - restoring Media Session and resuming radio");
-
-        // Restore Media Session immediately
-        restoreMediaSession();
-
-        // Mark that we should resume from live edge
-        wasPlayingBeforeCallRef.current = true;
-
-        // Give the app a moment to fully initialize, then auto-resume if was playing
-        setTimeout(() => {
-          const audio = getActiveAudio();
-          if (audio && isPlaying && !adInProgressRef.current && wasPlayingBeforeCallRef.current) {
-            console.log("Auto-resuming radio after call/background");
-            wasPlayingBeforeCallRef.current = false;
-            setIsLoading(true);
-            reloadFromLiveEdge(audio).catch((error) => {
-              console.error("Failed to resume after call:", error);
-            });
-          }
-        }, 500); // Brief delay to let app settle
-      } else if (document.visibilityState === "hidden") {
-        // App going to background - call might be incoming
-        if (isPlaying) {
-          wasPlayingBeforeCallRef.current = true;
-          console.log("App going to background - marking as was playing");
-        }
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [isMobile, isPlaying, restoreMediaSession]);
 
   // Network switching - handle WiFi to mobile data transitions
   useEffect(() => {
