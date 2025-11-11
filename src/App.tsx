@@ -18,6 +18,7 @@ import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import Advertise from "./pages/Advertise";
 import India from "./pages/India";
+import Mobile from "./pages/Mobile";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App = () => (
           <ScrollToTop />
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/mobile" element={<Mobile />} />
             <Route path="/browse" element={<Browse />} />
             <Route path="/india" element={<India />} />
             <Route path="/advertise" element={<Advertise />} />
