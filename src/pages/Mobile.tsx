@@ -12,11 +12,11 @@ const Mobile = () => {
   const [allStations] = useState<RadioStation[]>(() => {
     const stations = getStationsWithSlugs();
     return stations.sort((a, b) => {
-      const aHasMirchi = a.name.toLowerCase().includes('mirchi');
-      const bHasMirchi = b.name.toLowerCase().includes('mirchi');
-      const aIsRadioMirchiHindi = a.name === 'Radio Mirchi Hindi';
-      const bIsRadioMirchiHindi = b.name === 'Radio Mirchi Hindi';
-      
+      const aHasMirchi = a.name.toLowerCase().includes("mirchi");
+      const bHasMirchi = b.name.toLowerCase().includes("mirchi");
+      const aIsRadioMirchiHindi = a.name === "Radio Mirchi Hindi";
+      const bIsRadioMirchiHindi = b.name === "Radio Mirchi Hindi";
+
       if (aIsRadioMirchiHindi) return -1;
       if (bIsRadioMirchiHindi) return 1;
       if (aHasMirchi && !bHasMirchi) return -1;
@@ -24,15 +24,15 @@ const Mobile = () => {
       return 0;
     });
   });
-  
+
   const [searchQuery, setSearchQuery] = useState("");
   const [currentStation, setCurrentStation] = useState<RadioStation | null>(null);
   const [displayedStations, setDisplayedStations] = useState<RadioStation[]>([]);
   const [filteredStations, setFilteredStations] = useState<RadioStation[]>([]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  
-  const INITIAL_LOAD = 20; // Load first 20 stations quickly
-  const LOAD_MORE = 50; // Load 50 more on scroll
+
+  const INITIAL_LOAD = 200; // Load first 20 stations quickly
+  const LOAD_MORE = 100; // Load 50 more on scroll
 
   // Initial load - load first station immediately for fast auto-play
   useEffect(() => {
@@ -56,41 +56,38 @@ const Mobile = () => {
         (station) =>
           station.name.toLowerCase().includes(query) ||
           station.language.toLowerCase().includes(query) ||
-          station.tags?.toLowerCase().includes(query)
+          station.tags?.toLowerCase().includes(query),
       );
       setFilteredStations(filtered);
     } else {
       setFilteredStations(displayedStations);
     }
   }, [searchQuery, displayedStations, allStations]);
-  
+
   // Lazy load more stations on scroll
   useEffect(() => {
     const handleScroll = () => {
       if (searchQuery.trim()) return; // Don't lazy load during search
-      
-      const scrollContainer = document.querySelector('.station-list-container');
+
+      const scrollContainer = document.querySelector(".station-list-container");
       if (!scrollContainer) return;
-      
+
       const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
       const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
-      
+
       if (scrollPercentage > 0.8 && !isLoadingMore && displayedStations.length < allStations.length) {
         setIsLoadingMore(true);
         setTimeout(() => {
-          const nextBatch = Math.min(
-            displayedStations.length + LOAD_MORE,
-            allStations.length
-          );
+          const nextBatch = Math.min(displayedStations.length + LOAD_MORE, allStations.length);
           setDisplayedStations(allStations.slice(0, nextBatch));
           setIsLoadingMore(false);
         }, 100);
       }
     };
-    
-    const scrollContainer = document.querySelector('.station-list-container');
-    scrollContainer?.addEventListener('scroll', handleScroll);
-    return () => scrollContainer?.removeEventListener('scroll', handleScroll);
+
+    const scrollContainer = document.querySelector(".station-list-container");
+    scrollContainer?.addEventListener("scroll", handleScroll);
+    return () => scrollContainer?.removeEventListener("scroll", handleScroll);
   }, [displayedStations, allStations, searchQuery, isLoadingMore]);
 
   const handleStationSelect = (station: RadioStation) => {
@@ -115,7 +112,10 @@ const Mobile = () => {
     <>
       <Helmet>
         <title>DesiMelody Mobile - Indian Radio Stations</title>
-        <meta name="description" content="Listen to your favorite Indian radio stations on mobile - Hindi, Punjabi, Tamil, Telugu and more" />
+        <meta
+          name="description"
+          content="Listen to your favorite Indian radio stations on mobile - Hindi, Punjabi, Tamil, Telugu and more"
+        />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
