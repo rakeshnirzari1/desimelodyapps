@@ -56,8 +56,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const wasBackgroundedRef = useRef(false);
   const previousStationIdRef = useRef<string | null>(null);
   const wasPlayingBeforeOfflineRef = useRef(false);
-  const wasPlayingBeforeCallRef = useRef(false); // Track if radio was playing before call
-  const callStateRef = useRef<"none" | "incoming" | "outgoing" | "active">("none"); // Track call state
 
   // Persistent refs for Media Session next/prev handlers
   const nextActionRef = useRef<() => void>(() => {});
@@ -594,10 +592,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     navigator.mediaSession.playbackState = isPlaying || isLoading ? "playing" : "paused";
 
     navigator.mediaSession.setActionHandler("play", async () => {
-      // Reset call state when user manually plays
-      callStateRef.current = "none";
-      wasPlayingBeforeCallRef.current = false;
-
       // GUARD: Don't allow play during ad
       if (adInProgressRef.current) {
         console.log("Play action blocked - ad is playing");
@@ -767,110 +761,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       }
     };
   }, [isMobile, isPlaying]);
-
-  // Phone call detection and auto-resume functionality
-  useEffect(() => {
-    if (!isMobile) return;
-
-    // Check if the PhoneStateListener API is available (Android WebView)
-    const handlePhoneStateChange = (state: string) => {
-      console.log("Phone state changed:", state);
-
-      switch (state) {
-        case "ringing":
-        case "offhook":
-          // Phone is ringing or in call - pause radio if playing
-          callStateRef.current = state === "ringing" ? "incoming" : "active";
-          if (isPlaying && !adInProgressRef.current) {
-            console.log("Pausing radio for phone call");
-            wasPlayingBeforeCallRef.current = true;
-            const audio = getActiveAudio();
-            if (audio) {
-              audio.pause();
-              setIsPlaying(false);
-            }
-          }
-          break;
-
-        case "idle":
-          // Phone is idle - resume radio if it was playing before call
-          if (callStateRef.current !== "none" && wasPlayingBeforeCallRef.current) {
-            console.log("Resuming radio after phone call");
-            callStateRef.current = "none";
-            wasPlayingBeforeCallRef.current = false;
-
-            // Auto-resume radio after a short delay to ensure call audio has finished
-            setTimeout(() => {
-              const audio = getActiveAudio();
-              if (audio && !adInProgressRef.current) {
-                setIsLoading(true);
-                reloadFromLiveEdge(audio)
-                  .then(() => {
-                    console.log("Radio resumed after call");
-                  })
-                  .catch((error) => {
-                    console.error("Failed to resume radio after call:", error);
-                    setIsPlaying(false);
-                    setIsLoading(false);
-                  });
-              }
-            }, 1000); // 1 second delay
-          } else {
-            callStateRef.current = "none";
-          }
-          break;
-      }
-    };
-
-    // Try to detect phone calls through various methods
-    // Method 1: Custom event (if app sends it)
-    const handleCustomPhoneEvent = (event: CustomEvent) => {
-      handlePhoneStateChange(event.detail.state);
-    };
-
-    // Method 2: Check for audio interruption (iOS Safari)
-    let audioInterrupted = false;
-    const handleAudioInterruption = () => {
-      if (!audioInterrupted) {
-        audioInterrupted = true;
-        // Assume this is a phone call
-        handlePhoneStateChange("offhook");
-
-        // Reset after a delay assuming call has ended
-        setTimeout(() => {
-          if (audioInterrupted) {
-            audioInterrupted = false;
-            handlePhoneStateChange("idle");
-          }
-        }, 5000); // 5 seconds - adjust as needed
-      }
-    };
-
-    // Add listeners
-    window.addEventListener("phoneStateChange", handleCustomPhoneEvent as EventListener);
-
-    // For iOS, we can detect audio interruptions
-    // This is a simplified approach - in a real app, you'd use more sophisticated detection
-    const audioElement = getActiveAudio();
-    if (audioElement) {
-      audioElement.addEventListener("interruptbegin", handleAudioInterruption);
-      audioElement.addEventListener("interruptend", () => {
-        // Audio interruption ended, might be call ended
-        setTimeout(() => {
-          if (wasPlayingBeforeCallRef.current) {
-            handlePhoneStateChange("idle");
-          }
-        }, 1000);
-      });
-    }
-
-    return () => {
-      window.removeEventListener("phoneStateChange", handleCustomPhoneEvent as EventListener);
-      if (audioElement) {
-        audioElement.removeEventListener("interruptbegin", handleAudioInterruption);
-      }
-    };
-  }, [isPlaying, isMobile]);
 
   const togglePlay = async () => {
     // GUARD: Don't allow play toggle during ad
