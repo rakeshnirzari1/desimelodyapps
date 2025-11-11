@@ -4,11 +4,26 @@ import { RadioStation } from "@/types/station";
 import { MobilePlayer } from "@/components/mobile/MobilePlayer";
 import { MobileStationList } from "@/components/mobile/MobileStationList";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, Radio } from "lucide-react";
 import { Helmet } from "react-helmet";
 
 const Mobile = () => {
-  const [stations] = useState<RadioStation[]>(() => getStationsWithSlugs());
+  // Sort stations with Mirchi stations at top
+  const [stations] = useState<RadioStation[]>(() => {
+    const allStations = getStationsWithSlugs();
+    return allStations.sort((a, b) => {
+      const aHasMirchi = a.name.toLowerCase().includes('mirchi');
+      const bHasMirchi = b.name.toLowerCase().includes('mirchi');
+      const aIsRadioMirchiHindi = a.name === 'Radio Mirchi Hindi';
+      const bIsRadioMirchiHindi = b.name === 'Radio Mirchi Hindi';
+      
+      if (aIsRadioMirchiHindi) return -1;
+      if (bIsRadioMirchiHindi) return 1;
+      if (aHasMirchi && !bHasMirchi) return -1;
+      if (!aHasMirchi && bHasMirchi) return 1;
+      return 0;
+    });
+  });
   const [searchQuery, setSearchQuery] = useState("");
   const [currentStation, setCurrentStation] = useState<RadioStation | null>(null);
   const [filteredStations, setFilteredStations] = useState<RadioStation[]>([]);
@@ -20,7 +35,7 @@ const Mobile = () => {
     }
   }, [stations]);
 
-  // Filter stations based on search
+  // Filter stations based on search (maintain Mirchi sorting)
   useEffect(() => {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -70,12 +85,12 @@ const Mobile = () => {
         <header className="sticky top-0 z-50 bg-card border-b border-border shadow-sm">
           <div className="px-4 py-3">
             <div className="flex items-center gap-2 mb-3">
-              <img 
-                src="/src/assets/desimelodylogo.png" 
-                alt="DesiMelody" 
-                className="h-8"
-              />
-              <h1 className="text-lg font-bold text-primary">DesiMelody</h1>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary via-accent to-secondary flex items-center justify-center">
+                <Radio className="w-4 h-4 text-primary-foreground" />
+              </div>
+              <h1 className="text-lg font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+                Desi Melody
+              </h1>
             </div>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

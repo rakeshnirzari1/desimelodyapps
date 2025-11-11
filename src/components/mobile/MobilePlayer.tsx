@@ -18,6 +18,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
   const wasPlayingBeforeCallRef = useRef(false);
   const mediaSessionInitializedRef = useRef(false);
   const autoPlayAttemptedRef = useRef(false);
+  const keepAliveIntervalRef = useRef<number | null>(null);
 
   // Initialize AudioContext for mobile
   useEffect(() => {
@@ -37,18 +38,23 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     };
   }, []);
 
-  // Phone call detection
+  // Phone call detection and auto-resume
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && isPlaying) {
         // Phone might be in a call or screen locked
         wasPlayingBeforeCallRef.current = true;
-      } else if (!document.hidden && wasPlayingBeforeCallRef.current) {
-        // Resume after call ends
         const audio = audioRef.current;
-        if (audio && !isPlaying) {
-          handlePlay();
+        if (audio) {
+          audio.pause();
+          setIsPlaying(false);
         }
+      } else if (!document.hidden && wasPlayingBeforeCallRef.current) {
+        // Resume after call ends - wait a bit for audio system to be ready
+        setTimeout(() => {
+          handlePlay();
+          wasPlayingBeforeCallRef.current = false;
+        }, 500);
       }
     };
 
@@ -59,7 +65,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     };
   }, [isPlaying]);
 
-  // Load and auto-play station
+  // Load and auto-play station immediately
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !station) return;
@@ -75,10 +81,11 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     const handleCanPlay = () => {
       setIsLoading(false);
       
-      // Auto-play only once per station load
+      // Auto-play immediately
       if (!autoPlayAttemptedRef.current) {
         autoPlayAttemptedRef.current = true;
-        handlePlay();
+        // Use setTimeout to ensure audio context is ready
+        setTimeout(() => handlePlay(), 100);
       }
     };
 
@@ -99,10 +106,11 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     };
   }, [station]);
 
-  // Media Session API for lock screen controls
+  // Media Session API for lock screen controls - maintain after long pauses
   useEffect(() => {
     if (!station || !("mediaSession" in navigator)) return;
 
+    // Always set/update metadata
     navigator.mediaSession.metadata = new MediaMetadata({
       title: station.name,
       artist: `${station.language || "Hindi"} • ${station.type}`,
@@ -114,12 +122,12 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     mediaSessionInitializedRef.current = true;
 
     const handleMediaPlay = async () => {
-      console.log("Media Session PLAY");
+      console.log("Media Session PLAY from lock screen");
       await handlePlay();
     };
 
     const handleMediaPause = () => {
-      console.log("Media Session PAUSE");
+      console.log("Media Session PAUSE from lock screen");
       handlePauseAction();
     };
 
@@ -133,17 +141,29 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       onPrevious();
     };
 
+    // Always set handlers (even after long pauses or calls)
     navigator.mediaSession.setActionHandler("play", handleMediaPlay);
     navigator.mediaSession.setActionHandler("pause", handleMediaPause);
     navigator.mediaSession.setActionHandler("nexttrack", handleMediaNext);
     navigator.mediaSession.setActionHandler("previoustrack", handleMediaPrevious);
 
+    // Keep session alive with periodic updates
+    if (keepAliveIntervalRef.current) {
+      clearInterval(keepAliveIntervalRef.current);
+    }
+    
+    keepAliveIntervalRef.current = window.setInterval(() => {
+      if ("mediaSession" in navigator && navigator.mediaSession.metadata) {
+        // Refresh playback state to keep session active
+        navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+      }
+    }, 5000); // Every 5 seconds
+
     return () => {
-      navigator.mediaSession.setActionHandler("play", null);
-      navigator.mediaSession.setActionHandler("pause", null);
-      navigator.mediaSession.setActionHandler("nexttrack", null);
-      navigator.mediaSession.setActionHandler("previoustrack", null);
-      mediaSessionInitializedRef.current = false;
+      if (keepAliveIntervalRef.current) {
+        clearInterval(keepAliveIntervalRef.current);
+        keepAliveIntervalRef.current = null;
+      }
     };
   }, [station, isPlaying, onNext, onPrevious]);
 
@@ -152,18 +172,21 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     if (!audio) return;
 
     try {
+      console.log("Starting playback...");
+      
       // Resume AudioContext if suspended
       if (audioContextRef.current && audioContextRef.current.state === "suspended") {
         await audioContextRef.current.resume();
       }
 
-      // Always reload and seek to live edge on resume
+      // Always reload from live edge (important for long pauses)
       const sep = station.link.includes("?") ? "&" : "?";
       audio.src = `${station.link}${sep}ts=${Date.now()}`;
       
       await new Promise<void>((resolve, reject) => {
         const handleCanPlay = () => {
           audio.removeEventListener("canplay", handleCanPlay);
+          audio.removeEventListener("error", handleLoadError);
           
           // Seek to live edge if possible
           if (audio.seekable.length > 0) {
@@ -177,23 +200,41 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
           resolve();
         };
         
+        const handleLoadError = () => {
+          audio.removeEventListener("canplay", handleCanPlay);
+          audio.removeEventListener("error", handleLoadError);
+          reject(new Error("Load error"));
+        };
+        
         audio.addEventListener("canplay", handleCanPlay);
+        audio.addEventListener("error", handleLoadError);
         audio.load();
         
-        // Timeout after 10 seconds
+        // Timeout after 15 seconds (longer for mobile)
         setTimeout(() => {
           audio.removeEventListener("canplay", handleCanPlay);
+          audio.removeEventListener("error", handleLoadError);
           reject(new Error("Load timeout"));
-        }, 10000);
+        }, 15000);
       });
 
       await audio.play();
       setIsPlaying(true);
       wasPlayingBeforeCallRef.current = false;
 
+      // Ensure Media Session stays active
       if ("mediaSession" in navigator) {
         navigator.mediaSession.playbackState = "playing";
+        // Re-set metadata to ensure it's fresh
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: station.name,
+          artist: `${station.language || "Hindi"} • ${station.type}`,
+          album: "DesiMelody.com",
+          artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
+        });
       }
+      
+      console.log("Playback started successfully");
     } catch (error) {
       console.error("Play error:", error);
       setIsPlaying(false);
@@ -201,6 +242,12 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       if ("mediaSession" in navigator) {
         navigator.mediaSession.playbackState = "paused";
       }
+      
+      // Retry once after a short delay
+      setTimeout(() => {
+        console.log("Retrying playback...");
+        handlePlay();
+      }, 1000);
     }
   };
 
