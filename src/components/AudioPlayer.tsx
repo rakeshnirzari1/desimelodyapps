@@ -611,6 +611,34 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     };
   }, [isPlaying, adAnalytics]);
 
+  // Register next/prev handlers - disable during ads (mobile lock screen control)
+  useEffect(() => {
+    if (!("mediaSession" in navigator)) return;
+
+    if (isPlayingAd) {
+      // Disable controls during ad
+      console.log("📵 Disabling next/prev handlers - ad is playing");
+      navigator.mediaSession.setActionHandler("nexttrack", null);
+      navigator.mediaSession.setActionHandler("previoustrack", null);
+    } else {
+      // Enable controls when not playing ad
+      console.log("✅ Enabling next/prev handlers - ad finished");
+      navigator.mediaSession.setActionHandler("nexttrack", () => {
+        console.log("⏭️ Next track from lock screen");
+        playNextStation();
+      });
+      navigator.mediaSession.setActionHandler("previoustrack", () => {
+        console.log("⏮️ Previous track from lock screen");
+        playPreviousStation();
+      });
+    }
+
+    return () => {
+      navigator.mediaSession.setActionHandler("nexttrack", null);
+      navigator.mediaSession.setActionHandler("previoustrack", null);
+    };
+  }, [isPlayingAd]);
+
   // Setup ad audio element
   useEffect(() => {
     const adAudio = adAudioRef.current;
@@ -910,7 +938,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
               size="icon"
               onClick={playPreviousStation}
               className="h-10 w-10"
-              disabled={isLoading}
+              disabled={isLoading || isPlayingAd}
             >
               <SkipBack className="h-4 w-4" />
             </Button>
@@ -931,7 +959,13 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
               )}
             </Button>
 
-            <Button variant="ghost" size="icon" onClick={playNextStation} className="h-10 w-10" disabled={isLoading}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={playNextStation}
+              className="h-10 w-10"
+              disabled={isLoading || isPlayingAd}
+            >
               <SkipForward className="h-4 w-4" />
             </Button>
           </div>
