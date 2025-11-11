@@ -21,7 +21,7 @@ interface AudioPlayerProps {
   onClose: () => void;
 }
 
-const STATION_TIMEOUT = 150000000000000; // 15 seconds
+const STATION_TIMEOUT = 15000; // 15 seconds
 // ALWAYS-RELOAD: Every resume reloads from live edge to guarantee live playback.
 // This ensures users always hear the current live stream, not buffered/paused content.
 // Trade-off: every resume takes ~1-2 seconds to reload, but guarantees live content.
