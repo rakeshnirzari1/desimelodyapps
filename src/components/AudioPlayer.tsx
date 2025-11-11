@@ -684,33 +684,23 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           } catch {}
         }
 
-        // ALWAYS-RELOAD on mobile: every resume reloads from live edge to guarantee live playback
-        if (isMobile) {
-          console.log("Mobile resume - always reloading from live edge");
-          setIsLoading(true);
-          setLoadError(false);
-          // reset background/offline flags
-          wasBackgroundedRef.current = false;
-          wasPlayingBeforeOfflineRef.current = false;
+        // ALWAYS-RELOAD from live edge: every resume reloads from live edge to guarantee live playback
+        // This ensures users always hear the current live stream, not buffered/paused content
+        console.log("Resuming playback - reloading from live edge");
+        setIsLoading(true);
+        setLoadError(false);
+        // reset background/offline flags
+        wasBackgroundedRef.current = false;
+        wasPlayingBeforeOfflineRef.current = false;
 
-          try {
-            await reloadFromLiveEdge(audio);
-            lastPausedAtRef.current = null;
-            userInitiatedPauseRef.current = false; // Clear user pause flag
-          } catch (error) {
-            console.error("Failed to reload from live edge:", error);
-            setIsPlaying(false);
-            setIsLoading(false);
-          }
-        } else {
-          // Desktop - try a simple resume
-          if (audio.readyState === 0) {
-            audio.load();
-          }
-          await audio.play();
-          setIsPlaying(true);
+        try {
+          await reloadFromLiveEdge(audio);
           lastPausedAtRef.current = null;
           userInitiatedPauseRef.current = false; // Clear user pause flag
+        } catch (error) {
+          console.error("Failed to reload from live edge:", error);
+          setIsPlaying(false);
+          setIsLoading(false);
         }
       } catch (error) {
         console.error("Play error:", error);
@@ -985,32 +975,22 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         } catch {}
       }
 
-      // ALWAYS-RELOAD on mobile: every resume reloads from live edge to guarantee live playback
-      if (isMobile) {
-        console.log("Mobile toggle play - always reloading from live edge");
-        setIsLoading(true);
-        setLoadError(false);
-        wasBackgroundedRef.current = false;
-        wasPlayingBeforeOfflineRef.current = false;
+      // ALWAYS-RELOAD from live edge: every resume reloads from live edge to guarantee live playback
+      // This ensures users always hear the current live stream, not buffered/paused content
+      console.log("Resuming playback - reloading from live edge");
+      setIsLoading(true);
+      setLoadError(false);
+      wasBackgroundedRef.current = false;
+      wasPlayingBeforeOfflineRef.current = false;
 
-        try {
-          await reloadFromLiveEdge(audio);
-          lastPausedAtRef.current = null;
-          userInitiatedPauseRef.current = false; // Clear user pause flag
-        } catch (error) {
-          console.error("Failed to reload from live edge:", error);
-          setIsPlaying(false);
-          setIsLoading(false);
-        }
-      } else {
-        // Desktop - try a simple resume
-        if (audio.readyState === 0) {
-          audio.load();
-        }
-        await audio.play();
-        setIsPlaying(true);
+      try {
+        await reloadFromLiveEdge(audio);
         lastPausedAtRef.current = null;
         userInitiatedPauseRef.current = false; // Clear user pause flag
+      } catch (error) {
+        console.error("Failed to reload from live edge:", error);
+        setIsPlaying(false);
+        setIsLoading(false);
       }
     } catch (error) {
       console.log("Play failed:", error);
