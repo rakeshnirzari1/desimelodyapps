@@ -23,7 +23,9 @@ interface AudioPlayerProps {
 
 const STATION_TIMEOUT = 15000; // 15 seconds
 // If user pauses for longer than this (seconds), resume should reload from live edge
-const PAUSE_TO_LIVE_THRESHOLD = 8; // seconds
+// Increase this to cover long holds from car controls / locked screen (e.g. 2-5 minutes)
+// You can adjust this value to 120 (2 minutes) or 300 (5 minutes) as needed.
+const PAUSE_TO_LIVE_THRESHOLD = 300; // seconds (5 minutes)
 
 export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
