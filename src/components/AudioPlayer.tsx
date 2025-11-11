@@ -2,19 +2,18 @@ import { useState, useRef, useEffect } from "react";
 import { RadioStation } from "@/types/station";
 import { Play, Pause, SkipForward, SkipBack } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAudio } from "@/hooks/useAudio";
+import { useAudio } from "@/contexts/AudioContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { getStationsWithSlugs } from "@/lib/station-utils";
+import { Card } from "@/components/ui/card";
+import { AudioVisualizer } from "./AudioVisualizer";
+import { AdOverlay } from "./AdOverlay";
 import {
-  getStationsWithSlugs,
+  getAdUrlForRegion,
   shouldPlayAdOnStationChange,
   shouldPlayAdOnTimeInterval,
-  getAdUrlForRegion,
   logAdImpression,
-} from "@/lib/station-utils";
-import { Card } from "@/components/ui/card";
-import { AdOverlay } from "@/components/ui/ad-overlay";
-import { AudioVisualizer } from "@/components/audio-visualizer";
-import { MediaMetadata } from "@/types/media";
+} from "@/lib/adManager";
 
 interface AudioPlayerProps {
   station: RadioStation | null;
@@ -45,8 +44,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const keepAliveIntervalRef = useRef<number | null>(null);
   const sessionKeepaliveRef = useRef<number | null>(null);
   const mediaSessionSafeKeeperRef = useRef<number | null>(null);
-  const playbackTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const adIntervalCheckRef = useRef<NodeJS.Timeout | null>(null);
+  const playbackTimerRef = useRef<number | null>(null);
+  const adIntervalCheckRef = useRef<number | null>(null);
 
   const {
     setCurrentStation,
@@ -152,8 +151,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   // Playback timer
   useEffect(() => {
     if (isPlaying) {
-      playbackTimerRef.current = setInterval(() => {
-        setPlaybackTime((prev) => prev + 1);
+      playbackTimerRef.current = setInterval((): void => {
+        setPlaybackTime((prev: number): number => prev + 1);
       }, 1000);
     } else {
       if (playbackTimerRef.current) {
@@ -307,7 +306,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
               cleanup();
               resolve();
             })
-            .catch((error: any) => {
+            .catch((error: any): void => {
               console.error("Play failed:", error);
               cleanup();
 
@@ -728,11 +727,11 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   };
 
   // Change to next station
-  const playNextStation = () => {
+  const playNextStation = (): void => {
     if (!station) return;
 
     const stations = filteredStations || getStationsWithSlugs();
-    const currentIndex = stations.findIndex((s) => s.id === station.id);
+    const currentIndex = stations.findIndex((s: RadioStation): boolean => s.id === station.id);
     const nextIndex = (currentIndex + 1) % stations.length;
     const nextStation = stations[nextIndex];
 
@@ -741,11 +740,11 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   };
 
   // Change to previous station
-  const playPreviousStation = () => {
+  const playPreviousStation = (): void => {
     if (!station) return;
 
     const stations = filteredStations || getStationsWithSlugs();
-    const currentIndex = stations.findIndex((s) => s.id === station.id);
+    const currentIndex = stations.findIndex((s: RadioStation): boolean => s.id === station.id);
     const prevIndex = currentIndex === 0 ? stations.length - 1 : currentIndex - 1;
     const prevStation = stations[prevIndex];
 
@@ -889,7 +888,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
             src={station.image}
             alt={station.name}
             className="w-14 h-14 rounded-lg object-cover shadow-md"
-            onError={(e) => {
+            onError={(e: any): void => {
               e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=100";
             }}
           />
