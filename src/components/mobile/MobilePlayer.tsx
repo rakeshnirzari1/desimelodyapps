@@ -75,15 +75,15 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       setIsPlayingAd(true);
       // Keep isPlaying true so radio controls stay active
 
-      // OVERLAY MODE: Lower radio volume to minimum instead of stopping it
+      // OVERLAY MODE: Lower radio volume instead of stopping it
       if (radioAudio && isPlaying) {
-        console.log("🔉 Lowering radio volume to minimum for ad overlay");
-        radioAudio.volume = 0.05; // Very minimum volume (5%) - barely audible background
+        console.log("🔉 Lowering radio volume for ad overlay");
+        radioAudio.volume = 0.15; // Very low volume (15%) so ad is clearly audible
       }
 
-      // Load and play ad at maximum volume
+      // Load and play ad at normal volume
       adAudio.src = adUrl;
-      adAudio.volume = 1.0; // Ad plays at 100% volume to be clearly dominant over radio
+      adAudio.volume = 0.8; // Ad plays at 80% volume to be clearly heard over low radio
 
       await adAudio.play();
 
@@ -300,7 +300,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
           }
 
           // Set appropriate volume based on ad state before playing
-          audio.volume = isPlayingAd ? 0.05 : 0.7;
+          audio.volume = isPlayingAd ? 0.15 : 0.7;
 
           audio
             .play()
@@ -715,7 +715,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
           }
 
           // Set appropriate volume based on ad state
-          audio.volume = isPlayingAd ? 0.05 : 0.7; // Very low volume if ad playing, normal otherwise
+          audio.volume = isPlayingAd ? 0.15 : 0.7; // Low volume if ad playing, normal otherwise
 
           const playPromise = audio.play();
           if (playPromise !== undefined) {
