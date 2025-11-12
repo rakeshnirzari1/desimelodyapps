@@ -431,7 +431,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
         // Load new station in the INACTIVE audio element (background loading)
         nextAudio.src = station.link;
-        nextAudio.volume = currentAudio.volume; // Match volume
+        nextAudio.volume = isMuted ? 0 : volume / 100; // Always use normal user volume, not ad-lowered volume
         nextAudio.load();
 
         // Set timeout for station loading - auto-skip if station doesn't load
@@ -501,6 +501,16 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
                 // Swap active audio reference
                 swapActiveAudio();
 
+                // Ensure new station has correct volume - if ad is playing, keep radio low
+                // If no ad, make sure it's at normal volume
+                if (adInProgressRef.current) {
+                  console.log("🔉 New station starting during ad - setting low volume");
+                  nextAudio.volume = 0.02; // Keep low during ad
+                } else {
+                  console.log("🔊 New station starting normally - setting user volume");
+                  nextAudio.volume = isMuted ? 0 : volume / 100; // Normal user volume
+                }
+
                 setIsPlaying(true);
                 setIsLoading(false);
                 setLoadError(false);
@@ -533,6 +543,16 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
                         }
                         // Swap active audio reference
                         swapActiveAudio();
+
+                        // Ensure correct volume for new station
+                        if (adInProgressRef.current) {
+                          console.log("🔉 Mobile retry: New station during ad - setting low volume");
+                          nextAudio.volume = 0.02;
+                        } else {
+                          console.log("🔊 Mobile retry: New station normal - setting user volume");
+                          nextAudio.volume = isMuted ? 0 : volume / 100;
+                        }
+
                         setIsPlaying(true);
                         // Confirm media session state
                         if ("mediaSession" in navigator) {
