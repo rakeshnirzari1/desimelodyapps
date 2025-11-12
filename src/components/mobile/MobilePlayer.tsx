@@ -54,7 +54,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     saveAdAnalytics(adAnalytics);
   }, [adAnalytics]);
 
-  // Play ad with regional targeting
+  // Play ad with regional targeting - OVERLAY MODE (radio continues at low volume)
   const playAd = async () => {
     if (adInProgressRef.current) {
       console.log("Ad already playing - skipping new ad trigger");
@@ -64,26 +64,26 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     try {
       const adUrl = await getAdUrlForRegion();
       const adAudio = adAudioRef.current;
+      const radioAudio = audioRef.current;
 
-      if (!adAudio) return;
+      if (!adAudio || !radioAudio) return;
 
-      console.log("Playing ad:", adUrl);
+      console.log("Playing ad overlay:", adUrl);
 
       // Remember if radio was playing before ad
       setWasPlayingBeforeAd(isPlaying);
       setIsPlayingAd(true);
       // Keep isPlaying true so radio controls stay active
 
-      // CRITICAL: Pause radio and reset to prevent overlap
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-        audioRef.current.src = ""; // Clear source to fully stop
+      // OVERLAY MODE: Lower radio volume instead of stopping it
+      if (radioAudio && isPlaying) {
+        console.log("🔉 Lowering radio volume for ad overlay");
+        radioAudio.volume = 0.15; // Very low volume (15%) so ad is clearly audible
       }
 
-      // Load and play ad
+      // Load and play ad at normal volume
       adAudio.src = adUrl;
-      adAudio.volume = audioRef.current?.volume || 0.7;
+      adAudio.volume = 0.8; // Ad plays at 80% volume to be clearly heard over low radio
 
       await adAudio.play();
 
@@ -94,40 +94,32 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       console.error("Error playing ad:", error);
       setIsPlayingAd(false);
 
-      // Reset states if ad fails
-      if (!wasPlayingBeforeAd) {
-        setIsPlaying(false);
+      // Restore radio volume if ad fails
+      if (audioRef.current && isPlaying) {
+        audioRef.current.volume = 0.7; // Restore normal volume
       }
-      setWasPlayingBeforeAd(false);
 
-      console.log("Ad playback failed - radio state restored");
+      console.log("Ad playback failed - radio volume restored");
     }
   };
 
-  // Handle ad completion - auto-resume current station
+  // Handle ad completion - restore normal radio volume
   const handleAdEnded = () => {
-    console.log("Ad finished - waiting 1 second before resuming current station");
+    console.log("Ad finished - restoring normal radio volume");
     setIsPlayingAd(false);
 
-    const audio = audioRef.current;
-    if (audio) {
-      // Clear current audio
-      audio.pause();
-      audio.currentTime = 0;
-      audio.src = "";
+    const radioAudio = audioRef.current;
+
+    // OVERLAY MODE: Restore normal radio volume (radio never stopped playing)
+    if (radioAudio && isPlaying) {
+      console.log("🔊 Restoring normal radio volume after ad");
+      radioAudio.volume = 0.7; // Restore normal volume
     }
 
-    // Wait 1 second then resume current station if it was playing before ad
-    setTimeout(() => {
-      if (wasPlayingBeforeAd && !isUserPausedRef.current) {
-        console.log("🎵 Auto-resuming current station after ad");
-        handlePlay();
-      } else {
-        console.log("📻 Radio remains paused after ad (was not playing before)");
-        setIsPlaying(false);
-      }
-      setWasPlayingBeforeAd(false);
-    }, 1000); // 1 second delay
+    // Reset ad state
+    setWasPlayingBeforeAd(false);
+
+    console.log("📻 Radio continues playing at normal volume");
   };
 
   // Skip ad
@@ -137,6 +129,13 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       adAudioRef.current.pause();
       adAudioRef.current.currentTime = 0;
     }
+
+    // Restore radio volume immediately when skipped
+    if (audioRef.current && isPlaying) {
+      console.log("🔊 Restoring radio volume after ad skip");
+      audioRef.current.volume = 0.7;
+    }
+
     handleAdEnded();
   };
 
@@ -300,10 +299,16 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
             }
           }
 
+          // Set appropriate volume based on ad state before playing
+          audio.volume = isPlayingAd ? 0.15 : 0.7;
+
           audio
             .play()
             .then(() => {
-              console.log("Successfully playing live stream from fresh connection");
+              console.log(
+                "Successfully playing live stream from fresh connection",
+                isPlayingAd ? "at low volume (ad overlay)" : "at normal volume",
+              );
               setIsPlaying(true);
               setIsLoading(false);
               setBufferingMessage("");
@@ -370,10 +375,10 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     const audio = audioRef.current;
     if (!audio) return;
 
-    // Don't start radio if ad is currently playing
+    // Don't start radio if ad is currently playing (overlay mode handles this)
     if (isPlayingAd) {
-      console.log("Ignoring play request - ad is currently playing");
-      return;
+      console.log("Ad is playing - radio will start at low volume for overlay");
+      // In overlay mode, we allow radio to start but at low volume
     }
 
     try {
@@ -709,10 +714,13 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
             await audioContextRef.current.resume();
           }
 
+          // Set appropriate volume based on ad state
+          audio.volume = isPlayingAd ? 0.15 : 0.7; // Low volume if ad playing, normal otherwise
+
           const playPromise = audio.play();
           if (playPromise !== undefined) {
             await playPromise;
-            console.log("Successfully playing");
+            console.log("Successfully playing", isPlayingAd ? "at low volume (ad overlay)" : "at normal volume");
             setIsPlaying(true);
 
             if ("mediaSession" in navigator) {
@@ -881,7 +889,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
             </p>
             {bufferingMessage && <p className="text-xs text-primary mt-1 animate-pulse">{bufferingMessage}</p>}
             {isPlayingAd && (
-              <p className="text-xs text-yellow-600 mt-1">🎵 Advertisement playing - Radio will resume shortly</p>
+              <p className="text-xs text-yellow-600 mt-1">🎵 Advertisement overlay - Radio playing at low volume</p>
             )}
           </div>
         </div>
