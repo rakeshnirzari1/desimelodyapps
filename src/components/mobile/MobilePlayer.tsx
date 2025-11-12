@@ -285,8 +285,8 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
             }
           }
 
-          // Set appropriate volume based on ad state before playing
-          audio.volume = isPlayingAd ? 0.02 : 1.0;
+          // Set appropriate volume based on ad state and user settings before playing
+          audio.volume = isPlayingAd ? 0.02 : isMuted ? 0 : volume / 100;
 
           audio
             .play()
@@ -657,7 +657,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
 
     setIsLoading(true);
     setBufferingMessage("Loading station...");
-    isUserPausedRef.current = false; // New station should autoplay
+    // Don't set isUserPausedRef.current = false immediately - let user initiate play for first station
 
     const audio = audioRef.current;
 
@@ -706,8 +706,15 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
         }
       }
 
-      // Auto-play only if not user-paused
-      if (!isUserPausedRef.current) {
+      // Smart autoplay - only attempt if we have user interaction or if changing stations
+      const canAttemptAutoplay =
+        !isUserPausedRef.current &&
+        // Allow autoplay if AudioContext is already running (user has interacted)
+        ((audioContextRef.current && audioContextRef.current.state === "running") ||
+          // Or if this is not the first page load (user is changing stations)
+          isPlaying);
+
+      if (canAttemptAutoplay) {
         try {
           // Resume AudioContext before play
           if (audioContextRef.current && audioContextRef.current.state === "suspended") {
@@ -729,9 +736,16 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
             }
           }
         } catch (error: any) {
-          console.log("Autoplay failed:", error.name);
+          console.log("Autoplay failed (mobile autoplay policy):", error.name);
           setIsPlaying(false);
+          // Don't treat this as an error - just wait for user interaction
+          setBufferingMessage("Tap play to start");
         }
+      } else {
+        // First station load - just prepare but don't autoplay
+        console.log("Station loaded and ready - waiting for user to tap play");
+        setBufferingMessage("Tap play to start");
+        setIsPlaying(false);
       }
 
       if (stationLoadTimeoutRef.current) {
@@ -856,7 +870,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     };
   }, [station, isPlaying, bufferingMessage, isLoading, onNext, onPrevious]);
 
-  const togglePlayPause = () => {
+  const togglePlayPause = async () => {
     // If ad is playing, user can pause to stop everything
     if (isPlayingAd) {
       // Pause/skip the ad and pause radio
@@ -866,10 +880,23 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       return;
     }
 
+    // Initialize AudioContext on first user interaction for mobile
+    if (!audioContextRef.current) {
+      try {
+        const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
+        if (AC) {
+          audioContextRef.current = new AC();
+          console.log("AudioContext initialized on first user interaction");
+        }
+      } catch (e) {
+        console.log("AudioContext creation failed:", e);
+      }
+    }
+
     if (isPlaying) {
       handlePauseAction();
     } else {
-      handlePlay();
+      await handlePlay();
     }
   };
 
