@@ -69,10 +69,11 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       console.log("Playing ad:", adUrl);
       setIsPlayingAd(true);
 
-      // Pause radio
+      // CRITICAL: Pause radio and reset to prevent overlap
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
+        audioRef.current.src = ""; // Clear source to fully stop
       }
 
       // Load and play ad
@@ -93,31 +94,23 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     }
   };
 
-  // Handle ad completion - auto-resume radio
+  // Handle ad completion - auto-start next station
   const handleAdEnded = () => {
-    console.log("Ad finished - resuming radio");
+    console.log("Ad finished - auto-starting next station");
     setIsPlayingAd(false);
 
     const audio = audioRef.current;
-    if (audio && station) {
-      // Reload stream to get live edge
-      const sep = station.link.includes("?") ? "&" : "?";
-      audio.src = `${station.link}${sep}ts=${Date.now()}`;
-      audio.load();
-
-      audio
-        .play()
-        .then(() => {
-          setIsPlaying(true);
-          console.log("Radio resumed from live edge");
-        })
-        .catch((error) => {
-          console.error("Failed to resume radio:", error);
-          setTimeout(() => {
-            audio?.play().then(() => setIsPlaying(true)).catch(console.error);
-          }, 500);
-        });
+    if (audio) {
+      // Clear current audio
+      audio.pause();
+      audio.currentTime = 0;
+      audio.src = "";
     }
+
+    // Auto-skip to next station after ad
+    console.log("⏭️ Skipping to next station after ad");
+    setStationChangeCount((prev) => prev + 1);
+    onNext();
   };
 
   // Skip ad
@@ -840,7 +833,11 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
         <div className="flex items-center gap-3 mb-4">
           <img src={station.image} alt={station.name} className="w-16 h-16 rounded-lg object-cover shadow-md" />
           <div className="flex-1 min-w-0">
-            <h2 className="font-semibold text-base text-foreground truncate">{station.name}</h2>
+            <div className="overflow-hidden">
+              <h2 className="font-semibold text-base text-foreground marquee-text inline-block whitespace-nowrap">
+                {station.name}
+              </h2>
+            </div>
             <p className="text-sm text-muted-foreground truncate">
               {station.language} • {station.type}
             </p>

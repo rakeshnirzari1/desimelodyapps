@@ -119,3 +119,22 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Marquee animation for mobile player to keep session active */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.marquee-text {
+  animation: marquee 20s linear infinite;
+  padding-right: 2rem;
+}
+
+.marquee-text:hover {
+  animation-play-state: paused;
+}
