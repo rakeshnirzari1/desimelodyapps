@@ -301,8 +301,18 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     if (!isPlaying) return;
 
     adIntervalCheckRef.current = setInterval(() => {
+      const now = Date.now();
+      const timeSinceSession = now - adAnalytics.sessionStartTime;
+      const timeSinceLastAd = adAnalytics.lastAdTimestamp ? now - adAnalytics.lastAdTimestamp : Infinity;
+
+      console.log("🕐 Ad time check:", {
+        timeSinceSession: Math.floor(timeSinceSession / 1000) + "s",
+        timeSinceLastAd: adAnalytics.lastAdTimestamp ? Math.floor(timeSinceLastAd / 1000) + "s" : "never",
+        shouldTrigger: shouldPlayAdOnTimeInterval(adAnalytics.sessionStartTime, adAnalytics.lastAdTimestamp),
+      });
+
       if (shouldPlayAdOnTimeInterval(adAnalytics.sessionStartTime, adAnalytics.lastAdTimestamp)) {
-        console.log("Triggering ad on time interval");
+        console.log("✅ Triggering ad on time interval");
         playAd();
       }
     }, 60000); // Check every minute
@@ -541,13 +551,25 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     const activeAudio = getActiveAudio();
     const inactiveAudio = getInactiveAudio();
 
+    // Apply volume changes, but respect ad overlay mode
+    const targetVolume = isMuted ? 0 : volume / 100;
+
     if (activeAudio) {
-      activeAudio.volume = isMuted ? 0 : volume / 100;
+      // If ad is playing, keep radio at low volume regardless of user settings
+      if (isPlayingAd) {
+        activeAudio.volume = 0.02; // Keep low during ad
+        console.log("🔉 Volume change during ad - keeping radio low");
+      } else {
+        activeAudio.volume = targetVolume;
+        console.log(`🔊 Setting active audio volume to ${Math.round(targetVolume * 100)}%`);
+      }
     }
+
     if (inactiveAudio) {
-      inactiveAudio.volume = isMuted ? 0 : volume / 100;
+      // Inactive audio should always match user settings (it's not playing anyway)
+      inactiveAudio.volume = targetVolume;
     }
-  }, [volume, isMuted]);
+  }, [volume, isMuted, isPlayingAd]);
 
   // Media Session API for car controls and lock screen controls
   useEffect(() => {
