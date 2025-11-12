@@ -1,247 +1,61 @@
 import { useState, useRef, useEffect } from "react";
 import { RadioStation } from "@/types/station";
+import { Play, Pause, SkipForward, SkipBack } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, Volume2, VolumeX, X, SkipForward, SkipBack } from "lucide-react";
-import { Slider } from "@/components/ui/slider";
-import { Card } from "@/components/ui/card";
-import { AudioVisualizer } from "./AudioVisualizer";
-import { AdOverlay } from "./AdOverlay";
-import { getStationsWithSlugs } from "@/lib/station-utils";
-import { useAudio } from "@/contexts/AudioContext";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { AdOverlay } from "@/components/AdOverlay";
 import {
   getAdUrlForRegion,
   shouldPlayAdOnStationChange,
   shouldPlayAdOnTimeInterval,
   logAdImpression,
+  loadAdAnalytics,
+  saveAdAnalytics,
+  type AdAnalytics,
 } from "@/lib/adManager";
 
-interface AudioPlayerProps {
-  station: RadioStation | null;
-  onClose: () => void;
+interface MobilePlayerProps {
+  station: RadioStation;
+  onNext: () => void;
+  onPrevious: () => void;
+  allStations: RadioStation[];
 }
 
-const STATION_TIMEOUT = 15000; // 15 seconds
-// ALWAYS-RELOAD: Every resume reloads from live edge to guarantee live playback.
-// This ensures users always hear the current live stream, not buffered/paused content.
-// Trade-off: every resume takes ~1-2 seconds to reload, but guarantees live content.
-
-export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
+export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: MobilePlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(70);
-  const [isMuted, setIsMuted] = useState(false);
-  const [playbackTime, setPlaybackTime] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadError, setLoadError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [bufferingMessage, setBufferingMessage] = useState("");
   const [isPlayingAd, setIsPlayingAd] = useState(false);
   const [adDuration, setAdDuration] = useState(0);
+  const [wasPlayingBeforeAd, setWasPlayingBeforeAd] = useState(false);
+  const [stationChangeCount, setStationChangeCount] = useState(0);
+  const [adAnalytics, setAdAnalytics] = useState<AdAnalytics>(() => loadAdAnalytics());
   const audioRef = useRef<HTMLAudioElement>(null);
-  const audioRef2 = useRef<HTMLAudioElement>(null); // Second audio for seamless transitions
-  const activeAudioRef = useRef<"audio1" | "audio2">("audio1"); // Track which audio is active
-  const adAudioRef = useRef<HTMLAudioElement>(null);
-  const adInProgressRef = useRef(false); // Stable ref to prevent race conditions
-  const playbackTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const stationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const adIntervalCheckRef = useRef<NodeJS.Timeout | null>(null);
-  const sessionKeepaliveRef = useRef<NodeJS.Timeout | null>(null);
-  const audioInterruptedRef = useRef(false);
-  const mediaSessionInitializedRef = useRef(false);
   const audioContextRef = useRef<any>(null);
-  const {
-    setCurrentStation,
-    stationChangeCount,
-    incrementStationChangeCount,
-    adAnalytics,
-    updateAdAnalytics,
-    filteredStations,
-  } = useAudio();
-  const isMobile = useIsMobile();
-  const lastPausedAtRef = useRef<number | null>(null);
-  const wasBackgroundedRef = useRef(false);
-  const previousStationIdRef = useRef<string | null>(null);
+  const adAudioRef = useRef<HTMLAudioElement>(null);
+  const adInProgressRef = useRef(false);
+  const wasPlayingBeforeCallRef = useRef(false);
   const wasPlayingBeforeOfflineRef = useRef(false);
   const isUserPausedRef = useRef(false);
-  const stationChangeAutoplayRef = useRef(false);
-
-  // Persistent refs for Media Session next/prev handlers
-  const nextActionRef = useRef<() => void>(() => {});
-  const prevActionRef = useRef<() => void>(() => {});
-
-  // Helper to get active and inactive audio elements
-  const getActiveAudio = () => (activeAudioRef.current === "audio1" ? audioRef.current : audioRef2.current);
-  const getInactiveAudio = () => (activeAudioRef.current === "audio1" ? audioRef2.current : audioRef.current);
-  const swapActiveAudio = () => {
-    activeAudioRef.current = activeAudioRef.current === "audio1" ? "audio2" : "audio1";
-  };
+  const keepAliveIntervalRef = useRef<number | null>(null);
+  const sessionKeepaliveRef = useRef<number | null>(null);
+  const inCallRef = useRef(false);
+  const stationLoadTimeoutRef = useRef<number | null>(null);
+  const mediaSessionSafeKeeperRef = useRef<number | null>(null);
+  const adIntervalCheckRef = useRef<number | null>(null);
+  const previousStationIdRef = useRef<string | null>(null);
 
   // Sync adInProgressRef with isPlayingAd state
   useEffect(() => {
     adInProgressRef.current = isPlayingAd;
   }, [isPlayingAd]);
 
-  // Force reload from live edge with retry logic
-  const reloadFromLiveEdge = async (audio: HTMLAudioElement, retryCount = 0): Promise<void> => {
-    const MAX_RETRIES = 3;
-
-    console.log(`Reloading from live edge (attempt ${retryCount + 1}/${MAX_RETRIES})`);
-
-    return new Promise((resolve, reject) => {
-      if (!station) {
-        reject(new Error("No station"));
-        return;
-      }
-
-      // Pause and reset
-      audio.pause();
-      audio.currentTime = 0;
-
-      // Force reload with cache-buster
-      const sep = station.link.includes("?") ? "&" : "?";
-      audio.src = `${station.link}${sep}ts=${Date.now()}`;
-
-      const handleCanPlay = () => {
-        // Seek to live edge
-        if (audio.seekable.length > 0) {
-          try {
-            audio.currentTime = audio.seekable.end(0);
-            console.log("Seeked to live edge:", audio.seekable.end(0));
-          } catch (e) {
-            console.warn("Could not seek to live edge:", e);
-          }
-        }
-
-        // Play
-        audio
-          .play()
-          .then(() => {
-            console.log("Successfully playing from live edge");
-            setIsPlaying(true);
-            setIsLoading(false);
-            cleanup();
-            resolve();
-          })
-          .catch((error) => {
-            console.error("Play failed:", error);
-            cleanup();
-
-            // Retry if we haven't exceeded max retries
-            if (retryCount < MAX_RETRIES - 1) {
-              setTimeout(
-                () => {
-                  reloadFromLiveEdge(audio, retryCount + 1)
-                    .then(resolve)
-                    .catch(reject);
-                },
-                500 * (retryCount + 1),
-              ); // Exponential backoff
-            } else {
-              setIsPlaying(false);
-              setIsLoading(false);
-              reject(error);
-            }
-          });
-      };
-
-      const handleError = () => {
-        console.error("Load error");
-        cleanup();
-
-        if (retryCount < MAX_RETRIES - 1) {
-          setTimeout(
-            () => {
-              reloadFromLiveEdge(audio, retryCount + 1)
-                .then(resolve)
-                .catch(reject);
-            },
-            500 * (retryCount + 1),
-          );
-        } else {
-          setIsPlaying(false);
-          setIsLoading(false);
-          reject(new Error("Failed to load"));
-        }
-      };
-
-      const cleanup = () => {
-        audio.removeEventListener("canplay", handleCanPlay);
-        audio.removeEventListener("error", handleError);
-      };
-
-      audio.addEventListener("canplay", handleCanPlay, { once: true });
-      audio.addEventListener("error", handleError, { once: true });
-      audio.load();
-    });
-  };
-
-  // Initialize and maintain AudioContext for mobile
+  // Save analytics whenever they change
   useEffect(() => {
-    if (!isMobile) return;
+    saveAdAnalytics(adAnalytics);
+  }, [adAnalytics]);
 
-    const initAudioContext = () => {
-      try {
-        const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
-        if (AC && !audioContextRef.current) {
-          audioContextRef.current = new AC();
-          console.log("AudioContext initialized:", audioContextRef.current.state);
-        }
-      } catch (error) {
-        console.error("Failed to initialize AudioContext:", error);
-      }
-    };
-
-    initAudioContext();
-
-    return () => {
-      if (audioContextRef.current && audioContextRef.current.state !== "closed") {
-        audioContextRef.current.close().catch(console.error);
-      }
-    };
-  }, [isMobile]);
-
-  // Playback timer + Session Keepalive for mobile
-  useEffect(() => {
-    if (isPlaying) {
-      playbackTimerRef.current = setInterval(() => {
-        setPlaybackTime((prev) => prev + 1);
-      }, 1000);
-
-      // MOBILE: Keep session alive every 5 minutes to prevent session loss
-      if (isMobile) {
-        sessionKeepaliveRef.current = setInterval(
-          () => {
-            const audio = getActiveAudio();
-            if (audio && !audio.paused) {
-              console.log("Session keepalive: touching audio element");
-              // Touch the audio element to keep session alive
-              const currentVol = audio.volume;
-              audio.volume = currentVol; // No-op but keeps session active
-            }
-          },
-          5 * 60 * 1000,
-        ); // Every 5 minutes
-      }
-    } else {
-      if (playbackTimerRef.current) {
-        clearInterval(playbackTimerRef.current);
-      }
-      if (sessionKeepaliveRef.current) {
-        clearInterval(sessionKeepaliveRef.current);
-      }
-    }
-
-    return () => {
-      if (playbackTimerRef.current) {
-        clearInterval(playbackTimerRef.current);
-      }
-      if (sessionKeepaliveRef.current) {
-        clearInterval(sessionKeepaliveRef.current);
-      }
-    };
-  }, [isPlaying, isMobile]);
-
-  // Play ad with regional targeting
+  // Play ad with regional targeting - OVERLAY MODE (radio continues at low volume)
   const playAd = async () => {
-    // Prevent concurrent ads
     if (adInProgressRef.current) {
       console.log("Ad already playing - skipping new ad trigger");
       return;
@@ -250,150 +64,86 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     try {
       const adUrl = await getAdUrlForRegion();
       const adAudio = adAudioRef.current;
+      const radioAudio = audioRef.current;
 
-      if (!adAudio) return;
+      if (!adAudio || !radioAudio) return;
 
-      console.log("Playing ad:", adUrl);
-      setIsPlayingAd(true); // Set this FIRST to update adInProgressRef
+      console.log("Playing ad overlay:", adUrl);
 
-      // CRITICAL: Pause BOTH audio elements and reset to prevent overlap
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
+      // Remember if radio was playing before ad
+      setWasPlayingBeforeAd(isPlaying);
+      setIsPlayingAd(true);
+      // Keep isPlaying true so radio controls stay active
+
+      // OVERLAY MODE: Lower radio volume to minimum instead of stopping it
+      if (radioAudio && isPlaying) {
+        console.log("🔉 Lowering radio volume to minimum for ad overlay");
+        radioAudio.volume = 0.05; // Very minimum volume (5%) - barely audible background
       }
-      if (audioRef2.current) {
-        audioRef2.current.pause();
-        audioRef2.current.currentTime = 0;
-      }
 
-      // Load and play ad
-      const activeAudio = getActiveAudio();
+      // Load and play ad at maximum volume
       adAudio.src = adUrl;
-      adAudio.volume = activeAudio?.volume || 0.7; // Match radio volume
+      adAudio.volume = 1.0; // Ad plays at 100% volume to be clearly dominant over radio
 
       await adAudio.play();
 
       // Log ad impression
       const updatedAnalytics = await logAdImpression(adAnalytics);
-      updateAdAnalytics(updatedAnalytics);
+      setAdAnalytics(updatedAnalytics);
     } catch (error) {
       console.error("Error playing ad:", error);
       setIsPlayingAd(false);
-      // Resume radio if ad fails
-      const activeAudio = getActiveAudio();
-      if (activeAudio && isPlaying) {
-        activeAudio.play().catch(console.error);
+
+      // Restore radio volume if ad fails
+      if (audioRef.current && isPlaying) {
+        audioRef.current.volume = 0.7; // Restore normal volume
       }
+
+      console.log("Ad playback failed - radio volume restored");
     }
   };
 
-  // Handle ad completion
+  // Handle ad completion - restore normal radio volume
   const handleAdEnded = () => {
-    console.log("Ad finished - reloading live stream");
+    console.log("Ad finished - restoring normal radio volume");
     setIsPlayingAd(false);
 
-    // CRITICAL: Ensure BOTH audio elements are stopped (mobile uses dual elements)
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-    if (audioRef2.current) {
-      audioRef2.current.pause();
-      audioRef2.current.currentTime = 0;
+    const radioAudio = audioRef.current;
+
+    // OVERLAY MODE: Restore normal radio volume (radio never stopped playing)
+    if (radioAudio && isPlaying) {
+      console.log("🔊 Restoring normal radio volume after ad");
+      radioAudio.volume = 0.7; // Restore normal volume
     }
 
-    // Reload the live stream to get the live edge (don't resume from pause)
-    const activeAudio = getActiveAudio();
-    if (activeAudio && station) {
-      // Reload stream with cache-busting to get live edge
-      const sep = station.link.includes("?") ? "&" : "?";
-      activeAudio.src = `${station.link}${sep}ts=${Date.now()}`;
-      activeAudio.load();
+    // Reset ad state
+    setWasPlayingBeforeAd(false);
 
-      // Play the reloaded stream
-      activeAudio
-        .play()
-        .then(() => {
-          setIsPlaying(true);
-          console.log("Radio reloaded and playing from live edge");
-        })
-        .catch((error) => {
-          console.error("Failed to reload radio:", error);
-          // Try again after a short delay
-          setTimeout(() => {
-            activeAudio
-              ?.play()
-              .then(() => setIsPlaying(true))
-              .catch(console.error);
-          }, 500);
-        });
-    }
+    console.log("📻 Radio continues playing at normal volume");
   };
 
-  // Skip ad (if user wants)
+  // Skip ad
   const skipAd = () => {
-    console.log("Ad skipped by user - resuming radio");
+    console.log("Ad skipped by user");
     if (adAudioRef.current) {
       adAudioRef.current.pause();
       adAudioRef.current.currentTime = 0;
     }
-    handleAdEnded(); // This will auto-resume the radio
+
+    // Restore radio volume immediately when skipped
+    if (audioRef.current && isPlaying) {
+      console.log("🔊 Restoring radio volume after ad skip");
+      audioRef.current.volume = 0.7;
+    }
+
+    handleAdEnded();
   };
-
-  // Change to next station without navigation
-  const playNextStation = () => {
-    if (!station) return;
-
-    // Store current playing state before switching
-    const wasPlaying = isPlaying;
-
-    // Use filtered stations if available (search/tag results), otherwise use all stations
-    const stations = filteredStations || getStationsWithSlugs();
-    const currentIndex = stations.findIndex((s) => s.id === station.id);
-    const nextIndex = (currentIndex + 1) % stations.length;
-    const nextStation = stations[nextIndex];
-
-    incrementStationChangeCount();
-
-    // Set station change flag to maintain autoplay
-    stationChangeAutoplayRef.current = wasPlaying;
-
-    setCurrentStation(nextStation);
-  };
-
-  // Change to previous station without navigation
-  const playPreviousStation = () => {
-    if (!station) return;
-
-    // Store current playing state before switching
-    const wasPlaying = isPlaying;
-
-    // Use filtered stations if available (search/tag results), otherwise use all stations
-    const stations = filteredStations || getStationsWithSlugs();
-    const currentIndex = stations.findIndex((s) => s.id === station.id);
-    const prevIndex = currentIndex === 0 ? stations.length - 1 : currentIndex - 1;
-    const prevStation = stations[prevIndex];
-
-    incrementStationChangeCount();
-
-    // Set station change flag to maintain autoplay
-    stationChangeAutoplayRef.current = wasPlaying;
-
-    setCurrentStation(prevStation);
-  };
-
-  // Keep Media Session handlers updated with latest callbacks
-  useEffect(() => {
-    nextActionRef.current = playNextStation;
-    prevActionRef.current = playPreviousStation;
-  }, [station, filteredStations]);
 
   // Check if ad should play on station change
   useEffect(() => {
     if (station && previousStationIdRef.current !== station.id) {
       previousStationIdRef.current = station.id;
 
-      // Check if we should play an ad
       if (shouldPlayAdOnStationChange(stationChangeCount, adAnalytics.lastAdTimestamp)) {
         console.log("Triggering ad on station change");
         playAd();
@@ -405,7 +155,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   useEffect(() => {
     if (!isPlaying) return;
 
-    adIntervalCheckRef.current = setInterval(() => {
+    adIntervalCheckRef.current = window.setInterval(() => {
       if (shouldPlayAdOnTimeInterval(adAnalytics.sessionStartTime, adAnalytics.lastAdTimestamp)) {
         console.log("Triggering ad on time interval");
         playAd();
@@ -437,710 +187,403 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     };
   }, []);
 
-  useEffect(() => {
-    if (station && audioRef.current && audioRef2.current) {
-      // CRITICAL: Update media session BEFORE changing station for mobile locked screen
-      if ("mediaSession" in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: station.name,
-          artist: `${station.language || "Hindi"} • ${station.type}`,
-          album: "DesiMelody.com",
-          artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
-        });
-        // Keep playback state as "playing" during transition to maintain mobile controls
-        navigator.mediaSession.playbackState = "playing";
-      }
-
-      setPlaybackTime(0);
-      setIsLoading(true);
-      setLoadError(false);
-
-      // MOBILE: Seamless transition with dual audio elements to maintain media controls
-      // DESKTOP: Simple immediate switch for reliability
-      if (isMobile) {
-        // Get current active and inactive audio elements
-        const currentAudio = getActiveAudio();
-        const nextAudio = getInactiveAudio();
-
-        if (!currentAudio || !nextAudio) return;
-
-        // Load new station in the INACTIVE audio element (background loading)
-        nextAudio.src = station.link;
-        nextAudio.volume = currentAudio.volume; // Match volume
-        nextAudio.load();
-
-        // Set timeout for station loading - auto-skip if station doesn't load
-        stationTimeoutRef.current = setTimeout(() => {
-          if (nextAudio.readyState === 0 && nextAudio.paused) {
-            console.log("Station timed out - auto-skipping to next");
-            setIsLoading(false);
-            setLoadError(true);
-            // Auto-skip to next station after 1 second
-            setTimeout(() => {
-              playNextStation();
-            }, 1000);
-          } else if (nextAudio.paused) {
-            console.log("Station loaded but autoplay blocked");
-            setIsLoading(false);
-            // Try to force play if this was during station change
-            if (stationChangeAutoplayRef.current) {
-              console.log("Attempting to force play due to station change...");
-              nextAudio
-                .play()
-                .then(() => {
-                  console.log("Force play successful");
-                  setIsPlaying(true);
-                  stationChangeAutoplayRef.current = false;
-                })
-                .catch(() => {
-                  console.log("Force play failed");
-                  setIsPlaying(false);
-                  stationChangeAutoplayRef.current = false;
-                });
-            } else {
-              setIsPlaying(false);
-            }
-          }
-        }, STATION_TIMEOUT);
-
-        // Handler for when new station is ready to play
-        const handleCanPlay = () => {
-          // GUARD: Don't start station if ad is playing
-          if (adInProgressRef.current) {
-            console.log("New station ready but ad is playing - delaying start");
-            return;
-          }
-
-          console.log("New station ready - seamless switching");
-
-          // Force autoplay if station was changed during playback
-          const shouldAutoplay = stationChangeAutoplayRef.current;
-          if (shouldAutoplay) {
-            console.log("Force autoplay due to station change during active playback");
-            stationChangeAutoplayRef.current = false; // Reset flag
-          }
-
-          // Play the new station
-          const playPromise = nextAudio.play();
-
-          if (playPromise !== undefined) {
-            playPromise
-              .then(() => {
-                // SUCCESS: New station is playing
-                // Now fade out and stop the old station
-                if (currentAudio && !currentAudio.paused) {
-                  currentAudio.pause();
-                  currentAudio.currentTime = 0;
-                }
-
-                // Swap active audio reference
-                swapActiveAudio();
-
-                setIsPlaying(true);
-                setIsLoading(false);
-                setLoadError(false);
-
-                // Confirm media session state
-                if ("mediaSession" in navigator) {
-                  navigator.mediaSession.playbackState = "playing";
-                }
-
-                if (stationTimeoutRef.current) {
-                  clearTimeout(stationTimeoutRef.current);
-                }
-              })
-              .catch((error) => {
-                console.log("Autoplay blocked on new station:", error.name);
-                setIsLoading(false);
-
-                // If this was during station change from active playback, retry after short delay
-                if (shouldAutoplay) {
-                  console.log("Retrying autoplay after station change on mobile...");
-                  setTimeout(() => {
-                    nextAudio
-                      .play()
-                      .then(() => {
-                        console.log("Mobile retry successful");
-                        // Success: Now fade out and stop the old station
-                        if (currentAudio && !currentAudio.paused) {
-                          currentAudio.pause();
-                          currentAudio.currentTime = 0;
-                        }
-                        // Swap active audio reference
-                        swapActiveAudio();
-                        setIsPlaying(true);
-                        // Confirm media session state
-                        if ("mediaSession" in navigator) {
-                          navigator.mediaSession.playbackState = "playing";
-                        }
-                      })
-                      .catch(() => {
-                        console.log("Mobile retry failed - user interaction required");
-                        setIsPlaying(false);
-                      });
-                  }, 500);
-                } else {
-                  setIsPlaying(false);
-                }
-              });
-          }
-        };
-
-        const handleError = () => {
-          console.log("Station error - auto-skipping to next");
-          setIsLoading(false);
-          setLoadError(true);
-          if (stationTimeoutRef.current) {
-            clearTimeout(stationTimeoutRef.current);
-          }
-          // Auto-skip to next station after 1 second
-          setTimeout(() => {
-            playNextStation();
-          }, 1000);
-        };
-
-        // Listen for when new station is ready
-        nextAudio.addEventListener("canplay", handleCanPlay);
-        nextAudio.addEventListener("error", handleError);
-
-        return () => {
-          nextAudio.removeEventListener("canplay", handleCanPlay);
-          nextAudio.removeEventListener("error", handleError);
-          if (stationTimeoutRef.current) {
-            clearTimeout(stationTimeoutRef.current);
-          }
-        };
-      } else {
-        // DESKTOP: Simple immediate switch (original behavior)
-        const audio = audioRef.current;
-
-        audio.src = station.link;
-        audio.load();
-
-        // Set timeout for station loading
-        stationTimeoutRef.current = setTimeout(() => {
-          if (audio.readyState === 0 && audio.paused) {
-            console.log("Station timed out - auto-skipping to next");
-            setIsLoading(false);
-            setLoadError(true);
-            setTimeout(() => {
-              playNextStation();
-            }, 1000);
-          } else if (audio.paused) {
-            console.log("Station loaded but autoplay blocked");
-            setIsLoading(false);
-            // Try to force play if this was during station change
-            if (stationChangeAutoplayRef.current) {
-              console.log("Attempting to force play due to station change (desktop)...");
-              audio
-                .play()
-                .then(() => {
-                  console.log("Desktop force play successful");
-                  setIsPlaying(true);
-                  stationChangeAutoplayRef.current = false;
-                })
-                .catch(() => {
-                  console.log("Desktop force play failed");
-                  setIsPlaying(false);
-                  stationChangeAutoplayRef.current = false;
-                });
-            } else {
-              setIsPlaying(false);
-            }
-          }
-        }, STATION_TIMEOUT);
-
-        const handleCanPlay = () => {
-          // GUARD: Don't start station if ad is playing
-          if (adInProgressRef.current) {
-            console.log("New station ready but ad is playing - delaying start");
-            return;
-          }
-
-          // Force autoplay if station was changed during playback
-          const shouldAutoplay = stationChangeAutoplayRef.current;
-          if (shouldAutoplay) {
-            console.log("Force autoplay due to station change during active playback - desktop");
-            stationChangeAutoplayRef.current = false; // Reset flag
-          }
-
-          const playPromise = audio.play();
-          if (playPromise !== undefined) {
-            playPromise
-              .then(() => {
-                setIsPlaying(true);
-                setIsLoading(false);
-                setLoadError(false);
-                if (stationTimeoutRef.current) {
-                  clearTimeout(stationTimeoutRef.current);
-                }
-              })
-              .catch((error) => {
-                console.log("Autoplay blocked:", error.name);
-                setIsLoading(false);
-
-                // If this was during station change from active playback, retry after short delay
-                if (shouldAutoplay) {
-                  console.log("Retrying autoplay after station change...");
-                  setTimeout(() => {
-                    audio
-                      .play()
-                      .then(() => {
-                        console.log("Retry successful");
-                        setIsPlaying(true);
-                      })
-                      .catch(() => {
-                        console.log("Retry failed - user interaction required");
-                        setIsPlaying(false);
-                      });
-                  }, 500);
-                } else {
-                  setIsPlaying(false);
-                }
-              });
-          }
-        };
-
-        const handleError = () => {
-          console.log("Station error - auto-skipping to next");
-          setIsLoading(false);
-          setLoadError(true);
-          if (stationTimeoutRef.current) {
-            clearTimeout(stationTimeoutRef.current);
-          }
-          setTimeout(() => {
-            playNextStation();
-          }, 1000);
-        };
-
-        audio.addEventListener("canplay", handleCanPlay);
-        audio.addEventListener("error", handleError);
-
-        return () => {
-          audio.removeEventListener("canplay", handleCanPlay);
-          audio.removeEventListener("error", handleError);
-          if (stationTimeoutRef.current) {
-            clearTimeout(stationTimeoutRef.current);
-          }
-        };
-      }
-    }
-  }, [station, isMobile]);
-
-  useEffect(() => {
-    const activeAudio = getActiveAudio();
-    const inactiveAudio = getInactiveAudio();
-
-    if (activeAudio) {
-      activeAudio.volume = isMuted ? 0 : volume / 100;
-    }
-    if (inactiveAudio) {
-      inactiveAudio.volume = isMuted ? 0 : volume / 100;
-    }
-  }, [volume, isMuted]);
-
-  // Media Session API for car controls and lock screen controls
-  useEffect(() => {
-    if (!station || !("mediaSession" in navigator)) return;
-
-    // Update metadata (may already be set in station change effect, but ensure it's current)
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: station.name,
-      artist: `${station.language || "Hindi"} • ${station.type}`,
-      album: "DesiMelody.com",
-      artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
-    });
-
-    // CRITICAL: Always set to "playing" to keep controls active on lock screen
-    navigator.mediaSession.playbackState = "playing";
-
-    // Mark as initialized
-    mediaSessionInitializedRef.current = true;
-
-    const handlePlay = async () => {
-      console.log("Media Session PLAY triggered");
-
-      // GUARD: Don't allow play during ad
-      if (adInProgressRef.current) {
-        console.log("Play action blocked - ad is playing");
-        return;
-      }
-
-      const audio = getActiveAudio();
-      if (!audio) {
-        console.error("No audio element available");
-        return;
-      }
-
-      try {
-        // CRITICAL: Resume AudioContext FIRST
-        if (audioContextRef.current) {
-          if (audioContextRef.current.state === "suspended") {
-            console.log("Resuming suspended AudioContext");
-            await audioContextRef.current.resume();
-          }
-        } else {
-          // Try to create and resume if not exists
-          try {
-            const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
-            if (AC) {
-              audioContextRef.current = new AC();
-              if (audioContextRef.current.state === "suspended") {
-                await audioContextRef.current.resume();
-              }
-            }
-          } catch (e) {
-            console.log("AudioContext creation failed:", e);
-          }
-        }
-
-        // Always pause inactive audio to avoid two streams running
-        const inactive = getInactiveAudio();
-        if (inactive && !inactive.paused) {
-          try {
-            inactive.pause();
-            inactive.currentTime = 0;
-          } catch {}
-        }
-
-        // Clear user paused flag
-        isUserPausedRef.current = false;
-
-        // ALWAYS-RELOAD: every resume reloads from live edge regardless of pause duration
-        if (isMobile) {
-          console.log("Mobile resume from lock screen - always reloading from live edge");
-          setIsLoading(true);
-          setLoadError(false);
-          wasBackgroundedRef.current = false;
-          wasPlayingBeforeOfflineRef.current = false;
-          audioInterruptedRef.current = false;
-
-          try {
-            await reloadFromLiveEdge(audio);
-            lastPausedAtRef.current = null;
-
-            // Update playback state
-            if ("mediaSession" in navigator) {
-              navigator.mediaSession.playbackState = "playing";
-            }
-
-            console.log("Successfully resumed from lock screen");
-          } catch (error) {
-            console.error("Failed to reload from live edge:", error);
-            setIsPlaying(false);
-            setIsLoading(false);
-
-            // Retry once more after a delay
-            setTimeout(async () => {
-              console.log("Retrying play after failure...");
-              try {
-                await reloadFromLiveEdge(audio);
-                if ("mediaSession" in navigator) {
-                  navigator.mediaSession.playbackState = "playing";
-                }
-              } catch (e) {
-                console.error("Retry failed:", e);
-              }
-            }, 1000);
-          }
-        } else {
-          // Desktop - try a simple resume
-          if (audio.readyState === 0) {
-            audio.load();
-          }
-          await audio.play();
-          setIsPlaying(true);
-          lastPausedAtRef.current = null;
-        }
-      } catch (error) {
-        console.error("Play error:", error);
-        setIsPlaying(false);
-
-        // Set playback state to paused on error
-        if ("mediaSession" in navigator) {
-          navigator.mediaSession.playbackState = "paused";
-        }
-      }
-    };
-
-    const handlePause = () => {
-      console.log("Media Session PAUSE triggered");
-      const audio = getActiveAudio();
-      if (audio) {
-        isUserPausedRef.current = true;
-        audio.pause();
-        setIsPlaying(false);
-        lastPausedAtRef.current = Date.now();
-
-        if ("mediaSession" in navigator) {
-          navigator.mediaSession.playbackState = "paused";
-        }
-      }
-    };
-
-    navigator.mediaSession.setActionHandler("play", handlePlay);
-    navigator.mediaSession.setActionHandler("pause", handlePause);
-
-    return () => {
-      navigator.mediaSession.setActionHandler("play", null);
-      navigator.mediaSession.setActionHandler("pause", null);
-      mediaSessionInitializedRef.current = false;
-    };
-  }, [station, isMobile]);
-
-  // Update playback state based on isPlaying and isLoading
-  useEffect(() => {
-    if (!("mediaSession" in navigator) || !mediaSessionInitializedRef.current) return;
-
-    // Always keep as "playing" when loading to maintain controls
-    if (isLoading) {
-      navigator.mediaSession.playbackState = "playing";
-    } else if (isPlaying) {
-      navigator.mediaSession.playbackState = "playing";
-    } else if (isUserPausedRef.current) {
-      navigator.mediaSession.playbackState = "paused";
-    }
-  }, [isPlaying, isLoading]);
-
-  // Register next/prev handlers - disable during ads
-  useEffect(() => {
+  // Register MediaSession handlers - used by SafeKeeper
+  const registerMediaSessionHandlers = () => {
     if (!("mediaSession" in navigator)) return;
 
-    if (isPlayingAd) {
-      // Disable controls during ad
-      navigator.mediaSession.setActionHandler("nexttrack", null);
-      navigator.mediaSession.setActionHandler("previoustrack", null);
-    } else {
-      // Enable controls when not playing ad
-      navigator.mediaSession.setActionHandler("nexttrack", () => {
-        nextActionRef.current();
-      });
-      navigator.mediaSession.setActionHandler("previoustrack", () => {
-        prevActionRef.current();
-      });
+    const handleMediaPlay = async () => {
+      console.log("🎵 Media Session PLAY from lock screen/car controls");
+      await handlePlay();
+    };
+
+    const handleMediaPause = () => {
+      console.log("⏸️ Media Session PAUSE from lock screen/car controls");
+      handlePauseAction();
+    };
+
+    const handleMediaNext = () => {
+      console.log("⏭️ Media Session NEXT from car controls");
+      setStationChangeCount((prev) => prev + 1);
+      onNext();
+    };
+
+    const handleMediaPrevious = () => {
+      console.log("⏮️ Media Session PREVIOUS from car controls");
+      setStationChangeCount((prev) => prev + 1);
+      onPrevious();
+    };
+
+    try {
+      navigator.mediaSession.setActionHandler("play", handleMediaPlay);
+      navigator.mediaSession.setActionHandler("pause", handleMediaPause);
+      navigator.mediaSession.setActionHandler("nexttrack", handleMediaNext);
+      navigator.mediaSession.setActionHandler("previoustrack", handleMediaPrevious);
+      console.log("✅ MediaSession handlers registered successfully");
+    } catch (e) {
+      console.warn("Error registering MediaSession handlers:", e);
+    }
+  };
+
+  // Load and play from live edge - Enhanced for long pause recovery
+  const playFromLiveEdge = async (retryCount = 0): Promise<void> => {
+    const MAX_RETRIES = 5; // Increased retries for better reliability after long pauses
+    const audio = audioRef.current;
+
+    if (!audio || !station) {
+      return Promise.reject(new Error("No audio or station"));
     }
 
-    return () => {
-      navigator.mediaSession.setActionHandler("nexttrack", null);
-      navigator.mediaSession.setActionHandler("previoustrack", null);
-    };
-  }, [isPlayingAd]);
+    // Don't play radio if ad is currently playing
+    if (isPlayingAd) {
+      console.log("Ignoring playFromLiveEdge request - ad is currently playing");
+      return Promise.reject(new Error("Ad is playing"));
+    }
 
-  // Track backgrounding to refresh stream on mobile resume
-  useEffect(() => {
-    const onVisibility = () => {
-      if (document.visibilityState === "hidden") {
-        wasBackgroundedRef.current = true;
+    console.log(`Playing from live edge (attempt ${retryCount + 1}/${MAX_RETRIES})`);
+
+    try {
+      // Resume AudioContext first
+      if (audioContextRef.current && audioContextRef.current.state === "suspended") {
+        await audioContextRef.current.resume();
       }
-    };
-    document.addEventListener("visibilitychange", onVisibility);
-    return () => document.removeEventListener("visibilitychange", onVisibility);
-  }, []);
 
-  // Audio Interruption Handler - for phone calls, Siri, etc.
-  useEffect(() => {
-    if (!isMobile) return;
+      // CRITICAL: Always force a completely fresh connection for live radio
+      // Use a more aggressive cache-busting approach for long pauses
+      const timestamp = Date.now();
+      const randomParam = Math.random().toString(36).substring(7);
+      const sep = station.link.includes("?") ? "&" : "?";
 
-    const handleInterruptionStart = () => {
-      console.log("Audio interrupted (call/Siri) - pausing");
-      const audio = getActiveAudio();
-      if (audio && !audio.paused) {
-        audioInterruptedRef.current = true;
-        isUserPausedRef.current = false; // This is NOT a user pause
-        audio.pause();
+      // Clear existing source first to ensure fresh connection
+      audio.src = "";
+      audio.load();
+
+      // Set new source with enhanced cache busting
+      audio.src = `${station.link}${sep}ts=${timestamp}&r=${randomParam}&live=1`;
+      console.log(`Loading fresh live stream: ${audio.src}`);
+      audio.load();
+
+      return new Promise((resolve, reject) => {
+        // Timeout for this specific attempt
+        const loadTimeout = setTimeout(() => {
+          console.log(`Load timeout on attempt ${retryCount + 1}`);
+          cleanup();
+
+          if (retryCount < MAX_RETRIES - 1) {
+            // Progressive backoff for retries
+            const delay = Math.min(1000 * (retryCount + 1), 3000);
+            setTimeout(() => {
+              playFromLiveEdge(retryCount + 1)
+                .then(resolve)
+                .catch(reject);
+            }, delay);
+          } else {
+            setIsPlaying(false);
+            setIsLoading(false);
+            setBufferingMessage("Cannot connect to live stream");
+            reject(new Error("Load timeout - all retries failed"));
+          }
+        }, 10000); // 10 second timeout per attempt
+
+        const handleCanPlay = () => {
+          console.log("Stream ready - seeking to live edge");
+
+          // Always seek to live edge for radio streams to ensure current content
+          if (audio.seekable.length > 0) {
+            try {
+              const liveEdge = audio.seekable.end(0);
+              audio.currentTime = liveEdge;
+              console.log(`Seeked to live edge: ${liveEdge} seconds`);
+            } catch (e) {
+              console.warn("Could not seek to live edge:", e);
+              // Continue anyway - some streams don't support seeking
+            }
+          }
+
+          // Set appropriate volume based on ad state before playing
+          audio.volume = isPlayingAd ? 0.05 : 0.7;
+
+          audio
+            .play()
+            .then(() => {
+              console.log(
+                "Successfully playing live stream from fresh connection",
+                isPlayingAd ? "at low volume (ad overlay)" : "at normal volume",
+              );
+              setIsPlaying(true);
+              setIsLoading(false);
+              setBufferingMessage("");
+              cleanup();
+              resolve();
+            })
+            .catch((error: any) => {
+              console.error("Play failed:", error);
+              cleanup();
+
+              if (retryCount < MAX_RETRIES - 1) {
+                // Progressive backoff for retries
+                const delay = Math.min(1000 * (retryCount + 1), 3000);
+                setTimeout(() => {
+                  playFromLiveEdge(retryCount + 1)
+                    .then(resolve)
+                    .catch(reject);
+                }, delay);
+              } else {
+                setIsPlaying(false);
+                setIsLoading(false);
+                setBufferingMessage("Playback failed - check connection");
+                reject(error);
+              }
+            });
+        };
+
+        const handleError = () => {
+          console.error(`Stream load error on attempt ${retryCount + 1}`);
+          cleanup();
+
+          if (retryCount < MAX_RETRIES - 1) {
+            // Progressive backoff for retries
+            const delay = Math.min(1000 * (retryCount + 1), 3000);
+            setTimeout(() => {
+              playFromLiveEdge(retryCount + 1)
+                .then(resolve)
+                .catch(reject);
+            }, delay);
+          } else {
+            setIsPlaying(false);
+            setIsLoading(false);
+            setBufferingMessage("Stream unavailable");
+            reject(new Error("Failed to load - all retries failed"));
+          }
+        };
+
+        const cleanup = () => {
+          clearTimeout(loadTimeout);
+          audio.removeEventListener("canplay", handleCanPlay);
+          audio.removeEventListener("error", handleError);
+        };
+
+        audio.addEventListener("canplay", handleCanPlay, { once: true });
+        audio.addEventListener("error", handleError, { once: true });
+      });
+    } catch (error) {
+      console.error("Play from live edge error:", error);
+      throw error;
+    }
+  };
+
+  const handlePlay = async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    // Don't start radio if ad is currently playing (overlay mode handles this)
+    if (isPlayingAd) {
+      console.log("Ad is playing - radio will start at low volume for overlay");
+      // In overlay mode, we allow radio to start but at low volume
+    }
+
+    try {
+      console.log("Starting playback after pause...");
+      setBufferingMessage("Connecting to live stream...");
+
+      // ALWAYS force a fresh connection for live radio after any pause
+      // This ensures we get the latest live content, not stale buffered content
+
+      // Clear any existing source first
+      audio.src = "";
+      audio.load();
+
+      // Resume AudioContext FIRST
+      if (audioContextRef.current && audioContextRef.current.state === "suspended") {
+        console.log("Resuming suspended AudioContext");
+        await audioContextRef.current.resume();
+      } else if (!audioContextRef.current) {
+        // Create if not exists
+        try {
+          const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
+          if (AC) {
+            audioContextRef.current = new AC();
+            await audioContextRef.current.resume();
+          }
+        } catch (e) {
+          console.log("AudioContext creation failed:", e);
+        }
+      }
+
+      isUserPausedRef.current = false;
+      wasPlayingBeforeCallRef.current = false;
+
+      // CRITICAL: Always reload from live edge on resume to ensure fresh live content
+      setIsLoading(true);
+
+      try {
+        // Force fresh stream connection with cache-busting timestamp
+        console.log("Forcing fresh live stream connection...");
+        await playFromLiveEdge();
+
+        if ("mediaSession" in navigator) {
+          navigator.mediaSession.playbackState = "playing";
+        }
+
+        console.log("Successfully resumed with fresh live stream");
+      } catch (error) {
+        console.error("Failed to reload from live edge:", error);
         setIsPlaying(false);
+        setIsLoading(false);
+        setBufferingMessage("Reconnecting to live stream...");
 
         if ("mediaSession" in navigator) {
           navigator.mediaSession.playbackState = "paused";
         }
-      }
-    };
 
-    const handleInterruptionEnd = async () => {
-      console.log("Audio interruption ended - checking if should resume");
+        // Enhanced retry with multiple attempts for long pauses
+        let retryCount = 0;
+        const maxRetries = 5;
 
-      // Only resume if it was interrupted (not user-paused) and no ad is playing
-      if (audioInterruptedRef.current && !adInProgressRef.current && !isUserPausedRef.current) {
-        console.log("Resuming from live edge after interruption");
-        audioInterruptedRef.current = false;
+        const retryWithBackoff = async () => {
+          retryCount++;
+          const delay = Math.min(1000 * retryCount, 5000); // Progressive backoff up to 5s
 
-        const audio = getActiveAudio();
-        if (!audio) return;
+          console.log(`Retry attempt ${retryCount}/${maxRetries} after ${delay}ms delay...`);
+          setBufferingMessage(`Reconnecting... (${retryCount}/${maxRetries})`);
 
-        // Resume AudioContext first
-        if (audioContextRef.current && audioContextRef.current.state === "suspended") {
-          try {
-            await audioContextRef.current.resume();
-            console.log("AudioContext resumed after interruption");
-          } catch (e) {
-            console.error("Failed to resume AudioContext:", e);
-          }
-        }
-
-        setIsLoading(true);
-
-        try {
-          await reloadFromLiveEdge(audio);
-          console.log("Successfully resumed after interruption");
-
-          if ("mediaSession" in navigator) {
-            navigator.mediaSession.playbackState = "playing";
-          }
-        } catch (error) {
-          console.error("Failed to resume after interruption:", error);
-
-          // Retry after delay
           setTimeout(async () => {
-            console.log("Retrying resume after interruption...");
             try {
-              await reloadFromLiveEdge(audio);
+              // Clear and reload again for fresh connection
+              audio.src = "";
+              audio.load();
+
+              await playFromLiveEdge();
+
               if ("mediaSession" in navigator) {
                 navigator.mediaSession.playbackState = "playing";
               }
+
+              console.log(`Successfully connected on retry ${retryCount}`);
             } catch (e) {
-              console.error("Retry failed:", e);
+              console.error(`Retry ${retryCount} failed:`, e);
+
+              if (retryCount < maxRetries) {
+                retryWithBackoff();
+              } else {
+                setBufferingMessage("Unable to connect to live stream");
+                console.error("All retry attempts failed");
+              }
             }
-          }, 2000);
-        }
-      } else {
-        console.log("Not resuming - interrupted:", audioInterruptedRef.current, "userPaused:", isUserPausedRef.current);
+          }, delay);
+        };
+
+        retryWithBackoff();
       }
-    };
+    } catch (error) {
+      console.error("Play error:", error);
+      setBufferingMessage("Connection issue, retrying...");
+      setIsPlaying(false);
 
-    // Listen for system audio interruptions (iOS/Android)
-    const handleAudioInterruption = (event: any) => {
-      if (event.type === "pause" && !isUserPausedRef.current) {
-        handleInterruptionStart();
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.playbackState = "paused";
       }
-    };
-
-    // Track AudioContext state changes
-    if (audioContextRef.current) {
-      const handleStateChange = () => {
-        console.log("AudioContext state changed to:", audioContextRef.current.state);
-
-        if (audioContextRef.current.state === "interrupted") {
-          handleInterruptionStart();
-        } else if (audioContextRef.current.state === "running" && audioInterruptedRef.current) {
-          handleInterruptionEnd();
-        }
-      };
-
-      audioContextRef.current.addEventListener("statechange", handleStateChange);
     }
+  };
 
-    // Document visibility for detecting when coming back from calls
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        // Going to background
-        const audio = getActiveAudio();
-        if (audio) {
-          // Check after a short delay if audio stopped (indicating interruption)
-          setTimeout(() => {
-            if (audio.paused && !isUserPausedRef.current && isPlaying) {
-              console.log("Detected audio stopped while backgrounded - likely a call");
-              handleInterruptionStart();
-            }
-          }, 200);
+  const handlePauseAction = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    isUserPausedRef.current = true;
+    audio.pause();
+    setIsPlaying(false);
+
+    if ("mediaSession" in navigator) {
+      navigator.mediaSession.playbackState = "paused";
+    }
+  };
+
+  // Initialize AudioContext for mobile
+  useEffect(() => {
+    const initAudioContext = () => {
+      try {
+        const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
+        if (AC && !audioContextRef.current) {
+          audioContextRef.current = new AC();
+          console.log("AudioContext initialized:", audioContextRef.current.state);
         }
-      } else {
-        // Coming back to foreground
-        if (audioInterruptedRef.current) {
-          console.log("Coming back to foreground with interrupted flag set");
-          // Wait a bit for system to settle
-          setTimeout(() => {
-            handleInterruptionEnd();
-          }, 500);
-        }
+      } catch (error) {
+        console.error("Failed to initialize AudioContext:", error);
       }
     };
 
-    // Page focus events (more reliable for some devices)
-    const handleFocus = () => {
-      if (audioInterruptedRef.current) {
-        console.log("Page gained focus with interrupted flag");
-        setTimeout(() => {
-          handleInterruptionEnd();
-        }, 500);
-      }
-    };
-
-    const handleBlur = () => {
-      const audio = getActiveAudio();
-      if (audio && !audio.paused && !isUserPausedRef.current) {
-        setTimeout(() => {
-          if (audio.paused && !isUserPausedRef.current) {
-            console.log("Audio paused after blur - likely interruption");
-            handleInterruptionStart();
-          }
-        }, 200);
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("focus", handleFocus);
-    window.addEventListener("blur", handleBlur);
-
-    // Audio element pause events (for system pauses)
-    const audio1 = audioRef.current;
-    const audio2 = audioRef2.current;
-
-    if (audio1) audio1.addEventListener("pause", handleAudioInterruption);
-    if (audio2) audio2.addEventListener("pause", handleAudioInterruption);
+    initAudioContext();
 
     return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("focus", handleFocus);
-      window.removeEventListener("blur", handleBlur);
-
-      if (audio1) audio1.removeEventListener("pause", handleAudioInterruption);
-      if (audio2) audio2.removeEventListener("pause", handleAudioInterruption);
-
-      if (audioContextRef.current) {
-        try {
-          audioContextRef.current.removeEventListener("statechange", () => {});
-        } catch (e) {}
+      if (audioContextRef.current && audioContextRef.current.state !== "closed") {
+        audioContextRef.current.close().catch(console.error);
       }
     };
-  }, [isMobile, isPlaying]);
+  }, []);
+
+  // Session keepalive - touch audio every 5 minutes to prevent session loss
+  useEffect(() => {
+    if (isPlaying && audioRef.current) {
+      sessionKeepaliveRef.current = window.setInterval(
+        () => {
+          if (audioRef.current && !audioRef.current.paused) {
+            console.log("Session keepalive: touching audio element");
+            const currentVol = audioRef.current.volume;
+            audioRef.current.volume = currentVol; // No-op but keeps session active
+          }
+        },
+        5 * 60 * 1000,
+      ); // Every 5 minutes
+    } else {
+      if (sessionKeepaliveRef.current) {
+        clearInterval(sessionKeepaliveRef.current);
+        sessionKeepaliveRef.current = null;
+      }
+    }
+
+    return () => {
+      if (sessionKeepaliveRef.current) {
+        clearInterval(sessionKeepaliveRef.current);
+        sessionKeepaliveRef.current = null;
+      }
+    };
+  }, [isPlaying]);
 
   // Network switching - handle WiFi to mobile data transitions
   useEffect(() => {
-    if (!isMobile) return;
-
     const handleOnline = () => {
       console.log("Network back online");
-      const audio = getActiveAudio();
+      setBufferingMessage("Network restored, resuming...");
 
-      // If was playing before offline, auto-resume from live edge
-      if (audio && wasPlayingBeforeOfflineRef.current && !adInProgressRef.current) {
+      if (audioRef.current && wasPlayingBeforeOfflineRef.current) {
         console.log("Auto-resuming playback after network restored");
-        setIsLoading(true);
-        reloadFromLiveEdge(audio).catch((error) => {
+        wasPlayingBeforeOfflineRef.current = false;
+        playFromLiveEdge().catch((error) => {
           console.error("Failed to resume after network change:", error);
+          setBufferingMessage("Connection issue, retrying...");
         });
       }
     };
 
     const handleOffline = () => {
       console.log("Network went offline");
-      const audio = getActiveAudio();
-      if (audio && !audio.paused) {
+      setBufferingMessage("Network lost, reconnecting...");
+      if (audioRef.current && !audioRef.current.paused) {
         wasPlayingBeforeOfflineRef.current = true;
-        audio.pause();
+        audioRef.current.pause();
         setIsPlaying(false);
       }
     };
 
     const handleConnectionChange = () => {
-      console.log("Network type changed");
-      const audio = getActiveAudio();
+      console.log("Network type changed (WiFi <-> Mobile Data)");
+      setBufferingMessage("Switching network, please wait...");
 
-      // If playing and network changed, reload to ensure continuity
-      if (audio && isPlaying && !adInProgressRef.current && navigator.onLine) {
+      if (audioRef.current && isPlaying && navigator.onLine) {
         console.log("Reloading stream due to network change");
-        reloadFromLiveEdge(audio).catch((error) => {
+        playFromLiveEdge().catch((error) => {
           console.error("Failed to reload after network change:", error);
+          setBufferingMessage("Connection issue, retrying...");
         });
       }
     };
@@ -1148,7 +591,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
 
-    // Connection API for detecting network type changes (WiFi <-> Mobile Data)
     const connection =
       (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
     if (connection) {
@@ -1162,221 +604,350 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
         connection.removeEventListener("change", handleConnectionChange);
       }
     };
-  }, [isMobile, isPlaying]);
+  }, [isPlaying]);
 
-  const togglePlay = async () => {
-    // GUARD: Don't allow play toggle during ad
-    if (adInProgressRef.current) {
-      console.log("Play toggle blocked - ad is playing");
-      return;
-    }
+  // Detect phone calls and auto-resume after call ends
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const audio = audioRef.current;
+      if (!audio) return;
 
-    const audio = getActiveAudio();
-    if (!audio) return;
-
-    if (isPlaying) {
-      lastPausedAtRef.current = Date.now();
-      wasBackgroundedRef.current = false;
-      isUserPausedRef.current = true; // Mark as user-initiated pause
-      audio.pause();
-      setIsPlaying(false);
-
-      if ("mediaSession" in navigator) {
-        navigator.mediaSession.playbackState = "paused";
-      }
-      return;
-    }
-
-    try {
-      // Resume AudioContext (iOS) in response to user gesture
-      if (audioContextRef.current) {
-        if (audioContextRef.current.state === "suspended") {
-          await audioContextRef.current.resume();
+      if (document.hidden) {
+        // Screen going off or app backgrounding
+        if (!audio.paused && !isUserPausedRef.current) {
+          console.log("App backgrounding while playing - flagging for call interruption");
+          wasPlayingBeforeCallRef.current = true;
+          inCallRef.current = true;
         }
       } else {
+        // App coming back to foreground
+        if (wasPlayingBeforeCallRef.current && !isUserPausedRef.current && audio.paused) {
+          console.log("App returned from background (likely after call) - auto-resuming");
+          wasPlayingBeforeCallRef.current = false;
+          inCallRef.current = false;
+          playFromLiveEdge().catch((error) => {
+            console.error("Failed to resume after call:", error);
+            setBufferingMessage("Connection issue, retrying...");
+          });
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
+  // Load station and auto-play with immediate loading (single audio element)
+  useEffect(() => {
+    if (!station || !audioRef.current) return;
+
+    // Update Media Session metadata immediately
+    if ("mediaSession" in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: station.name,
+        artist: `${station.language || "Hindi"} • ${station.type}`,
+        album: "DesiMelody.com",
+        artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
+      });
+    }
+
+    setIsLoading(true);
+    setBufferingMessage("Loading station...");
+    isUserPausedRef.current = false; // New station should autoplay
+
+    const audio = audioRef.current;
+
+    // Load new station immediately (single element approach)
+    const sep = station.link.includes("?") ? "&" : "?";
+    audio.src = `${station.link}${sep}ts=${Date.now()}`;
+    audio.load();
+
+    // Set timeout for station loading
+    if (stationLoadTimeoutRef.current) {
+      clearTimeout(stationLoadTimeoutRef.current);
+    }
+
+    stationLoadTimeoutRef.current = window.setTimeout(() => {
+      console.log("⏱️ Station loading timeout - auto-skipping to next");
+      if (audio.readyState === 0) {
+        setIsLoading(false);
+        setBufferingMessage("Station timeout, skipping...");
+
+        if ("mediaSession" in navigator) {
+          // Keep metadata on lock screen
+          navigator.mediaSession.playbackState = "paused";
+        }
+
+        // Auto-skip quickly
+        setTimeout(() => {
+          console.log("⏭️ Calling onNext() due to timeout");
+          setBufferingMessage("");
+          onNext();
+        }, 500);
+      }
+    }, 15000); // 15 second timeout
+
+    const handleCanPlay = async () => {
+      console.log("Station ready to play");
+      setIsLoading(false);
+      setBufferingMessage("");
+
+      // Seek to live edge if available
+      if (audio.seekable.length > 0) {
         try {
-          const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
-          if (AC) {
-            audioContextRef.current = new AC();
-            if (audioContextRef.current.state === "suspended") {
-              await audioContextRef.current.resume();
+          audio.currentTime = audio.seekable.end(0);
+          console.log("Seeked to live edge:", audio.seekable.end(0));
+        } catch (e) {
+          console.warn("Could not seek to live edge:", e);
+        }
+      }
+
+      // Auto-play only if not user-paused
+      if (!isUserPausedRef.current) {
+        try {
+          // Resume AudioContext before play
+          if (audioContextRef.current && audioContextRef.current.state === "suspended") {
+            console.log("Resuming suspended AudioContext");
+            await audioContextRef.current.resume();
+          }
+
+          // Set appropriate volume based on ad state
+          audio.volume = isPlayingAd ? 0.05 : 0.7; // Very low volume if ad playing, normal otherwise
+
+          const playPromise = audio.play();
+          if (playPromise !== undefined) {
+            await playPromise;
+            console.log("Successfully playing", isPlayingAd ? "at low volume (ad overlay)" : "at normal volume");
+            setIsPlaying(true);
+
+            if ("mediaSession" in navigator) {
+              navigator.mediaSession.playbackState = "playing";
             }
           }
-        } catch {}
-      }
-
-      // Always pause inactive audio to avoid two streams running
-      const inactive = getInactiveAudio();
-      if (inactive && !inactive.paused) {
-        try {
-          inactive.pause();
-          inactive.currentTime = 0;
-        } catch {}
-      }
-
-      // Clear flags
-      isUserPausedRef.current = false;
-      audioInterruptedRef.current = false;
-
-      // ALWAYS-RELOAD on mobile: every resume reloads from live edge to guarantee live playback
-      if (isMobile) {
-        console.log("Mobile toggle play - always reloading from live edge");
-        setIsLoading(true);
-        setLoadError(false);
-        wasBackgroundedRef.current = false;
-        wasPlayingBeforeOfflineRef.current = false;
-
-        try {
-          await reloadFromLiveEdge(audio);
-          lastPausedAtRef.current = null;
-
-          if ("mediaSession" in navigator) {
-            navigator.mediaSession.playbackState = "playing";
-          }
-        } catch (error) {
-          console.error("Failed to reload from live edge:", error);
+        } catch (error: any) {
+          console.log("Autoplay failed:", error.name);
           setIsPlaying(false);
-          setIsLoading(false);
         }
-      } else {
-        // Desktop - try a simple resume
-        if (audio.readyState === 0) {
-          audio.load();
-        }
-        await audio.play();
-        setIsPlaying(true);
-        lastPausedAtRef.current = null;
       }
-    } catch (error) {
-      console.log("Play failed:", error);
+
+      if (stationLoadTimeoutRef.current) {
+        clearTimeout(stationLoadTimeoutRef.current);
+      }
+    };
+
+    const handleWaiting = () => {
+      setBufferingMessage("Buffering, please wait...");
+    };
+
+    const handlePlaying = () => {
+      setBufferingMessage("");
+      setIsPlaying(true);
+    };
+
+    const handleError = () => {
+      console.log("❌ Station error - auto-skipping to next");
+      setIsLoading(false);
+      setBufferingMessage("Station unavailable, skipping...");
+
+      // CRITICAL: Keep MediaSession controls visible even during error
+      if ("mediaSession" in navigator) {
+        // Don't clear metadata - keep it visible on lock screen
+        // Just update playback state
+        navigator.mediaSession.playbackState = "paused";
+      }
+
+      // Auto-skip to next station quickly (500ms instead of 1s)
+      setTimeout(() => {
+        console.log("⏭️ Calling onNext() to skip bad station");
+        setBufferingMessage("");
+        onNext();
+      }, 500);
+    };
+
+    audio.addEventListener("canplay", handleCanPlay);
+    audio.addEventListener("waiting", handleWaiting);
+    audio.addEventListener("playing", handlePlaying);
+    audio.addEventListener("error", handleError);
+
+    return () => {
+      audio.removeEventListener("canplay", handleCanPlay);
+      audio.removeEventListener("waiting", handleWaiting);
+      audio.removeEventListener("playing", handlePlaying);
+      audio.removeEventListener("error", handleError);
+
+      if (stationLoadTimeoutRef.current) {
+        clearTimeout(stationLoadTimeoutRef.current);
+      }
+    };
+  }, [station, onNext]);
+
+  // Media Session API for lock screen controls - PERSISTENT with SafeKeeper
+  useEffect(() => {
+    if (!("mediaSession" in navigator)) return;
+
+    console.log("🔒 Starting MediaSession SafeKeeper");
+
+    // Register handlers immediately
+    registerMediaSessionHandlers();
+
+    // Update metadata
+    if (station) {
+      try {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: station.name,
+          artist: `${station.language || "Hindi"} • ${station.type}`,
+          album: "DesiMelody.com",
+          artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
+        });
+      } catch (e) {
+        console.warn("Error setting metadata:", e);
+      }
+    }
+
+    // Update playback state - show playing during ads if radio was playing
+    try {
+      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+    } catch (e) {
+      console.warn("Error setting playback state:", e);
+    }
+
+    // SafeKeeper: Re-register handlers EVERY second to ensure they never get lost
+    // Even more critical when stations are failing - refreshes every second
+    if (mediaSessionSafeKeeperRef.current) {
+      clearInterval(mediaSessionSafeKeeperRef.current);
+    }
+
+    mediaSessionSafeKeeperRef.current = window.setInterval(() => {
+      try {
+        // ALWAYS re-register handlers (critical for failed stations)
+        registerMediaSessionHandlers();
+
+        // ALWAYS update metadata (keeps lock screen controls visible)
+        if (station) {
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: station.name,
+            artist: `${station.language || "Hindi"} • ${station.type}`,
+            album: "DesiMelody.com",
+            artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
+          });
+        }
+
+        // ALWAYS sync playback state - radio remains active during ads
+        navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+
+        // If we're loading or have an error message, that's when we need SafeKeeper most!
+        if (isLoading || bufferingMessage) {
+          console.log("🔄 SafeKeeper: Recovering from error state - handlers refreshed");
+        }
+      } catch (e) {
+        console.warn("SafeKeeper error:", e);
+      }
+    }, 1000); // Every 1 second (aggressive)
+
+    return () => {
+      if (mediaSessionSafeKeeperRef.current) {
+        clearInterval(mediaSessionSafeKeeperRef.current);
+        mediaSessionSafeKeeperRef.current = null;
+      }
+    };
+  }, [station, isPlaying, bufferingMessage, isLoading, onNext, onPrevious]);
+
+  const togglePlayPause = () => {
+    // If ad is playing, user can pause to stop everything
+    if (isPlayingAd) {
+      // Pause/skip the ad and pause radio
+      skipAd();
       setIsPlaying(false);
+      setWasPlayingBeforeAd(false);
+      return;
+    }
+
+    if (isPlaying) {
+      handlePauseAction();
+    } else {
+      handlePlay();
     }
   };
-
-  const toggleMute = () => {
-    setIsMuted(!isMuted);
-  };
-
-  const formatTime = (seconds: number) => {
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-
-    if (hrs > 0) {
-      return `${hrs}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-    }
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  if (!station) return null;
 
   return (
-    <Card className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 relative overflow-hidden">
-      <audio ref={audioRef} crossOrigin="anonymous" preload="auto" playsInline />
-      <audio ref={audioRef2} crossOrigin="anonymous" preload="auto" playsInline />
-      <audio ref={adAudioRef} preload="auto" />
-
-      <AdOverlay isVisible={isPlayingAd} duration={adDuration} onSkip={skipAd} />
-
-      <AudioVisualizer
-        audioRef={getActiveAudio() === audioRef.current ? audioRef : audioRef2}
-        isPlaying={isPlaying && !isPlayingAd}
-      />
-
-      <div className="container py-4 relative z-10 max-w-full">
-        <div className="flex items-center gap-2 sm:gap-4 max-w-full">
-          <img
-            src={station.image}
-            alt={station.name}
-            className="w-14 h-14 rounded-lg object-cover shadow-md"
-            onError={(e) => {
-              e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=100";
-            }}
-          />
-
+    <div className="bg-card border-b border-border shadow-lg">
+      <div className="px-4 py-4">
+        {/* Station Info */}
+        <div className="flex items-center gap-3 mb-4">
+          <img src={station.image} alt={station.name} className="w-16 h-16 rounded-lg object-cover shadow-md" />
           <div className="flex-1 min-w-0">
-            <h4 className="font-semibold truncate text-sm sm:text-base">
-              {loadError ? "Station Offline" : isLoading ? "Loading..." : station.name}
-            </h4>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              {loadError
-                ? "This station is currently unavailable"
-                : isLoading
-                  ? "Connecting to station..."
-                  : `${station.language || "Hindi"} • ${station.type}`}
+            <div className="overflow-hidden">
+              <h2 className="font-semibold text-base text-foreground marquee-text inline-block whitespace-nowrap">
+                {station.name}
+              </h2>
+            </div>
+            <p className="text-sm text-muted-foreground truncate">
+              {station.language} • {station.type}
             </p>
-            {!loadError && !isLoading && (
-              <p className="text-xs text-primary font-medium mt-1">Playing for {formatTime(playbackTime)}</p>
+            {bufferingMessage && <p className="text-xs text-primary mt-1 animate-pulse">{bufferingMessage}</p>}
+            {isPlayingAd && (
+              <p className="text-xs text-yellow-600 mt-1">🎵 Advertisement overlay - Radio playing at low volume</p>
             )}
-          </div>
-
-          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-            {loadError ? (
-              <Button
-                onClick={playNextStation}
-                size="sm"
-                className="rounded-full text-xs sm:text-sm whitespace-nowrap px-3 sm:px-4"
-              >
-                Play Next
-              </Button>
-            ) : (
-              <>
-                <Button
-                  onClick={playPreviousStation}
-                  size="icon"
-                  variant="outline"
-                  className="rounded-full w-8 h-8 sm:w-10 sm:h-10"
-                  title="Previous Station"
-                  disabled={isPlayingAd}
-                >
-                  <SkipBack className="w-3 h-3 sm:w-4 sm:h-4" />
-                </Button>
-
-                <Button
-                  onClick={togglePlay}
-                  size="icon"
-                  className="rounded-full w-10 h-10 sm:w-12 sm:h-12"
-                  disabled={isLoading}
-                >
-                  {isPlaying ? (
-                    <Pause className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
-                  ) : (
-                    <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
-                  )}
-                </Button>
-
-                <Button
-                  onClick={playNextStation}
-                  size="icon"
-                  variant="outline"
-                  className="rounded-full w-8 h-8 sm:w-10 sm:h-10"
-                  title="Next Station"
-                  disabled={isPlayingAd}
-                >
-                  <SkipForward className="w-3 h-3 sm:w-4 sm:h-4" />
-                </Button>
-
-                <div className="hidden sm:flex items-center gap-2 w-32">
-                  <Button onClick={toggleMute} size="icon" variant="ghost" className="w-8 h-8">
-                    {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                  </Button>
-                  <Slider
-                    value={[volume]}
-                    onValueChange={(value) => setVolume(value[0])}
-                    max={100}
-                    step={1}
-                    className="w-20"
-                  />
-                </div>
-              </>
-            )}
-
-            <Button onClick={onClose} size="icon" variant="ghost" className="w-8 h-8 shrink-0">
-              <X className="w-4 h-4" />
-            </Button>
           </div>
         </div>
+
+        {/* Controls */}
+        <div className="flex items-center justify-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setStationChangeCount((prev) => prev + 1);
+              onPrevious();
+            }}
+            className="h-12 w-12 rounded-full"
+            disabled={isLoading}
+          >
+            <SkipBack className="h-6 w-6" />
+          </Button>
+
+          <Button
+            variant="default"
+            size="icon"
+            onClick={togglePlayPause}
+            className="h-16 w-16 rounded-full shadow-lg"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary-foreground border-t-transparent" />
+            ) : isPlaying || isPlayingAd ? (
+              <Pause className="h-7 w-7" />
+            ) : (
+              <Play className="h-7 w-7 ml-1" />
+            )}
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setStationChangeCount((prev) => prev + 1);
+              onNext();
+            }}
+            className="h-12 w-12 rounded-full"
+            disabled={isLoading}
+          >
+            <SkipForward className="h-6 w-6" />
+          </Button>
+        </div>
       </div>
-    </Card>
+
+      {/* Single audio element - much simpler! */}
+      <audio ref={audioRef} crossOrigin="anonymous" preload="auto" playsInline />
+
+      {/* Ad audio element */}
+      <audio ref={adAudioRef} preload="auto" />
+
+      {/* Ad Overlay */}
+      <AdOverlay isVisible={isPlayingAd} duration={adDuration} onSkip={skipAd} />
+    </div>
   );
 };
