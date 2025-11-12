@@ -73,7 +73,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       // OVERLAY MODE: Lower radio volume instead of stopping it
       if (radioAudio && isPlaying) {
         console.log("🔉 Lowering radio volume for ad overlay");
-        radioAudio.volume = 0.02; // Very low volume (2%) so ad is clearly audible
+        radioAudio.volume = 0.01; // Very low volume (1%) so ad is clearly audible
       }
 
       // Load and play ad at maximum volume
@@ -246,7 +246,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       // Auto-play
       try {
         // Set appropriate volume based on ad state
-        audio.volume = isPlayingAd ? 0.02 : isMuted ? 0 : volume / 100;
+        audio.volume = isPlayingAd ? 0.01 : isMuted ? 0 : volume / 100;
 
         await audio.play();
         console.log("Successfully playing", isPlayingAd ? "at low volume (ad overlay)" : "at normal volume");
@@ -286,7 +286,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
     // Apply volume changes, but respect ad overlay mode
     if (isPlayingAd) {
-      audio.volume = 0.02; // Keep low during ad
+      audio.volume = 0.01; // Keep low during ad
       console.log("🔉 Volume change during ad - keeping radio low");
     } else {
       audio.volume = isMuted ? 0 : volume / 100;
