@@ -26,6 +26,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
   const [bufferingMessage, setBufferingMessage] = useState("");
   const [isPlayingAd, setIsPlayingAd] = useState(false);
   const [adDuration, setAdDuration] = useState(0);
+  const [wasPlayingBeforeAd, setWasPlayingBeforeAd] = useState(false);
   const [stationChangeCount, setStationChangeCount] = useState(0);
   const [adAnalytics, setAdAnalytics] = useState<AdAnalytics>(() => loadAdAnalytics());
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -67,8 +68,11 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       if (!adAudio) return;
 
       console.log("Playing ad:", adUrl);
+
+      // Remember if radio was playing before ad
+      setWasPlayingBeforeAd(isPlaying);
       setIsPlayingAd(true);
-      setIsPlaying(false); // Radio is not playing during ad
+      // Keep isPlaying true so radio controls stay active
 
       // CRITICAL: Pause radio and reset to prevent overlap
       if (audioRef.current) {
@@ -89,14 +93,20 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     } catch (error) {
       console.error("Error playing ad:", error);
       setIsPlayingAd(false);
-      // Don't restart radio during ad error - let it stay paused
-      console.log("Ad playback failed - radio remains paused");
+
+      // Reset states if ad fails
+      if (!wasPlayingBeforeAd) {
+        setIsPlaying(false);
+      }
+      setWasPlayingBeforeAd(false);
+
+      console.log("Ad playback failed - radio state restored");
     }
   };
 
-  // Handle ad completion - auto-start next station
+  // Handle ad completion - auto-resume current station
   const handleAdEnded = () => {
-    console.log("Ad finished - waiting 1 second before starting next station");
+    console.log("Ad finished - waiting 1 second before resuming current station");
     setIsPlayingAd(false);
 
     const audio = audioRef.current;
@@ -107,11 +117,16 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       audio.src = "";
     }
 
-    // Wait 1 second before auto-skipping to next station
+    // Wait 1 second then resume current station if it was playing before ad
     setTimeout(() => {
-      console.log("⏭️ Skipping to next station after ad (1 second delay)");
-      setStationChangeCount((prev) => prev + 1);
-      onNext();
+      if (wasPlayingBeforeAd && !isUserPausedRef.current) {
+        console.log("🎵 Auto-resuming current station after ad");
+        handlePlay();
+      } else {
+        console.log("📻 Radio remains paused after ad (was not playing before)");
+        setIsPlaying(false);
+      }
+      setWasPlayingBeforeAd(false);
     }, 1000); // 1 second delay
   };
 
@@ -784,9 +799,9 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       }
     }
 
-    // Update playback state - show paused during ads
+    // Update playback state - show playing during ads if radio was playing
     try {
-      navigator.mediaSession.playbackState = isPlaying && !isPlayingAd ? "playing" : "paused";
+      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
     } catch (e) {
       console.warn("Error setting playback state:", e);
     }
@@ -812,8 +827,8 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
           });
         }
 
-        // ALWAYS sync playback state - show paused during ads
-        navigator.mediaSession.playbackState = isPlaying && !isPlayingAd ? "playing" : "paused";
+        // ALWAYS sync playback state - radio remains active during ads
+        navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
 
         // If we're loading or have an error message, that's when we need SafeKeeper most!
         if (isLoading || bufferingMessage) {
@@ -833,6 +848,15 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
   }, [station, isPlaying, bufferingMessage, isLoading, onNext, onPrevious]);
 
   const togglePlayPause = () => {
+    // If ad is playing, user can pause to stop everything
+    if (isPlayingAd) {
+      // Pause/skip the ad and pause radio
+      skipAd();
+      setIsPlaying(false);
+      setWasPlayingBeforeAd(false);
+      return;
+    }
+
     if (isPlaying) {
       handlePauseAction();
     } else {
@@ -856,6 +880,9 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
               {station.language} • {station.type}
             </p>
             {bufferingMessage && <p className="text-xs text-primary mt-1 animate-pulse">{bufferingMessage}</p>}
+            {isPlayingAd && (
+              <p className="text-xs text-yellow-600 mt-1">🎵 Advertisement playing - Radio will resume shortly</p>
+            )}
           </div>
         </div>
 
@@ -883,7 +910,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
           >
             {isLoading ? (
               <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary-foreground border-t-transparent" />
-            ) : isPlaying ? (
+            ) : isPlaying || isPlayingAd ? (
               <Pause className="h-7 w-7" />
             ) : (
               <Play className="h-7 w-7 ml-1" />
