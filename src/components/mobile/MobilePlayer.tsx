@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { AdOverlay } from "@/components/AdOverlay";
 import {
   getAdUrlForRegion,
-  shouldPlayAdOnStationChange,
   shouldPlayAdOnTimeInterval,
   logAdImpression,
   loadAdAnalytics,
@@ -27,7 +26,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
   const [isPlayingAd, setIsPlayingAd] = useState(false);
   const [adDuration, setAdDuration] = useState(0);
   const [wasPlayingBeforeAd, setWasPlayingBeforeAd] = useState(false);
-  const [stationChangeCount, setStationChangeCount] = useState(0);
+
   const [adAnalytics, setAdAnalytics] = useState<AdAnalytics>(() => loadAdAnalytics());
   const audioRef = useRef<HTMLAudioElement>(null);
   const audioContextRef = useRef<any>(null);
@@ -42,7 +41,6 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
   const stationLoadTimeoutRef = useRef<number | null>(null);
   const mediaSessionSafeKeeperRef = useRef<number | null>(null);
   const adIntervalCheckRef = useRef<number | null>(null);
-  const previousStationIdRef = useRef<string | null>(null);
 
   // Sync adInProgressRef with isPlayingAd state
   useEffect(() => {
@@ -139,18 +137,6 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     handleAdEnded();
   };
 
-  // Check if ad should play on station change
-  useEffect(() => {
-    if (station && previousStationIdRef.current !== station.id) {
-      previousStationIdRef.current = station.id;
-
-      if (shouldPlayAdOnStationChange(stationChangeCount, adAnalytics.lastAdTimestamp)) {
-        console.log("Triggering ad on station change");
-        playAd();
-      }
-    }
-  }, [station, stationChangeCount]);
-
   // Check for time-based ad intervals
   useEffect(() => {
     if (!isPlaying) return;
@@ -203,13 +189,11 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
 
     const handleMediaNext = () => {
       console.log("⏭️ Media Session NEXT from car controls");
-      setStationChangeCount((prev) => prev + 1);
       onNext();
     };
 
     const handleMediaPrevious = () => {
       console.log("⏮️ Media Session PREVIOUS from car controls");
-      setStationChangeCount((prev) => prev + 1);
       onPrevious();
     };
 
@@ -899,10 +883,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => {
-              setStationChangeCount((prev) => prev + 1);
-              onPrevious();
-            }}
+            onClick={onPrevious}
             className="h-12 w-12 rounded-full"
             disabled={isLoading}
           >
@@ -925,16 +906,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
             )}
           </Button>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              setStationChangeCount((prev) => prev + 1);
-              onNext();
-            }}
-            className="h-12 w-12 rounded-full"
-            disabled={isLoading}
-          >
+          <Button variant="ghost" size="icon" onClick={onNext} className="h-12 w-12 rounded-full" disabled={isLoading}>
             <SkipForward className="h-6 w-6" />
           </Button>
         </div>
