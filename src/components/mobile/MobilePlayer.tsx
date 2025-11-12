@@ -203,13 +203,13 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
 
     const handleMediaNext = () => {
       console.log("⏭️ Media Session NEXT from car controls");
-      setStationChangeCount((prev: number) => prev + 1);
+      setStationChangeCount((prev) => prev + 1);
       onNext();
     };
 
     const handleMediaPrevious = () => {
       console.log("⏮️ Media Session PREVIOUS from car controls");
-      setStationChangeCount((prev: number) => prev + 1);
+      setStationChangeCount((prev) => prev + 1);
       onPrevious();
     };
 
@@ -900,7 +900,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
             variant="ghost"
             size="icon"
             onClick={() => {
-              setStationChangeCount((prev: number) => prev + 1);
+              setStationChangeCount((prev) => prev + 1);
               onPrevious();
             }}
             className="h-12 w-12 rounded-full"
@@ -929,7 +929,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
             variant="ghost"
             size="icon"
             onClick={() => {
-              setStationChangeCount((prev: number) => prev + 1);
+              setStationChangeCount((prev) => prev + 1);
               onNext();
             }}
             className="h-12 w-12 rounded-full"
