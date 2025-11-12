@@ -26,6 +26,8 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
   const [isPlayingAd, setIsPlayingAd] = useState(false);
   const [adDuration, setAdDuration] = useState(0);
   const [wasPlayingBeforeAd, setWasPlayingBeforeAd] = useState(false);
+  const [volume, setVolume] = useState(70); // Add volume state like AudioPlayer
+  const [isMuted, setIsMuted] = useState(false); // Add mute state like AudioPlayer
 
   const [adAnalytics, setAdAnalytics] = useState<AdAnalytics>(() => loadAdAnalytics());
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -94,7 +96,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
 
       // Restore radio volume if ad fails
       if (audioRef.current && isPlaying) {
-        audioRef.current.volume = 1.0; // Restore full volume (100%)
+        audioRef.current.volume = isMuted ? 0 : volume / 100; // Restore normal volume based on user settings
       }
 
       console.log("Ad playback failed - radio volume restored");
@@ -111,7 +113,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     // OVERLAY MODE: Restore normal radio volume (radio never stopped playing)
     if (radioAudio && isPlaying) {
       console.log("🔊 Restoring normal radio volume after ad");
-      radioAudio.volume = 1.0; // Restore full volume (100%)
+      radioAudio.volume = isMuted ? 0 : volume / 100; // Restore normal volume based on user settings
     }
 
     // Reset ad state
@@ -131,7 +133,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     // Restore radio volume immediately when skipped
     if (audioRef.current && isPlaying) {
       console.log("🔊 Restoring radio volume after ad skip");
-      audioRef.current.volume = 1.0; // Restore full volume (100%)
+      audioRef.current.volume = isMuted ? 0 : volume / 100; // Restore normal volume based on user settings
     }
 
     handleAdEnded();
@@ -624,6 +626,21 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     };
   }, []);
 
+  // Volume management - apply volume changes like AudioPlayer
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    // Apply volume changes, but respect ad overlay mode
+    if (isPlayingAd) {
+      audio.volume = 0.02; // Keep low during ad
+      console.log("🔉 Volume change during ad - keeping radio low");
+    } else {
+      audio.volume = isMuted ? 0 : volume / 100;
+      console.log(`🔊 Setting audio volume to ${Math.round((isMuted ? 0 : volume / 100) * 100)}%`);
+    }
+  }, [volume, isMuted, isPlayingAd]);
+
   // Load station and auto-play with immediate loading (single audio element)
   useEffect(() => {
     if (!station || !audioRef.current) return;
@@ -698,8 +715,8 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
             await audioContextRef.current.resume();
           }
 
-          // Set appropriate volume based on ad state
-          audio.volume = isPlayingAd ? 0.02 : 1.0; // Very low volume if ad playing, full volume otherwise
+          // Set appropriate volume based on ad state and user settings
+          audio.volume = isPlayingAd ? 0.02 : isMuted ? 0 : volume / 100; // Very low volume if ad playing, user volume otherwise
 
           const playPromise = audio.play();
           if (playPromise !== undefined) {
