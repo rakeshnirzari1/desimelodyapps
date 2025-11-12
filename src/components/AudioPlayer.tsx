@@ -9,12 +9,7 @@ import { AdOverlay } from "./AdOverlay";
 import { getStationsWithSlugs } from "@/lib/station-utils";
 import { useAudio } from "@/contexts/AudioContext";
 import { useIsMobile } from "@/hooks/use-mobile";
-import {
-  getAdUrlForRegion,
-  shouldPlayAdOnStationChange,
-  shouldPlayAdOnTimeInterval,
-  logAdImpression,
-} from "@/lib/adManager";
+import { getAdUrlForRegion, shouldPlayAdOnTimeInterval, logAdImpression } from "@/lib/adManager";
 
 interface AudioPlayerProps {
   station: RadioStation | null;
@@ -58,7 +53,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const isMobile = useIsMobile();
   const lastPausedAtRef = useRef<number | null>(null);
   const wasBackgroundedRef = useRef(false);
-  const previousStationIdRef = useRef<string | null>(null);
+
   const wasPlayingBeforeOfflineRef = useRef(false);
   const isUserPausedRef = useRef(false);
   const stationChangeAutoplayRef = useRef(false);
@@ -387,19 +382,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     nextActionRef.current = playNextStation;
     prevActionRef.current = playPreviousStation;
   }, [station, filteredStations]);
-
-  // Check if ad should play on station change
-  useEffect(() => {
-    if (station && previousStationIdRef.current !== station.id) {
-      previousStationIdRef.current = station.id;
-
-      // Check if we should play an ad
-      if (shouldPlayAdOnStationChange(stationChangeCount, adAnalytics.lastAdTimestamp)) {
-        console.log("Triggering ad on station change");
-        playAd();
-      }
-    }
-  }, [station, stationChangeCount]);
 
   // Check for time-based ad intervals
   useEffect(() => {
