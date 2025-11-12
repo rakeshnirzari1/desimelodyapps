@@ -68,6 +68,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
 
       console.log("Playing ad:", adUrl);
       setIsPlayingAd(true);
+      setIsPlaying(false); // Radio is not playing during ad
 
       // CRITICAL: Pause radio and reset to prevent overlap
       if (audioRef.current) {
@@ -88,15 +89,14 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     } catch (error) {
       console.error("Error playing ad:", error);
       setIsPlayingAd(false);
-      if (audioRef.current && isPlaying) {
-        audioRef.current.play().catch(console.error);
-      }
+      // Don't restart radio during ad error - let it stay paused
+      console.log("Ad playback failed - radio remains paused");
     }
   };
 
   // Handle ad completion - auto-start next station
   const handleAdEnded = () => {
-    console.log("Ad finished - auto-starting next station");
+    console.log("Ad finished - waiting 1 second before starting next station");
     setIsPlayingAd(false);
 
     const audio = audioRef.current;
@@ -107,10 +107,12 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       audio.src = "";
     }
 
-    // Auto-skip to next station after ad
-    console.log("⏭️ Skipping to next station after ad");
-    setStationChangeCount((prev) => prev + 1);
-    onNext();
+    // Wait 1 second before auto-skipping to next station
+    setTimeout(() => {
+      console.log("⏭️ Skipping to next station after ad (1 second delay)");
+      setStationChangeCount((prev) => prev + 1);
+      onNext();
+    }, 1000); // 1 second delay
   };
 
   // Skip ad
@@ -185,17 +187,17 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       handlePauseAction();
     };
 
-  const handleMediaNext = () => {
-    console.log("⏭️ Media Session NEXT from car controls");
-    setStationChangeCount((prev) => prev + 1);
-    onNext();
-  };
+    const handleMediaNext = () => {
+      console.log("⏭️ Media Session NEXT from car controls");
+      setStationChangeCount((prev) => prev + 1);
+      onNext();
+    };
 
-  const handleMediaPrevious = () => {
-    console.log("⏮️ Media Session PREVIOUS from car controls");
-    setStationChangeCount((prev) => prev + 1);
-    onPrevious();
-  };
+    const handleMediaPrevious = () => {
+      console.log("⏮️ Media Session PREVIOUS from car controls");
+      setStationChangeCount((prev) => prev + 1);
+      onPrevious();
+    };
 
     try {
       navigator.mediaSession.setActionHandler("play", handleMediaPlay);
@@ -215,6 +217,12 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
 
     if (!audio || !station) {
       return Promise.reject(new Error("No audio or station"));
+    }
+
+    // Don't play radio if ad is currently playing
+    if (isPlayingAd) {
+      console.log("Ignoring playFromLiveEdge request - ad is currently playing");
+      return Promise.reject(new Error("Ad is playing"));
     }
 
     console.log(`Playing from live edge (attempt ${retryCount + 1}/${MAX_RETRIES})`);
@@ -346,6 +354,12 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
   const handlePlay = async () => {
     const audio = audioRef.current;
     if (!audio) return;
+
+    // Don't start radio if ad is currently playing
+    if (isPlayingAd) {
+      console.log("Ignoring play request - ad is currently playing");
+      return;
+    }
 
     try {
       console.log("Starting playback after pause...");
@@ -770,9 +784,9 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       }
     }
 
-    // Update playback state
+    // Update playback state - show paused during ads
     try {
-      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+      navigator.mediaSession.playbackState = isPlaying && !isPlayingAd ? "playing" : "paused";
     } catch (e) {
       console.warn("Error setting playback state:", e);
     }
@@ -798,8 +812,8 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
           });
         }
 
-        // ALWAYS sync playback state
-        navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+        // ALWAYS sync playback state - show paused during ads
+        navigator.mediaSession.playbackState = isPlaying && !isPlayingAd ? "playing" : "paused";
 
         // If we're loading or have an error message, that's when we need SafeKeeper most!
         if (isLoading || bufferingMessage) {
@@ -893,10 +907,10 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
 
       {/* Single audio element - much simpler! */}
       <audio ref={audioRef} crossOrigin="anonymous" preload="auto" playsInline />
-      
+
       {/* Ad audio element */}
       <audio ref={adAudioRef} preload="auto" />
-      
+
       {/* Ad Overlay */}
       <AdOverlay isVisible={isPlayingAd} duration={adDuration} onSkip={skipAd} />
     </div>
