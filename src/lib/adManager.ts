@@ -27,8 +27,8 @@ const DEFAULT_AD_CONFIG: Record<string, string> = {
   default: "/ad.mp3",
 };
 
-export const AD_TIME_INTERVAL = 5 * 60 * 1000; // 5 minutes
-export const AD_COOLDOWN = 4 * 1000; // 4 minimum between ads for testing
+export const AD_TIME_INTERVAL = 1 * 60 * 1000; // 1 minute for testing
+export const AD_COOLDOWN = 30 * 1000; // 30 seconds minimum between ads for testing
 
 // Supported countries for ads
 export const AD_COUNTRIES = [
