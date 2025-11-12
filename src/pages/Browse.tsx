@@ -70,11 +70,17 @@ const Browse = () => {
     return filtered;
   }, [searchQuery, languageFilter, sortBy]);
 
-  // Update filtered context when stations change
+  // Update filtered context when stations change AND autoplay first station when filtering
   useEffect(() => {
     setFilteredStations(filteredStations);
+    
+    // Autoplay first station if user is actively filtering/searching
+    if ((searchQuery || languageFilter !== "all") && filteredStations.length > 0 && !currentStation) {
+      setCurrentStation(filteredStations[0]);
+    }
+    
     return () => setFilteredStations(null);
-  }, [filteredStations, setFilteredStations]);
+  }, [filteredStations, setFilteredStations, searchQuery, languageFilter]);
 
   const handlePlay = (station: RadioStation) => {
     setCurrentStation(station);

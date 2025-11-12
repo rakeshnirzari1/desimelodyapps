@@ -2,6 +2,16 @@ import { useState, useRef, useEffect } from "react";
 import { RadioStation } from "@/types/station";
 import { Play, Pause, SkipForward, SkipBack } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AdOverlay } from "@/components/AdOverlay";
+import {
+  getAdUrlForRegion,
+  shouldPlayAdOnStationChange,
+  shouldPlayAdOnTimeInterval,
+  logAdImpression,
+  loadAdAnalytics,
+  saveAdAnalytics,
+  type AdAnalytics,
+} from "@/lib/adManager";
 
 interface MobilePlayerProps {
   station: RadioStation;
@@ -14,8 +24,14 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [bufferingMessage, setBufferingMessage] = useState("");
+  const [isPlayingAd, setIsPlayingAd] = useState(false);
+  const [adDuration, setAdDuration] = useState(0);
+  const [stationChangeCount, setStationChangeCount] = useState(0);
+  const [adAnalytics, setAdAnalytics] = useState<AdAnalytics>(() => loadAdAnalytics());
   const audioRef = useRef<HTMLAudioElement>(null);
   const audioContextRef = useRef<any>(null);
+  const adAudioRef = useRef<HTMLAudioElement>(null);
+  const adInProgressRef = useRef(false);
   const wasPlayingBeforeCallRef = useRef(false);
   const wasPlayingBeforeOfflineRef = useRef(false);
   const isUserPausedRef = useRef(false);
@@ -24,6 +40,143 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
   const inCallRef = useRef(false);
   const stationLoadTimeoutRef = useRef<number | null>(null);
   const mediaSessionSafeKeeperRef = useRef<number | null>(null);
+  const adIntervalCheckRef = useRef<number | null>(null);
+  const previousStationIdRef = useRef<string | null>(null);
+
+  // Sync adInProgressRef with isPlayingAd state
+  useEffect(() => {
+    adInProgressRef.current = isPlayingAd;
+  }, [isPlayingAd]);
+
+  // Save analytics whenever they change
+  useEffect(() => {
+    saveAdAnalytics(adAnalytics);
+  }, [adAnalytics]);
+
+  // Play ad with regional targeting
+  const playAd = async () => {
+    if (adInProgressRef.current) {
+      console.log("Ad already playing - skipping new ad trigger");
+      return;
+    }
+
+    try {
+      const adUrl = await getAdUrlForRegion();
+      const adAudio = adAudioRef.current;
+
+      if (!adAudio) return;
+
+      console.log("Playing ad:", adUrl);
+      setIsPlayingAd(true);
+
+      // Pause radio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+
+      // Load and play ad
+      adAudio.src = adUrl;
+      adAudio.volume = audioRef.current?.volume || 0.7;
+
+      await adAudio.play();
+
+      // Log ad impression
+      const updatedAnalytics = await logAdImpression(adAnalytics);
+      setAdAnalytics(updatedAnalytics);
+    } catch (error) {
+      console.error("Error playing ad:", error);
+      setIsPlayingAd(false);
+      if (audioRef.current && isPlaying) {
+        audioRef.current.play().catch(console.error);
+      }
+    }
+  };
+
+  // Handle ad completion - auto-resume radio
+  const handleAdEnded = () => {
+    console.log("Ad finished - resuming radio");
+    setIsPlayingAd(false);
+
+    const audio = audioRef.current;
+    if (audio && station) {
+      // Reload stream to get live edge
+      const sep = station.link.includes("?") ? "&" : "?";
+      audio.src = `${station.link}${sep}ts=${Date.now()}`;
+      audio.load();
+
+      audio
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+          console.log("Radio resumed from live edge");
+        })
+        .catch((error) => {
+          console.error("Failed to resume radio:", error);
+          setTimeout(() => {
+            audio?.play().then(() => setIsPlaying(true)).catch(console.error);
+          }, 500);
+        });
+    }
+  };
+
+  // Skip ad
+  const skipAd = () => {
+    console.log("Ad skipped by user");
+    if (adAudioRef.current) {
+      adAudioRef.current.pause();
+      adAudioRef.current.currentTime = 0;
+    }
+    handleAdEnded();
+  };
+
+  // Check if ad should play on station change
+  useEffect(() => {
+    if (station && previousStationIdRef.current !== station.id) {
+      previousStationIdRef.current = station.id;
+
+      if (shouldPlayAdOnStationChange(stationChangeCount, adAnalytics.lastAdTimestamp)) {
+        console.log("Triggering ad on station change");
+        playAd();
+      }
+    }
+  }, [station, stationChangeCount]);
+
+  // Check for time-based ad intervals
+  useEffect(() => {
+    if (!isPlaying) return;
+
+    adIntervalCheckRef.current = window.setInterval(() => {
+      if (shouldPlayAdOnTimeInterval(adAnalytics.sessionStartTime, adAnalytics.lastAdTimestamp)) {
+        console.log("Triggering ad on time interval");
+        playAd();
+      }
+    }, 60000); // Check every minute
+
+    return () => {
+      if (adIntervalCheckRef.current) {
+        clearInterval(adIntervalCheckRef.current);
+      }
+    };
+  }, [isPlaying, adAnalytics]);
+
+  // Setup ad audio element
+  useEffect(() => {
+    const adAudio = adAudioRef.current;
+    if (!adAudio) return;
+
+    const handleAdLoaded = () => {
+      setAdDuration(Math.floor(adAudio.duration));
+    };
+
+    adAudio.addEventListener("loadedmetadata", handleAdLoaded);
+    adAudio.addEventListener("ended", handleAdEnded);
+
+    return () => {
+      adAudio.removeEventListener("loadedmetadata", handleAdLoaded);
+      adAudio.removeEventListener("ended", handleAdEnded);
+    };
+  }, []);
 
   // Register MediaSession handlers - used by SafeKeeper
   const registerMediaSessionHandlers = () => {
@@ -39,15 +192,17 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       handlePauseAction();
     };
 
-    const handleMediaNext = () => {
-      console.log("⏭️ Media Session NEXT from car controls");
-      onNext();
-    };
+  const handleMediaNext = () => {
+    console.log("⏭️ Media Session NEXT from car controls");
+    setStationChangeCount((prev) => prev + 1);
+    onNext();
+  };
 
-    const handleMediaPrevious = () => {
-      console.log("⏮️ Media Session PREVIOUS from car controls");
-      onPrevious();
-    };
+  const handleMediaPrevious = () => {
+    console.log("⏮️ Media Session PREVIOUS from car controls");
+    setStationChangeCount((prev) => prev + 1);
+    onPrevious();
+  };
 
     try {
       navigator.mediaSession.setActionHandler("play", handleMediaPlay);
@@ -698,7 +853,10 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
           <Button
             variant="ghost"
             size="icon"
-            onClick={onPrevious}
+            onClick={() => {
+              setStationChangeCount((prev) => prev + 1);
+              onPrevious();
+            }}
             className="h-12 w-12 rounded-full"
             disabled={isLoading}
           >
@@ -721,7 +879,16 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
             )}
           </Button>
 
-          <Button variant="ghost" size="icon" onClick={onNext} className="h-12 w-12 rounded-full" disabled={isLoading}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setStationChangeCount((prev) => prev + 1);
+              onNext();
+            }}
+            className="h-12 w-12 rounded-full"
+            disabled={isLoading}
+          >
             <SkipForward className="h-6 w-6" />
           </Button>
         </div>
@@ -729,6 +896,12 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
 
       {/* Single audio element - much simpler! */}
       <audio ref={audioRef} crossOrigin="anonymous" preload="auto" playsInline />
+      
+      {/* Ad audio element */}
+      <audio ref={adAudioRef} preload="auto" />
+      
+      {/* Ad Overlay */}
+      <AdOverlay isVisible={isPlayingAd} duration={adDuration} onSkip={skipAd} />
     </div>
   );
 };

@@ -28,16 +28,17 @@ const TagFilter = () => {
     );
   }, [decodedTag]);
 
-  // Update filtered context when stations change
+  // Update filtered context when stations change AND autoplay first station
   useEffect(() => {
     setFilteredStations(filteredStations);
+    
+    // Autoplay first station if we have filtered results
+    if (filteredStations.length > 0 && !currentStation) {
+      setCurrentStation(filteredStations[0]);
+    }
+    
     return () => setFilteredStations(null);
   }, [filteredStations, setFilteredStations]);
-
-  // Stop playback when entering tag page
-  useEffect(() => {
-    setCurrentStation(null);
-  }, []);
 
   const handlePlay = (station: RadioStation) => {
     setCurrentStation(station);
