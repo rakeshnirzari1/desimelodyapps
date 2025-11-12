@@ -706,8 +706,8 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
         }
       }
 
-      // Auto-play only if not user-paused
-      if (!isUserPausedRef.current) {
+      // NEW: Only autoplay if already playing (station changes, not first load)
+      if (!isUserPausedRef.current && isPlaying) {
         try {
           // Resume AudioContext before play
           if (audioContextRef.current && audioContextRef.current.state === "suspended") {
