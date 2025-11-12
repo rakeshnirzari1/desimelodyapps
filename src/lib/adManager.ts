@@ -28,8 +28,8 @@ const DEFAULT_AD_CONFIG: Record<string, string> = {
 };
 
 export const AD_FREQUENCY = 5; // Every 5th station change
-export const AD_TIME_INTERVAL = 5 * 60 * 1000; // 10 minutes
-export const AD_COOLDOWN = 4 * 60 * 1000; // 7 minutes minimum between ads
+export const AD_TIME_INTERVAL = 1 * 60 * 1000; // 10 minutes
+export const AD_COOLDOWN = 1 * 60 * 1000; // 7 minutes minimum between ads
 
 // Supported countries for ads
 export const AD_COUNTRIES = [
