@@ -60,6 +60,262 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     }
   };
 
+  // Load and play from live edge - Enhanced for long pause recovery
+  const playFromLiveEdge = async (retryCount = 0): Promise<void> => {
+    const MAX_RETRIES = 5; // Increased retries for better reliability after long pauses
+    const audio = audioRef.current;
+
+    if (!audio || !station) {
+      return Promise.reject(new Error("No audio or station"));
+    }
+
+    console.log(`Playing from live edge (attempt ${retryCount + 1}/${MAX_RETRIES})`);
+
+    try {
+      // Resume AudioContext first
+      if (audioContextRef.current && audioContextRef.current.state === "suspended") {
+        await audioContextRef.current.resume();
+      }
+
+      // CRITICAL: Always force a completely fresh connection for live radio
+      // Use a more aggressive cache-busting approach for long pauses
+      const timestamp = Date.now();
+      const randomParam = Math.random().toString(36).substring(7);
+      const sep = station.link.includes("?") ? "&" : "?";
+
+      // Clear existing source first to ensure fresh connection
+      audio.src = "";
+      audio.load();
+
+      // Set new source with enhanced cache busting
+      audio.src = `${station.link}${sep}ts=${timestamp}&r=${randomParam}&live=1`;
+      console.log(`Loading fresh live stream: ${audio.src}`);
+      audio.load();
+
+      return new Promise((resolve, reject) => {
+        // Timeout for this specific attempt
+        const loadTimeout = setTimeout(() => {
+          console.log(`Load timeout on attempt ${retryCount + 1}`);
+          cleanup();
+
+          if (retryCount < MAX_RETRIES - 1) {
+            // Progressive backoff for retries
+            const delay = Math.min(1000 * (retryCount + 1), 3000);
+            setTimeout(() => {
+              playFromLiveEdge(retryCount + 1)
+                .then(resolve)
+                .catch(reject);
+            }, delay);
+          } else {
+            setIsPlaying(false);
+            setIsLoading(false);
+            setBufferingMessage("Cannot connect to live stream");
+            reject(new Error("Load timeout - all retries failed"));
+          }
+        }, 10000); // 10 second timeout per attempt
+
+        const handleCanPlay = () => {
+          console.log("Stream ready - seeking to live edge");
+
+          // Always seek to live edge for radio streams to ensure current content
+          if (audio.seekable.length > 0) {
+            try {
+              const liveEdge = audio.seekable.end(0);
+              audio.currentTime = liveEdge;
+              console.log(`Seeked to live edge: ${liveEdge} seconds`);
+            } catch (e) {
+              console.warn("Could not seek to live edge:", e);
+              // Continue anyway - some streams don't support seeking
+            }
+          }
+
+          audio
+            .play()
+            .then(() => {
+              console.log("Successfully playing live stream from fresh connection");
+              setIsPlaying(true);
+              setIsLoading(false);
+              setBufferingMessage("");
+              cleanup();
+              resolve();
+            })
+            .catch((error: any) => {
+              console.error("Play failed:", error);
+              cleanup();
+
+              if (retryCount < MAX_RETRIES - 1) {
+                // Progressive backoff for retries
+                const delay = Math.min(1000 * (retryCount + 1), 3000);
+                setTimeout(() => {
+                  playFromLiveEdge(retryCount + 1)
+                    .then(resolve)
+                    .catch(reject);
+                }, delay);
+              } else {
+                setIsPlaying(false);
+                setIsLoading(false);
+                setBufferingMessage("Playback failed - check connection");
+                reject(error);
+              }
+            });
+        };
+
+        const handleError = () => {
+          console.error(`Stream load error on attempt ${retryCount + 1}`);
+          cleanup();
+
+          if (retryCount < MAX_RETRIES - 1) {
+            // Progressive backoff for retries
+            const delay = Math.min(1000 * (retryCount + 1), 3000);
+            setTimeout(() => {
+              playFromLiveEdge(retryCount + 1)
+                .then(resolve)
+                .catch(reject);
+            }, delay);
+          } else {
+            setIsPlaying(false);
+            setIsLoading(false);
+            setBufferingMessage("Stream unavailable");
+            reject(new Error("Failed to load - all retries failed"));
+          }
+        };
+
+        const cleanup = () => {
+          clearTimeout(loadTimeout);
+          audio.removeEventListener("canplay", handleCanPlay);
+          audio.removeEventListener("error", handleError);
+        };
+
+        audio.addEventListener("canplay", handleCanPlay, { once: true });
+        audio.addEventListener("error", handleError, { once: true });
+      });
+    } catch (error) {
+      console.error("Play from live edge error:", error);
+      throw error;
+    }
+  };
+
+  const handlePlay = async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    try {
+      console.log("Starting playback after pause...");
+      setBufferingMessage("Connecting to live stream...");
+
+      // ALWAYS force a fresh connection for live radio after any pause
+      // This ensures we get the latest live content, not stale buffered content
+
+      // Clear any existing source first
+      audio.src = "";
+      audio.load();
+
+      // Resume AudioContext FIRST
+      if (audioContextRef.current && audioContextRef.current.state === "suspended") {
+        console.log("Resuming suspended AudioContext");
+        await audioContextRef.current.resume();
+      } else if (!audioContextRef.current) {
+        // Create if not exists
+        try {
+          const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
+          if (AC) {
+            audioContextRef.current = new AC();
+            await audioContextRef.current.resume();
+          }
+        } catch (e) {
+          console.log("AudioContext creation failed:", e);
+        }
+      }
+
+      isUserPausedRef.current = false;
+      wasPlayingBeforeCallRef.current = false;
+
+      // CRITICAL: Always reload from live edge on resume to ensure fresh live content
+      setIsLoading(true);
+
+      try {
+        // Force fresh stream connection with cache-busting timestamp
+        console.log("Forcing fresh live stream connection...");
+        await playFromLiveEdge();
+
+        if ("mediaSession" in navigator) {
+          navigator.mediaSession.playbackState = "playing";
+        }
+
+        console.log("Successfully resumed with fresh live stream");
+      } catch (error) {
+        console.error("Failed to reload from live edge:", error);
+        setIsPlaying(false);
+        setIsLoading(false);
+        setBufferingMessage("Reconnecting to live stream...");
+
+        if ("mediaSession" in navigator) {
+          navigator.mediaSession.playbackState = "paused";
+        }
+
+        // Enhanced retry with multiple attempts for long pauses
+        let retryCount = 0;
+        const maxRetries = 5;
+
+        const retryWithBackoff = async () => {
+          retryCount++;
+          const delay = Math.min(1000 * retryCount, 5000); // Progressive backoff up to 5s
+
+          console.log(`Retry attempt ${retryCount}/${maxRetries} after ${delay}ms delay...`);
+          setBufferingMessage(`Reconnecting... (${retryCount}/${maxRetries})`);
+
+          setTimeout(async () => {
+            try {
+              // Clear and reload again for fresh connection
+              audio.src = "";
+              audio.load();
+
+              await playFromLiveEdge();
+
+              if ("mediaSession" in navigator) {
+                navigator.mediaSession.playbackState = "playing";
+              }
+
+              console.log(`Successfully connected on retry ${retryCount}`);
+            } catch (e) {
+              console.error(`Retry ${retryCount} failed:`, e);
+
+              if (retryCount < maxRetries) {
+                retryWithBackoff();
+              } else {
+                setBufferingMessage("Unable to connect to live stream");
+                console.error("All retry attempts failed");
+              }
+            }
+          }, delay);
+        };
+
+        retryWithBackoff();
+      }
+    } catch (error) {
+      console.error("Play error:", error);
+      setBufferingMessage("Connection issue, retrying...");
+      setIsPlaying(false);
+
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.playbackState = "paused";
+      }
+    }
+  };
+
+  const handlePauseAction = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    isUserPausedRef.current = true;
+    audio.pause();
+    setIsPlaying(false);
+
+    if ("mediaSession" in navigator) {
+      navigator.mediaSession.playbackState = "paused";
+    }
+  };
+
   // Initialize AudioContext for mobile
   useEffect(() => {
     const initAudioContext = () => {
@@ -326,30 +582,6 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       }, 500);
     };
 
-    // Timeout handler - also auto-skip with error recovery
-    const handleLoadTimeout = () => {
-      console.log("⏱️ Station loading timeout - auto-skipping to next");
-      if (audio.readyState === 0) {
-        setIsLoading(false);
-        setBufferingMessage("Station timeout, skipping...");
-
-        if ("mediaSession" in navigator) {
-          // Keep metadata on lock screen
-          navigator.mediaSession.playbackState = "paused";
-        }
-
-        // Auto-skip quickly
-        setTimeout(() => {
-          console.log("⏭️ Calling onNext() due to timeout");
-          setBufferingMessage("");
-          onNext();
-        }, 500);
-      }
-    };
-
-    // Start timeout for this station
-    const timeout = window.setTimeout(handleLoadTimeout, 15000); // 15 seconds
-
     audio.addEventListener("canplay", handleCanPlay);
     audio.addEventListener("waiting", handleWaiting);
     audio.addEventListener("playing", handlePlaying);
@@ -360,8 +592,6 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       audio.removeEventListener("waiting", handleWaiting);
       audio.removeEventListener("playing", handlePlaying);
       audio.removeEventListener("error", handleError);
-
-      clearTimeout(timeout);
 
       if (stationLoadTimeoutRef.current) {
         clearTimeout(stationLoadTimeoutRef.current);
@@ -439,193 +669,6 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       }
     };
   }, [station, isPlaying, bufferingMessage, isLoading, onNext, onPrevious]);
-
-  // Load and play from live edge
-  const playFromLiveEdge = async (retryCount = 0): Promise<void> => {
-    const MAX_RETRIES = 3;
-    const audio = audioRef.current;
-
-    if (!audio || !station) {
-      return Promise.reject(new Error("No audio or station"));
-    }
-
-    console.log(`Playing from live edge (attempt ${retryCount + 1}/${MAX_RETRIES})`);
-
-    try {
-      // Resume AudioContext first
-      if (audioContextRef.current && audioContextRef.current.state === "suspended") {
-        await audioContextRef.current.resume();
-      }
-
-      // Reload stream
-      const sep = station.link.includes("?") ? "&" : "?";
-      audio.src = `${station.link}${sep}ts=${Date.now()}`;
-      audio.load();
-
-      return new Promise((resolve, reject) => {
-        const handleCanPlay = () => {
-          // Seek to live edge
-          if (audio.seekable.length > 0) {
-            try {
-              audio.currentTime = audio.seekable.end(0);
-            } catch (e) {
-              console.warn("Could not seek to live edge:", e);
-            }
-          }
-
-          audio
-            .play()
-            .then(() => {
-              console.log("Successfully playing from live edge");
-              setIsPlaying(true);
-              setIsLoading(false);
-              setBufferingMessage("");
-              cleanup();
-              resolve();
-            })
-            .catch((error: any) => {
-              console.error("Play failed:", error);
-              cleanup();
-
-              if (retryCount < MAX_RETRIES - 1) {
-                setTimeout(
-                  () => {
-                    playFromLiveEdge(retryCount + 1)
-                      .then(resolve)
-                      .catch(reject);
-                  },
-                  500 * (retryCount + 1),
-                );
-              } else {
-                setIsPlaying(false);
-                setIsLoading(false);
-                setBufferingMessage("Connection issue, retrying...");
-                reject(error);
-              }
-            });
-        };
-
-        const handleError = () => {
-          console.error("Load error");
-          cleanup();
-
-          if (retryCount < MAX_RETRIES - 1) {
-            setTimeout(
-              () => {
-                playFromLiveEdge(retryCount + 1)
-                  .then(resolve)
-                  .catch(reject);
-              },
-              500 * (retryCount + 1),
-            );
-          } else {
-            setIsPlaying(false);
-            setIsLoading(false);
-            setBufferingMessage("Station unavailable");
-            reject(new Error("Failed to load"));
-          }
-        };
-
-        const cleanup = () => {
-          audio.removeEventListener("canplay", handleCanPlay);
-          audio.removeEventListener("error", handleError);
-        };
-
-        audio.addEventListener("canplay", handleCanPlay, { once: true });
-        audio.addEventListener("error", handleError, { once: true });
-      });
-    } catch (error) {
-      console.error("Play from live edge error:", error);
-      throw error;
-    }
-  };
-
-  const handlePlay = async () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    try {
-      console.log("Starting playback...");
-      setBufferingMessage("Buffering, please wait...");
-
-      // Resume AudioContext FIRST
-      if (audioContextRef.current && audioContextRef.current.state === "suspended") {
-        console.log("Resuming suspended AudioContext");
-        await audioContextRef.current.resume();
-      } else if (!audioContextRef.current) {
-        // Create if not exists
-        try {
-          const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
-          if (AC) {
-            audioContextRef.current = new AC();
-            await audioContextRef.current.resume();
-          }
-        } catch (e) {
-          console.log("AudioContext creation failed:", e);
-        }
-      }
-
-      isUserPausedRef.current = false;
-      wasPlayingBeforeCallRef.current = false;
-
-      // Reload from live edge on every resume (ensures live playback)
-      setIsLoading(true);
-
-      try {
-        await playFromLiveEdge();
-
-        if ("mediaSession" in navigator) {
-          navigator.mediaSession.playbackState = "playing";
-        }
-
-        console.log("Successfully resumed");
-      } catch (error) {
-        console.error("Failed to reload from live edge:", error);
-        setIsPlaying(false);
-        setIsLoading(false);
-        setBufferingMessage("Connection issue, retrying...");
-
-        if ("mediaSession" in navigator) {
-          navigator.mediaSession.playbackState = "paused";
-        }
-
-        // Retry after delay
-        setTimeout(async () => {
-          console.log("Retrying play after failure...");
-          try {
-            await playFromLiveEdge();
-            if ("mediaSession" in navigator) {
-              navigator.mediaSession.playbackState = "playing";
-            }
-          } catch (e) {
-            console.error("Retry failed:", e);
-            setBufferingMessage("Could not connect");
-          }
-        }, 1500);
-      }
-    } catch (error) {
-      console.error("Play error:", error);
-      setBufferingMessage("Connection issue, retrying...");
-      setIsPlaying(false);
-
-      if ("mediaSession" in navigator) {
-        navigator.mediaSession.playbackState = "paused";
-      }
-    }
-  };
-
-  const handlePauseAction = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    isUserPausedRef.current = true;
-    audio.pause();
-    setIsPlaying(false);
-
-    if ("mediaSession" in navigator) {
-      navigator.mediaSession.playbackState = "paused";
-    }
-  };
 
   const togglePlayPause = () => {
     if (isPlaying) {
