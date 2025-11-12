@@ -78,12 +78,12 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
       // OVERLAY MODE: Lower radio volume instead of stopping it
       if (radioAudio && isPlaying) {
         console.log("🔉 Lowering radio volume for ad overlay");
-        radioAudio.volume = 0.05; // Very low volume (5%) so ad is clearly audible
+        radioAudio.volume = 0.02; // Very low volume (2%) so ad is clearly audible
       }
 
       // Load and play ad at maximum volume
       adAudio.src = adUrl;
-      adAudio.volume = 0.95; // Ad plays at 95% volume to be clearly heard over low radio
+      adAudio.volume = 1.0; // Ad plays at full volume (100%) to be clearly heard over low radio
 
       await adAudio.play();
 
@@ -96,7 +96,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
 
       // Restore radio volume if ad fails
       if (audioRef.current && isPlaying) {
-        audioRef.current.volume = 0.7; // Restore normal volume
+        audioRef.current.volume = 0.8; // Restore normal volume
       }
 
       console.log("Ad playback failed - radio volume restored");
@@ -113,7 +113,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     // OVERLAY MODE: Restore normal radio volume (radio never stopped playing)
     if (radioAudio && isPlaying) {
       console.log("🔊 Restoring normal radio volume after ad");
-      radioAudio.volume = 0.7; // Restore normal volume
+      radioAudio.volume = 0.8; // Restore normal volume
     }
 
     // Reset ad state
@@ -133,7 +133,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     // Restore radio volume immediately when skipped
     if (audioRef.current && isPlaying) {
       console.log("🔊 Restoring radio volume after ad skip");
-      audioRef.current.volume = 0.7; // Restore normal radio volume
+      audioRef.current.volume = 0.8; // Restore normal radio volume
     }
 
     handleAdEnded();
@@ -300,7 +300,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
           }
 
           // Set appropriate volume based on ad state before playing
-          audio.volume = isPlayingAd ? 0.05 : 0.7;
+          audio.volume = isPlayingAd ? 0.02 : 0.8;
 
           audio
             .play()
@@ -715,7 +715,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
           }
 
           // Set appropriate volume based on ad state
-          audio.volume = isPlayingAd ? 0.05 : 0.7; // Very low volume if ad playing, normal otherwise
+          audio.volume = isPlayingAd ? 0.02 : 0.8; // Very low volume if ad playing, normal otherwise
 
           const playPromise = audio.play();
           if (playPromise !== undefined) {
