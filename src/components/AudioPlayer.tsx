@@ -45,233 +45,203 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const isMobile = useIsMobile();
 
   // Sync adInProgressRef with isPlayingAd state
-useEffect(() => {
-  adInProgressRef.current = isPlayingAd;
-}, [isPlayingAd]);
+  useEffect(() => {
+    adInProgressRef.current = isPlayingAd;
+  }, [isPlayingAd]);
 
-// Utility: Smoothly fade radio volume back to normal
-const fadeInRadio = (targetVolume = volume / 100, duration = 2000) => {
-  const radioAudio = audioRef.current;
-  if (!radioAudio) return;
-
-  const steps = 20; // number of volume increments
-  const stepTime = duration / steps;
-  const startVolume = radioAudio.volume;
-  const increment = (targetVolume - startVolume) / steps;
-
-  let currentStep = 0;
-  const fadeInterval = setInterval(() => {
-    currentStep++;
-    radioAudio.volume = Math.min(targetVolume, radioAudio.volume + increment);
-    if (currentStep >= steps) clearInterval(fadeInterval);
-  }, stepTime);
-};
-
-// Play ad with regional targeting - OVERLAY MODE (radio continues at low volume)
-const playAd = async () => {
-  // Prevent concurrent ads
-  if (adInProgressRef.current) {
-    console.log("Ad already playing - skipping new ad trigger");
-    return;
-  }
-
-  try {
-    const adUrl = await getAdUrlForRegion();
-    const adAudio = adAudioRef.current;
-    const radioAudio = audioRef.current;
-
-    if (!adAudio || !radioAudio) return;
-
-    console.log("Playing ad overlay:", adUrl);
-
-    // Set ad state
-    setIsPlayingAd(true);
-
-    // OVERLAY MODE: Lower radio volume instead of stopping it
-    if (radioAudio && isPlaying) {
-      console.log("🔉 Lowering radio volume for ad overlay");
-      radioAudio.volume = 0.02; // 2% so ad is clearly audible
+  // Play ad with regional targeting - OVERLAY MODE (radio continues at low volume)
+  const playAd = async () => {
+    // Prevent concurrent ads
+    if (adInProgressRef.current) {
+      console.log("Ad already playing - skipping new ad trigger");
+      return;
     }
 
-    // Load and play ad at max volume
-    adAudio.src = adUrl;
-    adAudio.volume = 1.0;
-    await adAudio.play();
+    try {
+      const adUrl = await getAdUrlForRegion();
+      const adAudio = adAudioRef.current;
+      const radioAudio = audioRef.current;
 
-    // Log ad impression
-    const updatedAnalytics = await logAdImpression(adAnalytics);
-    updateAdAnalytics(updatedAnalytics);
-  } catch (error) {
-    console.error("Error playing ad:", error);
+      if (!adAudio || !radioAudio) return;
+
+      console.log("Playing ad overlay:", adUrl);
+
+      // Set ad state
+      setIsPlayingAd(true);
+      // Keep isPlaying true so radio controls stay active
+
+      // OVERLAY MODE: Lower radio volume instead of stopping it
+      if (radioAudio && isPlaying) {
+        console.log("🔉 Lowering radio volume for ad overlay");
+        radioAudio.volume = 0.02; // Very low volume (2%) so ad is clearly audible
+      }
+
+      // Load and play ad at maximum volume
+      adAudio.src = adUrl;
+      adAudio.volume = 1.0; // Ad plays at full volume (100%) to be clearly heard over low radio
+
+      await adAudio.play();
+
+      // Log ad impression
+      const updatedAnalytics = await logAdImpression(adAnalytics);
+      updateAdAnalytics(updatedAnalytics);
+    } catch (error) {
+      console.error("Error playing ad:", error);
+      setIsPlayingAd(false);
+
+      // Restore radio volume if ad fails
+      if (audioRef.current && isPlaying) {
+        audioRef.current.volume = isMuted ? 0 : volume / 100; // Restore normal volume
+      }
+
+      console.log("Ad playback failed - radio volume restored");
+    }
+  };
+
+  // Handle ad completion - restore normal radio volume
+  const handleAdEnded = () => {
+    console.log("Ad finished - restoring normal radio volume");
     setIsPlayingAd(false);
 
-    // Restore radio volume if ad fails
+    const radioAudio = audioRef.current;
+
+    // OVERLAY MODE: Restore normal radio volume (radio never stopped playing)
+    if (radioAudio && isPlaying) {
+      console.log("🔊 Restoring normal radio volume after ad");
+      radioAudio.volume = isMuted ? 0 : volume / 100; // Restore normal volume based on user settings
+    }
+
+    console.log("📻 Radio continues playing at normal volume");
+  };
+
+  // Skip ad (if user wants)
+  const skipAd = () => {
+    console.log("Ad skipped by user");
+    if (adAudioRef.current) {
+      adAudioRef.current.pause();
+      adAudioRef.current.currentTime = 0;
+    }
+
+    // Restore radio volume immediately when skipped
     if (audioRef.current && isPlaying) {
-      fadeInRadio(isMuted ? 0 : volume / 100); // Smooth restore
+      console.log("🔊 Restoring radio volume after ad skip");
+      audioRef.current.volume = isMuted ? 0 : volume / 100; // Restore normal volume based on user settings
     }
 
-    console.log("Ad playback failed - radio volume restored");
-  }
-};
-
-// Handle ad completion - restore normal radio volume smoothly
-const handleAdEnded = () => {
-  console.log("Ad finished - restoring normal radio volume");
-  setIsPlayingAd(false);
-
-  const radioAudio = audioRef.current;
-
-  // OVERLAY MODE: Restore normal radio volume (radio never stopped playing)
-  if (radioAudio && isPlaying) {
-    console.log("🔊 Fading radio volume back to normal after ad");
-    fadeInRadio(isMuted ? 0 : volume / 100); // Smooth fade-in
-  }
-
-  console.log("📻 Radio continues playing at normal volume");
-};
-
-// Skip ad (if user wants)
-const skipAd = () => {
-  console.log("Ad skipped by user");
-  if (adAudioRef.current) {
-    adAudioRef.current.pause();
-    adAudioRef.current.currentTime = 0;
-  }
-
-  // Restore radio volume immediately when skipped
-  if (audioRef.current && isPlaying) {
-    console.log("🔊 Fading radio volume back to normal after ad skip");
-    fadeInRadio(isMuted ? 0 : volume / 100); // Smooth fade-in
-  }
-
-  handleAdEnded();
-};
-
-// Change to next station without navigation
-const playNextStation = () => {
-  if (!station) return;
-
-  const stations = filteredStations || getStationsWithSlugs();
-  const currentIndex = stations.findIndex((s) => s.id === station.id);
-  const nextIndex = (currentIndex + 1) % stations.length;
-  const nextStation = stations[nextIndex];
-
-  incrementStationChangeCount();
-  setCurrentStation(nextStation);
-};
-
-// Change to previous station without navigation
-const playPreviousStation = () => {
-  if (!station) return;
-
-  const stations = filteredStations || getStationsWithSlugs();
-  const currentIndex = stations.findIndex((s) => s.id === station.id);
-  const prevIndex = currentIndex === 0 ? stations.length - 1 : currentIndex - 1;
-  const prevStation = stations[prevIndex];
-
-  incrementStationChangeCount();
-  setCurrentStation(prevStation);
-};
-
-// Check for time-based ad intervals
-useEffect(() => {
-  if (!isPlaying) return;
-
-  adIntervalCheckRef.current = setInterval(() => {
-    const now = Date.now();
-    const timeSinceSession = now - adAnalytics.sessionStartTime;
-    const timeSinceLastAd = adAnalytics.lastAdTimestamp
-      ? now - adAnalytics.lastAdTimestamp
-      : Infinity;
-
-    console.log("🕐 Ad time check:", {
-      timeSinceSession: Math.floor(timeSinceSession / 1000) + "s",
-      timeSinceLastAd: adAnalytics.lastAdTimestamp
-        ? Math.floor(timeSinceLastAd / 1000) + "s"
-        : "never",
-      shouldTrigger: shouldPlayAdOnTimeInterval(
-        adAnalytics.sessionStartTime,
-        adAnalytics.lastAdTimestamp
-      ),
-    });
-
-    if (
-      shouldPlayAdOnTimeInterval(
-        adAnalytics.sessionStartTime,
-        adAnalytics.lastAdTimestamp
-      )
-    ) {
-      console.log("✅ Triggering ad on time interval");
-      playAd();
-    }
-  }, 60000); // check every minute
-
-  return () => {
-    if (adIntervalCheckRef.current) {
-      clearInterval(adIntervalCheckRef.current);
-    }
-  };
-}, [isPlaying, adAnalytics]);
-
-// Setup ad audio element
-useEffect(() => {
-  const adAudio = adAudioRef.current;
-  if (!adAudio) return;
-
-  const handleAdLoaded = () => {
-    setAdDuration(Math.floor(adAudio.duration));
+    handleAdEnded();
   };
 
-  adAudio.addEventListener("loadedmetadata", handleAdLoaded);
-  adAudio.addEventListener("ended", handleAdEnded);
+  // Change to next station without navigation
+  const playNextStation = () => {
+    if (!station) return;
 
-  return () => {
-    adAudio.removeEventListener("loadedmetadata", handleAdLoaded);
-    adAudio.removeEventListener("ended", handleAdEnded);
+    // Use filtered stations if available (search/tag results), otherwise use all stations
+    const stations = filteredStations || getStationsWithSlugs();
+    const currentIndex = stations.findIndex((s) => s.id === station.id);
+    const nextIndex = (currentIndex + 1) % stations.length;
+    const nextStation = stations[nextIndex];
+
+    incrementStationChangeCount();
+    setCurrentStation(nextStation);
   };
-}, []);
 
-// Load station and auto-play (simple single audio element like MobilePlayer)
-useEffect(() => {
-  if (!station || !audioRef.current) return;
+  // Change to previous station without navigation
+  const playPreviousStation = () => {
+    if (!station) return;
 
-  if ("mediaSession" in navigator) {
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: station.name,
-      artist: `${station.language || "Hindi"} • ${station.type}`,
-      album: "DesiMelody.com",
-      artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
-    });
-  }
+    // Use filtered stations if available (search/tag results), otherwise use all stations
+    const stations = filteredStations || getStationsWithSlugs();
+    const currentIndex = stations.findIndex((s) => s.id === station.id);
+    const prevIndex = currentIndex === 0 ? stations.length - 1 : currentIndex - 1;
+    const prevStation = stations[prevIndex];
 
-  setIsLoading(true);
-  setPlaybackTime(0);
+    incrementStationChangeCount();
+    setCurrentStation(prevStation);
+  };
 
-  const audio = audioRef.current;
+  // Check for time-based ad intervals
+  useEffect(() => {
+    if (!isPlaying) return;
 
-  const sep = station.link.includes("?") ? "&" : "?";
-  audio.src = `${station.link}${sep}ts=${Date.now()}`;
-  audio.load();
+    adIntervalCheckRef.current = setInterval(() => {
+      const now = Date.now();
+      const timeSinceSession = now - adAnalytics.sessionStartTime;
+      const timeSinceLastAd = adAnalytics.lastAdTimestamp ? now - adAnalytics.lastAdTimestamp : Infinity;
 
-  const handleCanPlay = async () => {
-    console.log("Station ready to play");
-    setIsLoading(false);
+      console.log("🕐 Ad time check:", {
+        timeSinceSession: Math.floor(timeSinceSession / 1000) + "s",
+        timeSinceLastAd: adAnalytics.lastAdTimestamp ? Math.floor(timeSinceLastAd / 1000) + "s" : "never",
+        shouldTrigger: shouldPlayAdOnTimeInterval(adAnalytics.sessionStartTime, adAnalytics.lastAdTimestamp),
+      });
 
-    if (audio.seekable.length > 0) {
-      try {
-        audio.currentTime = audio.seekable.end(0);
-        console.log("Seeked to live edge:", audio.seekable.end(0));
-      } catch (e) {
-        console.warn("Could not seek to live edge:", e);
+      if (shouldPlayAdOnTimeInterval(adAnalytics.sessionStartTime, adAnalytics.lastAdTimestamp)) {
+        console.log("✅ Triggering ad on time interval");
+        playAd();
       }
-    }
-  };
+    }, 60000); // Check every minute
 
-  audio.addEventListener("canplay", handleCanPlay);
-  return () => {
-    audio.removeEventListener("canplay", handleCanPlay);
-  };
-}, [station]);
+    return () => {
+      if (adIntervalCheckRef.current) {
+        clearInterval(adIntervalCheckRef.current);
+      }
+    };
+  }, [isPlaying, adAnalytics]);
+
+  // Setup ad audio element
+  useEffect(() => {
+    const adAudio = adAudioRef.current;
+    if (!adAudio) return;
+
+    const handleAdLoaded = () => {
+      setAdDuration(Math.floor(adAudio.duration));
+    };
+
+    adAudio.addEventListener("loadedmetadata", handleAdLoaded);
+    adAudio.addEventListener("ended", handleAdEnded);
+
+    return () => {
+      adAudio.removeEventListener("loadedmetadata", handleAdLoaded);
+      adAudio.removeEventListener("ended", handleAdEnded);
+    };
+  }, []);
+
+  // Load station and auto-play (simple single audio element like MobilePlayer)
+  useEffect(() => {
+    if (!station || !audioRef.current) return;
+
+    // Update Media Session metadata immediately
+    if ("mediaSession" in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: station.name,
+        artist: `${station.language || "Hindi"} • ${station.type}`,
+        album: "DesiMelody.com",
+        artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
+      });
+    }
+
+    setIsLoading(true);
+    setPlaybackTime(0);
+
+    const audio = audioRef.current;
+
+    // Load new station immediately (single element approach like MobilePlayer)
+    const sep = station.link.includes("?") ? "&" : "?";
+    audio.src = `${station.link}${sep}ts=${Date.now()}`;
+    audio.load();
+
+    const handleCanPlay = async () => {
+      console.log("Station ready to play");
+      setIsLoading(false);
+
+      // Seek to live edge if available
+      if (audio.seekable.length > 0) {
+        try {
+          audio.currentTime = audio.seekable.end(0);
+          console.log("Seeked to live edge:", audio.seekable.end(0));
+        } catch (e) {
+          console.warn("Could not seek to live edge:", e);
+        }
+      }
 
       // Auto-play
       try {
