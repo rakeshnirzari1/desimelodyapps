@@ -27,8 +27,9 @@ const DEFAULT_AD_CONFIG: Record<string, string> = {
   default: "/ad.mp3",
 };
 
-export const AD_TIME_INTERVAL = 1 * 60 * 1000; // 1 minute for testing
-export const AD_COOLDOWN = 30 * 1000; // 30 seconds minimum between ads for testing
+export const AD_FREQUENCY = 5; // Every 5th station change
+export const AD_TIME_INTERVAL = 1 * 60 * 1000; // 10 minutes
+export const AD_COOLDOWN = 1 * 60 * 1000; // 7 minutes minimum between ads
 
 // Supported countries for ads
 export const AD_COUNTRIES = [
@@ -75,26 +76,18 @@ const getAvailableAdsForCountry = async (country: string): Promise<string[]> => 
 export const getAdUrlForRegion = async (): Promise<string> => {
   try {
     const country = await getUserCountry();
-    console.log("🌍 Detected country for ad:", country);
-
     const ads = await getAvailableAdsForCountry(country);
-    console.log("📁 Available ads for", country + ":", ads);
 
     if (ads.length > 0) {
       // Randomly select an ad from available ads
       const randomIndex = Math.floor(Math.random() * ads.length);
-      const selectedAd = ads[randomIndex];
-      console.log("🎯 Selected ad:", selectedAd);
-      return selectedAd;
+      return ads[randomIndex];
     }
 
     // Fallback to old single-file structure
-    const fallbackAd = DEFAULT_AD_CONFIG[country] || DEFAULT_AD_CONFIG.default;
-    console.log("⚠️ Using fallback ad:", fallbackAd);
-    return fallbackAd;
+    return DEFAULT_AD_CONFIG[country] || DEFAULT_AD_CONFIG.default;
   } catch (error) {
-    console.log("❌ Error detecting country for ad:", error);
-    console.log("🔄 Using default ad:", DEFAULT_AD_CONFIG.default);
+    console.log("Error detecting country for ad:", error);
     return DEFAULT_AD_CONFIG.default;
   }
 };
@@ -133,6 +126,20 @@ export const saveAdAnalytics = (analytics: AdAnalytics): void => {
 };
 
 /**
+ * Check if an ad should be played based on station change count
+ */
+export const shouldPlayAdOnStationChange = (stationChangeCount: number, lastAdTimestamp: number): boolean => {
+  // Check frequency condition (every 5th change)
+  const frequencyMet = stationChangeCount > 0 && stationChangeCount % AD_FREQUENCY === 0;
+
+  // Check cooldown period (minimum 3 minutes between ads)
+  const timeSinceLastAd = Date.now() - lastAdTimestamp;
+  const cooldownMet = timeSinceLastAd >= AD_COOLDOWN;
+
+  return frequencyMet && cooldownMet;
+};
+
+/**
  * Check if an ad should be played based on time interval
  */
 export const shouldPlayAdOnTimeInterval = (sessionStartTime: number, lastAdTimestamp: number): boolean => {
@@ -140,17 +147,7 @@ export const shouldPlayAdOnTimeInterval = (sessionStartTime: number, lastAdTimes
   const sessionDuration = now - sessionStartTime;
   const timeSinceLastAd = now - lastAdTimestamp;
 
-  console.log("🕒 Ad Time Check:", {
-    sessionDuration: Math.floor(sessionDuration / 1000) + "s",
-    timeSinceLastAd: Math.floor(timeSinceLastAd / 1000) + "s",
-    requiredSession: Math.floor(AD_TIME_INTERVAL / 1000) + "s",
-    requiredCooldown: Math.floor(AD_COOLDOWN / 1000) + "s",
-    sessionMet: sessionDuration >= AD_TIME_INTERVAL,
-    cooldownMet: timeSinceLastAd >= AD_COOLDOWN,
-    shouldPlay: sessionDuration >= AD_TIME_INTERVAL && timeSinceLastAd >= AD_COOLDOWN,
-  });
-
-  // Play ad based on time interval if user has been listening
+  // Play ad every 15 minutes if user has been listening
   return sessionDuration >= AD_TIME_INTERVAL && timeSinceLastAd >= AD_COOLDOWN;
 };
 
