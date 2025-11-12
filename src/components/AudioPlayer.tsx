@@ -234,7 +234,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     };
   }, [isPlaying, isMobile]);
 
-  // Play ad with regional targeting
+  // Play ad with regional targeting - OVERLAY MODE (radio continues at low volume)
   const playAd = async () => {
     // Prevent concurrent ads
     if (adInProgressRef.current) {
@@ -245,26 +245,25 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     try {
       const adUrl = await getAdUrlForRegion();
       const adAudio = adAudioRef.current;
-
-      if (!adAudio) return;
-
-      console.log("Playing ad:", adUrl);
-      setIsPlayingAd(true); // Set this FIRST to update adInProgressRef
-
-      // CRITICAL: Pause BOTH audio elements and reset to prevent overlap
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
-      if (audioRef2.current) {
-        audioRef2.current.pause();
-        audioRef2.current.currentTime = 0;
-      }
-
-      // Load and play ad
       const activeAudio = getActiveAudio();
+
+      if (!adAudio || !activeAudio) return;
+
+      console.log("Playing ad overlay:", adUrl);
+
+      // Remember if radio was playing before ad
+      setIsPlayingAd(true);
+      // Keep isPlaying true so radio controls stay active
+
+      // OVERLAY MODE: Lower radio volume instead of stopping it
+      if (activeAudio && isPlaying) {
+        console.log("🔉 Lowering radio volume for ad overlay");
+        activeAudio.volume = 0.02; // Very low volume (2%) so ad is clearly audible
+      }
+
+      // Load and play ad at maximum volume
       adAudio.src = adUrl;
-      adAudio.volume = activeAudio?.volume || 0.7; // Match radio volume
+      adAudio.volume = 1.0; // Ad plays at full volume (100%) to be clearly heard over low radio
 
       await adAudio.play();
 
@@ -274,65 +273,49 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     } catch (error) {
       console.error("Error playing ad:", error);
       setIsPlayingAd(false);
-      // Resume radio if ad fails
+
+      // Restore radio volume if ad fails
       const activeAudio = getActiveAudio();
       if (activeAudio && isPlaying) {
-        activeAudio.play().catch(console.error);
+        activeAudio.volume = isMuted ? 0 : volume / 100; // Restore normal volume
       }
+
+      console.log("Ad playback failed - radio volume restored");
     }
   };
 
-  // Handle ad completion
+  // Handle ad completion - restore normal radio volume
   const handleAdEnded = () => {
-    console.log("Ad finished - reloading live stream");
+    console.log("Ad finished - restoring normal radio volume");
     setIsPlayingAd(false);
 
-    // CRITICAL: Ensure BOTH audio elements are stopped (mobile uses dual elements)
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-    if (audioRef2.current) {
-      audioRef2.current.pause();
-      audioRef2.current.currentTime = 0;
-    }
-
-    // Reload the live stream to get the live edge (don't resume from pause)
     const activeAudio = getActiveAudio();
-    if (activeAudio && station) {
-      // Reload stream with cache-busting to get live edge
-      const sep = station.link.includes("?") ? "&" : "?";
-      activeAudio.src = `${station.link}${sep}ts=${Date.now()}`;
-      activeAudio.load();
 
-      // Play the reloaded stream
-      activeAudio
-        .play()
-        .then(() => {
-          setIsPlaying(true);
-          console.log("Radio reloaded and playing from live edge");
-        })
-        .catch((error) => {
-          console.error("Failed to reload radio:", error);
-          // Try again after a short delay
-          setTimeout(() => {
-            activeAudio
-              ?.play()
-              .then(() => setIsPlaying(true))
-              .catch(console.error);
-          }, 500);
-        });
+    // OVERLAY MODE: Restore normal radio volume (radio never stopped playing)
+    if (activeAudio && isPlaying) {
+      console.log("🔊 Restoring normal radio volume after ad");
+      activeAudio.volume = isMuted ? 0 : volume / 100; // Restore normal volume based on user settings
     }
+
+    console.log("📻 Radio continues playing at normal volume");
   };
 
   // Skip ad (if user wants)
   const skipAd = () => {
-    console.log("Ad skipped by user - resuming radio");
+    console.log("Ad skipped by user");
     if (adAudioRef.current) {
       adAudioRef.current.pause();
       adAudioRef.current.currentTime = 0;
     }
-    handleAdEnded(); // This will auto-resume the radio
+
+    // Restore radio volume immediately when skipped
+    const activeAudio = getActiveAudio();
+    if (activeAudio && isPlaying) {
+      console.log("🔊 Restoring radio volume after ad skip");
+      activeAudio.volume = isMuted ? 0 : volume / 100; // Restore normal volume based on user settings
+    }
+
+    handleAdEnded();
   };
 
   // Change to next station without navigation
