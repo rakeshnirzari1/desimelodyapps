@@ -35,14 +35,12 @@ const Mobile = () => {
   const INITIAL_LOAD = 200; // Load first 20 stations quickly
   const LOAD_MORE = 100; // Load 50 more on scroll
 
-  // Initial load - load first station immediately for fast auto-play
+  // Initial load - just load stations, don't set currentStation (user needs to click)
   useEffect(() => {
-    if (allStations.length > 0 && !currentStation) {
-      // Set first station immediately for auto-play
-      setCurrentStation(allStations[0]);
+    if (allStations.length > 0) {
       // Load initial batch of stations
       setDisplayedStations(allStations.slice(0, INITIAL_LOAD));
-      // Load rest after a short delay to prioritize first station
+      // Load rest after a short delay
       setTimeout(() => {
         setDisplayedStations(allStations.slice(0, Math.min(1000, allStations.length)));
       }, 1000);
@@ -151,8 +149,8 @@ const Mobile = () => {
           </div>
         </header>
 
-        {/* Player - Sticky at top */}
-        {currentStation && (
+        {/* Player - Sticky at top (only shown after user selects a station) */}
+        {currentStation ? (
           <div className="sticky top-[120px] z-40 bg-background border-b border-border shadow-md">
             <MobilePlayer
               station={currentStation}
@@ -161,6 +159,12 @@ const Mobile = () => {
               allStations={filteredStations}
               autoPlay={!isInitialLoad}
             />
+          </div>
+        ) : (
+          <div className="sticky top-[120px] z-40 bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10 border-b border-border py-4 px-6">
+            <p className="text-center text-muted-foreground text-sm">
+              👇 Tap any station below to start listening
+            </p>
           </div>
         )}
 
