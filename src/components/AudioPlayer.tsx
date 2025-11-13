@@ -163,7 +163,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   useEffect(() => {
     if (!isPlaying) return;
 
-    adIntervalCheckRef.current = setInterval(() => {
+    adIntervalCheckRef.current = window.setInterval(() => {
       const now = Date.now();
       const timeSinceSession = now - adAnalytics.sessionStartTime;
       const timeSinceLastAd = adAnalytics.lastAdTimestamp ? now - adAnalytics.lastAdTimestamp : Infinity;

@@ -12,6 +12,7 @@ import StationDetail from "./pages/StationDetail";
 import TagFilter from "./pages/TagFilter";
 import AdminRefresh from "./pages/AdminRefresh";
 import AdminAds from "./pages/AdminAds";
+import AdminCache from "./pages/AdminCache";
 import NotFound from "./pages/NotFound";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="/tag/:tag" element={<TagFilter />} />
             <Route path="/admin-refresh-stations" element={<AdminRefresh />} />
             <Route path="/admin/ads" element={<AdminAds />} />
+            <Route path="/admin/cache" element={<AdminCache />} />
             <Route path="/:slug" element={<StationDetail />} />
             <Route path="/about" element={<About />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
