@@ -30,7 +30,6 @@ const Mobile = () => {
   const [displayedStations, setDisplayedStations] = useState<RadioStation[]>([]);
   const [filteredStations, setFilteredStations] = useState<RadioStation[]>([]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const INITIAL_LOAD = 200; // Load first 20 stations quickly
   const LOAD_MORE = 100; // Load 50 more on scroll
@@ -93,7 +92,6 @@ const Mobile = () => {
 
   const handleStationSelect = (station: RadioStation) => {
     setCurrentStation(station);
-    setIsInitialLoad(false); // User has interacted, enable autoplay for future stations
   };
 
   const handleNext = () => {
@@ -101,7 +99,6 @@ const Mobile = () => {
     const currentIndex = filteredStations.findIndex((s) => s.id === currentStation.id);
     const nextIndex = (currentIndex + 1) % filteredStations.length;
     setCurrentStation(filteredStations[nextIndex]);
-    setIsInitialLoad(false); // User has interacted, enable autoplay
   };
 
   const handlePrevious = () => {
@@ -109,7 +106,6 @@ const Mobile = () => {
     const currentIndex = filteredStations.findIndex((s) => s.id === currentStation.id);
     const prevIndex = currentIndex === 0 ? filteredStations.length - 1 : currentIndex - 1;
     setCurrentStation(filteredStations[prevIndex]);
-    setIsInitialLoad(false); // User has interacted, enable autoplay
   };
 
   return (
@@ -151,17 +147,14 @@ const Mobile = () => {
           </div>
         </header>
 
-        {/* Player - Sticky at top */}
+        {/* Player - Fixed at top */}
         {currentStation && (
-          <div className="sticky top-[120px] z-40 bg-background border-b border-border shadow-md">
-            <MobilePlayer
-              station={currentStation}
-              onNext={handleNext}
-              onPrevious={handlePrevious}
-              allStations={filteredStations}
-              autoPlay={!isInitialLoad}
-            />
-          </div>
+          <MobilePlayer
+            station={currentStation}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            allStations={filteredStations}
+          />
         )}
 
         {/* Station List - Scrollable */}

@@ -17,10 +17,9 @@ interface MobilePlayerProps {
   onNext: () => void;
   onPrevious: () => void;
   allStations: RadioStation[];
-  autoPlay?: boolean; // Whether to autoplay when station changes
 }
 
-export const MobilePlayer = ({ station, onNext, onPrevious, allStations, autoPlay = true }: MobilePlayerProps) => {
+export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: MobilePlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [bufferingMessage, setBufferingMessage] = useState("");
@@ -658,7 +657,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations, autoPla
 
     setIsLoading(true);
     setBufferingMessage("Loading station...");
-    isUserPausedRef.current = !autoPlay; // Only autoplay if autoPlay prop is true
+    isUserPausedRef.current = false; // New station should autoplay
 
     const audio = audioRef.current;
 
