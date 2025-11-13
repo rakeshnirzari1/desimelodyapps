@@ -34,12 +34,14 @@ const Mobile = () => {
   const INITIAL_LOAD = 200; // Load first 20 stations quickly
   const LOAD_MORE = 100; // Load 50 more on scroll
 
-  // Initial load - load stations without autoplay
+  // Initial load - load first station immediately for fast auto-play
   useEffect(() => {
-    if (allStations.length > 0) {
+    if (allStations.length > 0 && !currentStation) {
+      // Set first station immediately for auto-play
+      setCurrentStation(allStations[0]);
       // Load initial batch of stations
       setDisplayedStations(allStations.slice(0, INITIAL_LOAD));
-      // Load rest after a short delay
+      // Load rest after a short delay to prioritize first station
       setTimeout(() => {
         setDisplayedStations(allStations.slice(0, Math.min(1000, allStations.length)));
       }, 1000);
