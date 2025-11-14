@@ -1,9 +1,9 @@
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_NAME = `desimelody-cache-${CACHE_VERSION}`;
 
 // Install event - cache essential assets
 self.addEventListener('install', (event) => {
-  console.log('[Service Worker] Installing...');
+  console.log('[Service Worker] Installing v2...');
   self.skipWaiting();
 });
 

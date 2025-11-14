@@ -54,7 +54,35 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     saveAdAnalytics(adAnalytics);
   }, [adAnalytics]);
 
-  // Play ad with regional targeting - OVERLAY MODE (radio continues at low volume)
+  // Crossfade helper using requestAnimationFrame
+  const crossfade = (audio: HTMLAudioElement, fromVolume: number, toVolume: number, duration: number) => {
+    return new Promise<void>((resolve) => {
+      const startTime = performance.now();
+      const volumeDiff = toVolume - fromVolume;
+
+      const animate = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Ease-in-out curve for smoother transition
+        const eased = progress < 0.5 
+          ? 2 * progress * progress 
+          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+        
+        audio.volume = Math.max(0, Math.min(1, fromVolume + volumeDiff * eased));
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          resolve();
+        }
+      };
+
+      requestAnimationFrame(animate);
+    });
+  };
+
+  // Play ad with regional targeting - COMPLETE STOP MODE with crossfade
   const playAd = async () => {
     if (adInProgressRef.current) {
       console.log("Ad already playing - skipping new ad trigger");
@@ -68,24 +96,31 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
 
       if (!adAudio || !radioAudio) return;
 
-      console.log("Playing ad overlay:", adUrl);
+      console.log("Playing ad with smooth transition:", adUrl);
 
-      // Remember if radio was playing before ad
+      // Remember state
       setWasPlayingBeforeAd(isPlaying);
       setIsPlayingAd(true);
-      // Keep isPlaying true so radio controls stay active
 
-      // OVERLAY MODE: Lower radio volume instead of stopping it
+      // SMOOTH TRANSITION: Fade out radio over 500ms
       if (radioAudio && isPlaying) {
-        console.log("🔉 Lowering radio volume for ad overlay");
-        radioAudio.volume = 0.02; // Very low volume (2%) so ad is clearly audible
+        console.log("🔉 Fading out radio for ad...");
+        await crossfade(radioAudio, radioAudio.volume, 0, 500);
+        
+        // Completely stop and clear radio
+        radioAudio.pause();
+        radioAudio.src = "";
+        radioAudio.load();
+        console.log("📻 Radio fully stopped for ad");
       }
 
-      // Load and play ad at maximum volume
+      // Load ad and fade in
       adAudio.src = adUrl;
-      adAudio.volume = 1.0; // Ad plays at full volume (100%) to be clearly heard over low radio
-
+      adAudio.volume = 0;
+      
       await adAudio.play();
+      console.log("🎵 Fading in ad...");
+      await crossfade(adAudio, 0, 1.0, 300);
 
       // Log ad impression
       const updatedAnalytics = await logAdImpression(adAnalytics);
@@ -93,50 +128,59 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     } catch (error) {
       console.error("Error playing ad:", error);
       setIsPlayingAd(false);
-
-      // Restore radio volume if ad fails
-      if (audioRef.current && isPlaying) {
-        audioRef.current.volume = isMuted ? 0 : volume / 100; // Restore normal volume based on user settings
+      
+      // Restore radio if ad fails
+      if (audioRef.current && wasPlayingBeforeAd) {
+        await playFromLiveEdge();
       }
-
-      console.log("Ad playback failed - radio volume restored");
     }
   };
 
-  // Handle ad completion - restore normal radio volume
-  const handleAdEnded = () => {
-    console.log("Ad finished - restoring normal radio volume");
-    setIsPlayingAd(false);
-
+  // Handle ad completion - restore radio with crossfade
+  const handleAdEnded = async () => {
+    console.log("Ad finished - restoring radio with smooth transition");
+    
+    const adAudio = adAudioRef.current;
     const radioAudio = audioRef.current;
 
-    // OVERLAY MODE: Restore normal radio volume (radio never stopped playing)
-    if (radioAudio && isPlaying) {
-      console.log("🔊 Restoring normal radio volume after ad");
-      radioAudio.volume = isMuted ? 0 : volume / 100; // Restore normal volume based on user settings
+    // Fade out ad
+    if (adAudio) {
+      console.log("🔉 Fading out ad...");
+      await crossfade(adAudio, 1.0, 0, 300);
+      adAudio.pause();
+      adAudio.src = "";
     }
 
-    // Reset ad state
-    setWasPlayingBeforeAd(false);
+    setIsPlayingAd(false);
 
-    console.log("📻 Radio continues playing at normal volume");
+    // Restore radio if it was playing
+    if (wasPlayingBeforeAd && radioAudio) {
+      console.log("📻 Reloading radio from live edge...");
+      await playFromLiveEdge();
+      
+      // Fade in radio
+      if (radioAudio && isPlaying) {
+        console.log("🔊 Fading in radio...");
+        radioAudio.volume = 0;
+        await crossfade(radioAudio, 0, isMuted ? 0 : volume / 100, 500);
+      }
+    }
+
+    setWasPlayingBeforeAd(false);
+    console.log("✅ Smooth ad transition complete");
   };
 
   // Skip ad
-  const skipAd = () => {
+  const skipAd = async () => {
     console.log("Ad skipped by user");
-    if (adAudioRef.current) {
-      adAudioRef.current.pause();
-      adAudioRef.current.currentTime = 0;
+    const adAudio = adAudioRef.current;
+    
+    if (adAudio) {
+      adAudio.pause();
+      adAudio.src = "";
     }
 
-    // Restore radio volume immediately when skipped
-    if (audioRef.current && isPlaying) {
-      console.log("🔊 Restoring radio volume after ad skip");
-      audioRef.current.volume = isMuted ? 0 : volume / 100; // Restore normal volume based on user settings
-    }
-
-    handleAdEnded();
+    await handleAdEnded();
   };
 
   // Check for time-based ad intervals
@@ -507,25 +551,46 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     };
   }, []);
 
-  // Session keepalive - touch audio every 5 minutes to prevent session loss
+  // PERSISTENT Session keepalive - runs ALWAYS (even when paused) to prevent session loss
   useEffect(() => {
-    if (isPlaying && audioRef.current) {
-      sessionKeepaliveRef.current = window.setInterval(
-        () => {
-          if (audioRef.current && !audioRef.current.paused) {
-            console.log("Session keepalive: touching audio element");
-            const currentVol = audioRef.current.volume;
-            audioRef.current.volume = currentVol; // No-op but keeps session active
-          }
-        },
-        5 * 60 * 1000,
-      ); // Every 5 minutes
-    } else {
-      if (sessionKeepaliveRef.current) {
-        clearInterval(sessionKeepaliveRef.current);
-        sessionKeepaliveRef.current = null;
+    const initAudioContext = () => {
+      if (!audioContextRef.current) {
+        try {
+          const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+          audioContextRef.current = new AudioContextClass();
+          console.log("AudioContext initialized");
+        } catch (e) {
+          console.warn("Could not create AudioContext:", e);
+        }
       }
-    }
+    };
+
+    initAudioContext();
+
+    console.log("🔄 Starting PERSISTENT session keepalive (works during pause)");
+    sessionKeepaliveRef.current = window.setInterval(() => {
+      // Keep AudioContext active (don't close it)
+      if (audioContextRef.current) {
+        if (audioContextRef.current.state === "closed") {
+          console.log("AudioContext was closed - reinitializing");
+          initAudioContext();
+        } else if (audioContextRef.current.state === "suspended" && isPlaying) {
+          console.log("Resuming AudioContext for playback");
+          audioContextRef.current.resume();
+        }
+        // When paused, keep it suspended but don't close
+      }
+
+      // Touch audio element to keep session alive (even when paused)
+      if (audioRef.current) {
+        const currentVol = audioRef.current.volume;
+        audioRef.current.volume = currentVol; // Touch to maintain session
+        console.log("🔄 Session keepalive tick", isPlaying ? "(playing)" : "(paused)");
+      }
+
+      // Keep MediaSession handlers registered
+      registerMediaSessionHandlers();
+    }, 60000); // Every 60 seconds
 
     return () => {
       if (sessionKeepaliveRef.current) {
@@ -533,7 +598,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
         sessionKeepaliveRef.current = null;
       }
     };
-  }, [isPlaying]);
+  }, [isPlaying]); // Re-run when playback state changes
 
   // Network switching - handle WiFi to mobile data transitions
   useEffect(() => {
@@ -881,8 +946,10 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
           <img src={station.image} alt={station.name} className="w-16 h-16 rounded-lg object-cover shadow-md" />
           <div className="flex-1 min-w-0">
             <div className="overflow-hidden">
-              <h2 className="font-semibold text-base text-foreground marquee-text inline-block whitespace-nowrap">
-                {station.name}
+              <h2 className="font-semibold text-base text-foreground">
+                <span className="marquee-text inline-block whitespace-nowrap">
+                  {station.name} • {station.name}
+                </span>
               </h2>
             </div>
             <p className="text-sm text-muted-foreground truncate">
