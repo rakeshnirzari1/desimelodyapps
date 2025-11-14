@@ -120,21 +120,19 @@ All colors MUST be HSL.
   }
 }
 
-/* Marquee scrolling effect for station names - enhanced */
+/* Marquee animation for mobile player to keep session active */
 @keyframes marquee {
   0% {
     transform: translateX(0%);
   }
   100% {
-    transform: translateX(-50%);
+    transform: translateX(-100%);
   }
 }
 
 .marquee-text {
-  display: inline-block;
-  white-space: nowrap;
-  animation: marquee 15s linear infinite;
-  padding-right: 100%;
+  animation: marquee 20s linear infinite;
+  padding-right: 2rem;
 }
 
 .marquee-text:hover {

@@ -49,35 +49,9 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     adInProgressRef.current = isPlayingAd;
   }, [isPlayingAd]);
 
-  // Crossfade helper
-  const crossfade = (audio: HTMLAudioElement, fromVolume: number, toVolume: number, duration: number) => {
-    return new Promise<void>((resolve) => {
-      const startTime = performance.now();
-      const volumeDiff = toVolume - fromVolume;
-
-      const animate = (currentTime: number) => {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        
-        const eased = progress < 0.5 
-          ? 2 * progress * progress 
-          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-        
-        audio.volume = Math.max(0, Math.min(1, fromVolume + volumeDiff * eased));
-
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          resolve();
-        }
-      };
-
-      requestAnimationFrame(animate);
-    });
-  };
-
-  // Play ad with smooth crossfade transitions
+  // Play ad with regional targeting - OVERLAY MODE (radio continues at low volume)
   const playAd = async () => {
+    // Prevent concurrent ads
     if (adInProgressRef.current) {
       console.log("Ad already playing - skipping new ad trigger");
       return;
@@ -90,80 +64,71 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
       if (!adAudio || !radioAudio) return;
 
-      console.log("Playing ad with smooth transition:", adUrl);
+      console.log("Playing ad overlay:", adUrl);
 
+      // Set ad state
       setIsPlayingAd(true);
+      // Keep isPlaying true so radio controls stay active
 
-      // Fade out and stop radio
+      // OVERLAY MODE: Lower radio volume instead of stopping it
       if (radioAudio && isPlaying) {
-        await crossfade(radioAudio, radioAudio.volume, 0, 500);
-        radioAudio.pause();
-        radioAudio.src = "";
-        radioAudio.load();
+        console.log("🔉 Lowering radio volume for ad overlay");
+        radioAudio.volume = 0.02; // Very low volume (2%) so ad is clearly audible
       }
 
-      // Load ad and fade in
+      // Load and play ad at maximum volume
       adAudio.src = adUrl;
-      adAudio.volume = 0;
-      await adAudio.play();
-      await crossfade(adAudio, 0, 1.0, 300);
+      adAudio.volume = 1.0; // Ad plays at full volume (100%) to be clearly heard over low radio
 
+      await adAudio.play();
+
+      // Log ad impression
       const updatedAnalytics = await logAdImpression(adAnalytics);
       updateAdAnalytics(updatedAnalytics);
     } catch (error) {
       console.error("Error playing ad:", error);
       setIsPlayingAd(false);
 
-      // Restore radio if ad fails
-      if (audioRef.current && station && isPlaying) {
-        const audio = audioRef.current;
-        const sep = station.link.includes("?") ? "&" : "?";
-        audio.src = `${station.link}${sep}ts=${Date.now()}`;
-        audio.load();
-        await audio.play();
+      // Restore radio volume if ad fails
+      if (audioRef.current && isPlaying) {
+        audioRef.current.volume = isMuted ? 0 : volume / 100; // Restore normal volume
       }
+
+      console.log("Ad playback failed - radio volume restored");
     }
   };
 
-  // Handle ad completion - restore radio with crossfade
-  const handleAdEnded = async () => {
-    console.log("Ad finished - restoring radio");
-    
-    const adAudio = adAudioRef.current;
-    
-    if (adAudio) {
-      await crossfade(adAudio, 1.0, 0, 300);
-      adAudio.pause();
-      adAudio.src = "";
-    }
-
+  // Handle ad completion - restore normal radio volume
+  const handleAdEnded = () => {
+    console.log("Ad finished - restoring normal radio volume");
     setIsPlayingAd(false);
 
-    // Restore radio
-    if (station && audioRef.current) {
-      const audio = audioRef.current;
-      const sep = station.link.includes("?") ? "&" : "?";
-      audio.src = `${station.link}${sep}ts=${Date.now()}`;
-      audio.volume = 0;
-      audio.load();
-      
-      await audio.play();
-      await crossfade(audio, 0, isMuted ? 0 : volume / 100, 500);
-      setIsPlaying(true);
+    const radioAudio = audioRef.current;
+
+    // OVERLAY MODE: Restore normal radio volume (radio never stopped playing)
+    if (radioAudio && isPlaying) {
+      console.log("🔊 Restoring normal radio volume after ad");
+      radioAudio.volume = isMuted ? 0 : volume / 100; // Restore normal volume based on user settings
     }
+
+    console.log("📻 Radio continues playing at normal volume");
   };
 
-  // Skip ad
-  const skipAd = async () => {
+  // Skip ad (if user wants)
+  const skipAd = () => {
     console.log("Ad skipped by user");
-    const adAudio = adAudioRef.current;
-    
-    if (adAudio) {
-      adAudio.pause();
-      adAudio.src = "";
+    if (adAudioRef.current) {
+      adAudioRef.current.pause();
+      adAudioRef.current.currentTime = 0;
     }
 
-    await handleAdEnded();
+    // Restore radio volume immediately when skipped
+    if (audioRef.current && isPlaying) {
+      console.log("🔊 Restoring radio volume after ad skip");
+      audioRef.current.volume = isMuted ? 0 : volume / 100; // Restore normal volume based on user settings
+    }
+
+    handleAdEnded();
   };
 
   // Change to next station without navigation
@@ -329,11 +294,19 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     }
   }, [volume, isMuted, isPlayingAd]);
 
-  // MediaSession with SafeKeeper - prevents loss of lock screen controls
-  const mediaSessionSafeKeeperRef = useRef<number | null>(null);
+  // Simple Media Session like MobilePlayer
+  useEffect(() => {
+    if (!station || !("mediaSession" in navigator)) return;
 
-  const registerMediaSessionHandlers = () => {
-    if (!("mediaSession" in navigator)) return;
+    // Update metadata
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: station.name,
+      artist: `${station.language || "Hindi"} • ${station.type}`,
+      album: "DesiMelody.com",
+      artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
+    });
+
+    navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
 
     const handlePlay = async () => {
       console.log("🎵 Media Session PLAY");
@@ -357,80 +330,16 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       }
     };
 
-    try {
-      navigator.mediaSession.setActionHandler("play", handlePlay);
-      navigator.mediaSession.setActionHandler("pause", handlePause);
-      navigator.mediaSession.setActionHandler("nexttrack", playNextStation);
-      navigator.mediaSession.setActionHandler("previoustrack", playPreviousStation);
-    } catch (e) {
-      console.warn("Error registering MediaSession handlers:", e);
-    }
-  };
-
-  useEffect(() => {
-    if (!station || !("mediaSession" in navigator)) return;
-
-    console.log("🔒 Starting MediaSession SafeKeeper for AudioPlayer");
-
-    // Register handlers immediately
-    registerMediaSessionHandlers();
-
-    // Update metadata
-    try {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: station.name,
-        artist: `${station.language || "Hindi"} • ${station.type}`,
-        album: "DesiMelody.com",
-        artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
-      });
-    } catch (e) {
-      console.warn("Error setting metadata:", e);
-    }
-
-    // Update playback state
-    try {
-      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
-    } catch (e) {
-      console.warn("Error setting playback state:", e);
-    }
-
-    // SafeKeeper: Re-register handlers every second to prevent loss
-    if (mediaSessionSafeKeeperRef.current) {
-      clearInterval(mediaSessionSafeKeeperRef.current);
-    }
-
-    mediaSessionSafeKeeperRef.current = window.setInterval(() => {
-      try {
-        registerMediaSessionHandlers();
-
-        if (station) {
-          navigator.mediaSession.metadata = new MediaMetadata({
-            title: station.name,
-            artist: `${station.language || "Hindi"} • ${station.type}`,
-            album: "DesiMelody.com",
-            artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
-          });
-        }
-
-        navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
-      } catch (e) {
-        console.warn("SafeKeeper error:", e);
-      }
-    }, 1000); // Every second
+    navigator.mediaSession.setActionHandler("play", handlePlay);
+    navigator.mediaSession.setActionHandler("pause", handlePause);
+    navigator.mediaSession.setActionHandler("nexttrack", playNextStation);
+    navigator.mediaSession.setActionHandler("previoustrack", playPreviousStation);
 
     return () => {
-      if (mediaSessionSafeKeeperRef.current) {
-        clearInterval(mediaSessionSafeKeeperRef.current);
-      }
-      
-      try {
-        navigator.mediaSession.setActionHandler("play", null);
-        navigator.mediaSession.setActionHandler("pause", null);
-        navigator.mediaSession.setActionHandler("nexttrack", null);
-        navigator.mediaSession.setActionHandler("previoustrack", null);
-      } catch (e) {
-        console.warn("Error cleaning up handlers:", e);
-      }
+      navigator.mediaSession.setActionHandler("play", null);
+      navigator.mediaSession.setActionHandler("pause", null);
+      navigator.mediaSession.setActionHandler("nexttrack", null);
+      navigator.mediaSession.setActionHandler("previoustrack", null);
     };
   }, [station, isPlaying]);
 

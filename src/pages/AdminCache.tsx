@@ -23,7 +23,7 @@ export default function AdminCache() {
       navigator.serviceWorker.getRegistration().then((registration) => {
         if (registration) {
           setSwRegistration(registration);
-          setCacheStatus("Service Worker is active (v2)");
+          setCacheStatus("Service Worker is active");
         } else {
           setCacheStatus("Service Worker not registered");
         }
@@ -61,13 +61,6 @@ export default function AdminCache() {
         variant: "destructive",
       });
     }
-  };
-
-  const handleForceUpdate = () => {
-    toast({
-      title: "Cache Version Updated",
-      description: "Cache version bumped to v2! All users will get fresh content on next visit.",
-    });
   };
 
   const clearCache = async () => {
@@ -177,36 +170,24 @@ export default function AdminCache() {
               </AlertDescription>
             </Alert>
 
-            {/* Force Update All Users */}
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Force Update All Users</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Cache version v2 is active. This forces all users to download fresh content.
-              </p>
-              <Alert>
-                <CheckCircle2 className="h-4 w-4" />
-                <AlertDescription>
-                  Service worker is on v2. Users will automatically update on next visit.
-                </AlertDescription>
-              </Alert>
-            </div>
-
-            {/* Clear My Cache */}
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Clear My Cache Only</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Clear your local cache without affecting other users.
-              </p>
-              <Button 
-                onClick={clearCache} 
-                disabled={isClearing}
-                className="w-full sm:w-auto"
-                variant="outline"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                {isClearing ? "Clearing..." : "Clear My Cache"}
-              </Button>
-            </div>
+            {/* Clear Cache Section */}
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Clear All Cache</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  This will clear all cached data including service worker cache, localStorage, 
+                  and sessionStorage. Users will be forced to download fresh content on their next visit.
+                </p>
+                <Button 
+                  onClick={clearCache} 
+                  disabled={isClearing}
+                  className="w-full sm:w-auto"
+                  variant="destructive"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  {isClearing ? "Clearing Cache..." : "Clear All Cache"}
+                </Button>
+              </div>
 
               {/* Force Reload */}
               <div>
@@ -241,6 +222,7 @@ export default function AdminCache() {
                   </Button>
                 </div>
               )}
+            </div>
 
             {/* Instructions */}
             <Alert>
