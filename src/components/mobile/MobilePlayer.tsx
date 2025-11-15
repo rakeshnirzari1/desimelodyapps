@@ -37,9 +37,6 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
   const wasPlayingBeforeCallRef = useRef(false);
   const wasPlayingBeforeOfflineRef = useRef(false);
   const isUserPausedRef = useRef(false);
-  const audioInterruptedRef = useRef(false);
-  const callDetectedRef = useRef(false);
-  const resumeTimeoutRef = useRef<number | null>(null);
   const keepAliveIntervalRef = useRef<number | null>(null);
   const sessionKeepaliveRef = useRef<number | null>(null);
   const inCallRef = useRef(false);
@@ -178,58 +175,27 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     };
   }, []);
 
-  // Register MediaSession handlers - used by SafeKeeper with call interruption support
+  // Register MediaSession handlers - used by SafeKeeper
   const registerMediaSessionHandlers = () => {
     if (!("mediaSession" in navigator)) return;
 
     const handleMediaPlay = async () => {
       console.log("🎵 Media Session PLAY from lock screen/car controls");
-
-      // Clear any call-related flags when user manually resumes
-      if (wasPlayingBeforeCallRef.current || callDetectedRef.current) {
-        console.log("📞 Manual resume detected - clearing call flags");
-        wasPlayingBeforeCallRef.current = false;
-        callDetectedRef.current = false;
-        audioInterruptedRef.current = false;
-        inCallRef.current = false;
-      }
-
       await handlePlay();
     };
 
     const handleMediaPause = () => {
       console.log("⏸️ Media Session PAUSE from lock screen/car controls");
-
-      // Mark as user-initiated pause (not a call)
-      if (!callDetectedRef.current) {
-        isUserPausedRef.current = true;
-        wasPlayingBeforeCallRef.current = false;
-      }
-
       handlePauseAction();
     };
 
     const handleMediaNext = () => {
       console.log("⏭️ Media Session NEXT from car controls");
-
-      // Clear call flags when changing stations
-      wasPlayingBeforeCallRef.current = false;
-      callDetectedRef.current = false;
-      audioInterruptedRef.current = false;
-      inCallRef.current = false;
-
       onNext();
     };
 
     const handleMediaPrevious = () => {
       console.log("⏮️ Media Session PREVIOUS from car controls");
-
-      // Clear call flags when changing stations
-      wasPlayingBeforeCallRef.current = false;
-      callDetectedRef.current = false;
-      audioInterruptedRef.current = false;
-      inCallRef.current = false;
-
       onPrevious();
     };
 
@@ -518,7 +484,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     }
   };
 
-  // Initialize AudioContext for mobile with interruption handling
+  // Initialize AudioContext for mobile
   useEffect(() => {
     const initAudioContext = () => {
       try {
@@ -526,53 +492,6 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
         if (AC && !audioContextRef.current) {
           audioContextRef.current = new AC();
           console.log("AudioContext initialized:", audioContextRef.current.state);
-
-          // Listen for AudioContext state changes (critical for phone calls)
-          const handleStateChange = () => {
-            const state = audioContextRef.current?.state;
-            console.log(`🎧 AudioContext state changed to: ${state}`);
-
-            if (state === "interrupted" || state === "suspended") {
-              console.log("🚨 AudioContext interrupted - likely phone call");
-              if (!audioRef.current?.paused && !isUserPausedRef.current) {
-                wasPlayingBeforeCallRef.current = true;
-                audioInterruptedRef.current = true;
-                callDetectedRef.current = true;
-                inCallRef.current = true;
-
-                // Pause radio gracefully
-                if (audioRef.current) {
-                  audioRef.current.pause();
-                  setIsPlaying(false);
-                }
-
-                if ("mediaSession" in navigator) {
-                  navigator.mediaSession.playbackState = "paused";
-                }
-              }
-            } else if (state === "running" && wasPlayingBeforeCallRef.current) {
-              console.log("🎧 AudioContext running - call may have ended");
-
-              // Short delay to ensure call has fully ended
-              setTimeout(() => {
-                if (wasPlayingBeforeCallRef.current && !isUserPausedRef.current) {
-                  console.log("🎵 Auto-resuming after AudioContext restoration");
-                  wasPlayingBeforeCallRef.current = false;
-                  audioInterruptedRef.current = false;
-                  callDetectedRef.current = false;
-                  inCallRef.current = false;
-
-                  playFromLiveEdge().catch((error) => {
-                    console.error("Failed to resume after AudioContext restore:", error);
-                    setBufferingMessage("Reconnecting after call...");
-                  });
-                }
-              }, 1500); // Longer delay for AudioContext restoration
-            }
-          };
-
-          // Add state change listener
-          audioContextRef.current.addEventListener("statechange", handleStateChange);
         }
       } catch (error) {
         console.error("Failed to initialize AudioContext:", error);
@@ -582,15 +501,8 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     initAudioContext();
 
     return () => {
-      if (audioContextRef.current) {
-        try {
-          audioContextRef.current.removeEventListener("statechange", () => {});
-          if (audioContextRef.current.state !== "closed") {
-            audioContextRef.current.close().catch(console.error);
-          }
-        } catch (error) {
-          console.error("Error cleaning up AudioContext:", error);
-        }
+      if (audioContextRef.current && audioContextRef.current.state !== "closed") {
+        audioContextRef.current.close().catch(console.error);
       }
     };
   }, []);
@@ -680,160 +592,37 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     };
   }, [isPlaying]);
 
-  // Enhanced phone call detection and auto-resume (like Spotify)
+  // Detect phone calls and auto-resume after call ends
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    // Multiple detection methods for phone calls
-    const handleAudioInterruption = (event: Event) => {
-      console.log("🚨 Audio interruption detected (likely phone call)", event.type);
-      if (!audio.paused && !isUserPausedRef.current) {
-        console.log("📞 Phone call detected - pausing radio");
-        wasPlayingBeforeCallRef.current = true;
-        audioInterruptedRef.current = true;
-        callDetectedRef.current = true;
-        inCallRef.current = true;
-        audio.pause();
-        setIsPlaying(false);
-
-        if ("mediaSession" in navigator) {
-          navigator.mediaSession.playbackState = "paused";
-        }
-      }
-    };
-
-    const handleAudioResume = (event: Event) => {
-      console.log("🔊 Audio interruption ended", event.type);
-      if (wasPlayingBeforeCallRef.current && !isUserPausedRef.current) {
-        console.log("📞 Call ended - preparing auto-resume");
-
-        // Clear any existing resume timeout
-        if (resumeTimeoutRef.current) {
-          clearTimeout(resumeTimeoutRef.current);
-        }
-
-        // Auto-resume after short delay (like Spotify)
-        resumeTimeoutRef.current = window.setTimeout(() => {
-          console.log("🎵 Auto-resuming radio after call ended");
-          wasPlayingBeforeCallRef.current = false;
-          audioInterruptedRef.current = false;
-          callDetectedRef.current = false;
-          inCallRef.current = false;
-
-          playFromLiveEdge().catch((error) => {
-            console.error("Failed to resume after call:", error);
-            setBufferingMessage("Reconnecting after call...");
-
-            // Retry once more after 2 seconds
-            setTimeout(() => {
-              playFromLiveEdge().catch(console.error);
-            }, 2000);
-          });
-        }, 1000); // 1 second delay for smooth transition
-      }
-    };
-
     const handleVisibilityChange = () => {
+      const audio = audioRef.current;
+      if (!audio) return;
+
       if (document.hidden) {
         // Screen going off or app backgrounding
-        if (!audio.paused && !isUserPausedRef.current && !audioInterruptedRef.current) {
-          console.log("📱 App backgrounding while playing - potential call");
+        if (!audio.paused && !isUserPausedRef.current) {
+          console.log("App backgrounding while playing - flagging for call interruption");
           wasPlayingBeforeCallRef.current = true;
-          callDetectedRef.current = true;
           inCallRef.current = true;
         }
       } else {
         // App coming back to foreground
         if (wasPlayingBeforeCallRef.current && !isUserPausedRef.current && audio.paused) {
-          console.log("📱 App returned from background - checking for auto-resume");
-
-          // Clear any existing resume timeout
-          if (resumeTimeoutRef.current) {
-            clearTimeout(resumeTimeoutRef.current);
-          }
-
-          // Auto-resume after brief delay
-          resumeTimeoutRef.current = window.setTimeout(() => {
-            console.log("🎵 Auto-resuming after returning to foreground");
-            wasPlayingBeforeCallRef.current = false;
-            callDetectedRef.current = false;
-            inCallRef.current = false;
-
-            playFromLiveEdge().catch((error) => {
-              console.error("Failed to resume after foreground:", error);
-              setBufferingMessage("Reconnecting...");
-            });
-          }, 500);
+          console.log("App returned from background (likely after call) - auto-resuming");
+          wasPlayingBeforeCallRef.current = false;
+          inCallRef.current = false;
+          playFromLiveEdge().catch((error) => {
+            console.error("Failed to resume after call:", error);
+            setBufferingMessage("Connection issue, retrying...");
+          });
         }
       }
     };
 
-    const handleBeforeUnload = () => {
-      // Detect when browser/tab is being closed during call
-      if (wasPlayingBeforeCallRef.current) {
-        console.log("🚪 Browser closing during potential call");
-      }
-    };
-
-    const handleFocus = () => {
-      // Window regained focus - potential call end
-      if (wasPlayingBeforeCallRef.current && !isUserPausedRef.current) {
-        console.log("🎯 Window focused - checking for call end resume");
-
-        // Small delay to ensure call has fully ended
-        setTimeout(() => {
-          if (wasPlayingBeforeCallRef.current && audio.paused) {
-            console.log("🎵 Auto-resuming on window focus");
-            wasPlayingBeforeCallRef.current = false;
-            callDetectedRef.current = false;
-            inCallRef.current = false;
-
-            playFromLiveEdge().catch((error) => {
-              console.error("Failed to resume on focus:", error);
-              setBufferingMessage("Reconnecting...");
-            });
-          }
-        }, 800);
-      }
-    };
-
-    const handleBlur = () => {
-      // Window lost focus - potential call start
-      if (!audio.paused && !isUserPausedRef.current) {
-        console.log("🎯 Window blurred while playing - potential call");
-        wasPlayingBeforeCallRef.current = true;
-        callDetectedRef.current = true;
-      }
-    };
-
-    // Add multiple event listeners for comprehensive call detection
-    audio.addEventListener("pause", handleAudioInterruption);
-    audio.addEventListener("suspend", handleAudioInterruption);
-    audio.addEventListener("stalled", handleAudioInterruption);
-    audio.addEventListener("play", handleAudioResume);
-    audio.addEventListener("playing", handleAudioResume);
-
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    window.addEventListener("focus", handleFocus);
-    window.addEventListener("blur", handleBlur);
 
     return () => {
-      audio.removeEventListener("pause", handleAudioInterruption);
-      audio.removeEventListener("suspend", handleAudioInterruption);
-      audio.removeEventListener("stalled", handleAudioInterruption);
-      audio.removeEventListener("play", handleAudioResume);
-      audio.removeEventListener("playing", handleAudioResume);
-
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      window.removeEventListener("focus", handleFocus);
-      window.removeEventListener("blur", handleBlur);
-
-      if (resumeTimeoutRef.current) {
-        clearTimeout(resumeTimeoutRef.current);
-      }
     };
   }, []);
 
@@ -1078,27 +867,8 @@ export const MobilePlayer = ({ station, onNext, onPrevious, allStations }: Mobil
     }
 
     if (isPlaying) {
-      // User manually paused - clear call resume flags
-      isUserPausedRef.current = true;
-      wasPlayingBeforeCallRef.current = false;
-      callDetectedRef.current = false;
-      audioInterruptedRef.current = false;
-
-      // Clear any pending resume timeout
-      if (resumeTimeoutRef.current) {
-        clearTimeout(resumeTimeoutRef.current);
-        resumeTimeoutRef.current = null;
-      }
-
       handlePauseAction();
     } else {
-      // User manually started - clear all call flags
-      isUserPausedRef.current = false;
-      wasPlayingBeforeCallRef.current = false;
-      callDetectedRef.current = false;
-      audioInterruptedRef.current = false;
-      inCallRef.current = false;
-
       handlePlay();
     }
   };
