@@ -5,11 +5,9 @@ import { Play, Pause, Volume2, VolumeX, X, SkipForward, SkipBack } from "lucide-
 import { Slider } from "@/components/ui/slider";
 import { Card } from "@/components/ui/card";
 import { AudioVisualizer } from "./AudioVisualizer";
-import { AdOverlay } from "./AdOverlay";
 import { getStationsWithSlugs } from "@/lib/station-utils";
 import { useAudio } from "@/contexts/AudioContext";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { getAdUrlForRegion, shouldPlayAdOnTimeInterval, logAdImpression } from "@/lib/adManager";
 
 interface AudioPlayerProps {
   station: RadioStation | null;
@@ -17,9 +15,6 @@ interface AudioPlayerProps {
 }
 
 const STATION_TIMEOUT = 15000; // 15 seconds
-// ALWAYS-RELOAD: Every resume reloads from live edge to guarantee live playback.
-// This ensures users always hear the current live stream, not buffered/paused content.
-// Trade-off: every resume takes ~1-2 seconds to reload, but guarantees live content.
 
 export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -28,108 +23,12 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const [playbackTime, setPlaybackTime] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
-  const [isPlayingAd, setIsPlayingAd] = useState(false);
-  const [adDuration, setAdDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
-  const adAudioRef = useRef<HTMLAudioElement>(null);
-  const adInProgressRef = useRef(false);
-  const adIntervalCheckRef = useRef<number | null>(null);
   const {
     setCurrentStation,
-    stationChangeCount,
-    incrementStationChangeCount,
-    adAnalytics,
-    updateAdAnalytics,
     filteredStations,
   } = useAudio();
   const isMobile = useIsMobile();
-
-  // Sync adInProgressRef with isPlayingAd state
-  useEffect(() => {
-    adInProgressRef.current = isPlayingAd;
-  }, [isPlayingAd]);
-
-  // Play ad with regional targeting - OVERLAY MODE (radio continues at low volume)
-  const playAd = async () => {
-    // Prevent concurrent ads
-    if (adInProgressRef.current) {
-      console.log("Ad already playing - skipping new ad trigger");
-      return;
-    }
-
-    try {
-      const adUrl = await getAdUrlForRegion();
-      const adAudio = adAudioRef.current;
-      const radioAudio = audioRef.current;
-
-      if (!adAudio || !radioAudio) return;
-
-      console.log("Playing ad overlay:", adUrl);
-
-      // Set ad state
-      setIsPlayingAd(true);
-      // Keep isPlaying true so radio controls stay active
-
-      // OVERLAY MODE: Lower radio volume instead of stopping it
-      if (radioAudio && isPlaying) {
-        console.log("🔉 Lowering radio volume for ad overlay");
-        radioAudio.volume = 0.02; // Very low volume (2%) so ad is clearly audible
-      }
-
-      // Load and play ad at maximum volume
-      adAudio.src = adUrl;
-      adAudio.volume = 1.0; // Ad plays at full volume (100%) to be clearly heard over low radio
-
-      await adAudio.play();
-
-      // Log ad impression
-      const updatedAnalytics = await logAdImpression(adAnalytics);
-      updateAdAnalytics(updatedAnalytics);
-    } catch (error) {
-      console.error("Error playing ad:", error);
-      setIsPlayingAd(false);
-
-      // Restore radio volume if ad fails
-      if (audioRef.current && isPlaying) {
-        audioRef.current.volume = isMuted ? 0 : volume / 100; // Restore normal volume
-      }
-
-      console.log("Ad playback failed - radio volume restored");
-    }
-  };
-
-  // Handle ad completion - restore normal radio volume
-  const handleAdEnded = () => {
-    console.log("Ad finished - restoring normal radio volume");
-    setIsPlayingAd(false);
-
-    const radioAudio = audioRef.current;
-
-    // OVERLAY MODE: Restore normal radio volume (radio never stopped playing)
-    if (radioAudio && isPlaying) {
-      console.log("🔊 Restoring normal radio volume after ad");
-      radioAudio.volume = isMuted ? 0 : volume / 100; // Restore normal volume based on user settings
-    }
-
-    console.log("📻 Radio continues playing at normal volume");
-  };
-
-  // Skip ad (if user wants)
-  const skipAd = () => {
-    console.log("Ad skipped by user");
-    if (adAudioRef.current) {
-      adAudioRef.current.pause();
-      adAudioRef.current.currentTime = 0;
-    }
-
-    // Restore radio volume immediately when skipped
-    if (audioRef.current && isPlaying) {
-      console.log("🔊 Restoring radio volume after ad skip");
-      audioRef.current.volume = isMuted ? 0 : volume / 100; // Restore normal volume based on user settings
-    }
-
-    handleAdEnded();
-  };
 
   // Change to next station without navigation
   const playNextStation = () => {
@@ -141,7 +40,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     const nextIndex = (currentIndex + 1) % stations.length;
     const nextStation = stations[nextIndex];
 
-    incrementStationChangeCount();
     setCurrentStation(nextStation);
   };
 
@@ -155,146 +53,82 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     const prevIndex = currentIndex === 0 ? stations.length - 1 : currentIndex - 1;
     const prevStation = stations[prevIndex];
 
-    incrementStationChangeCount();
     setCurrentStation(prevStation);
   };
 
-  // Check for time-based ad intervals
-  useEffect(() => {
-    if (!isPlaying) return;
-
-    adIntervalCheckRef.current = window.setInterval(() => {
-      const now = Date.now();
-      const timeSinceSession = now - adAnalytics.sessionStartTime;
-      const timeSinceLastAd = adAnalytics.lastAdTimestamp ? now - adAnalytics.lastAdTimestamp : Infinity;
-
-      console.log("🕐 Ad time check:", {
-        timeSinceSession: Math.floor(timeSinceSession / 1000) + "s",
-        timeSinceLastAd: adAnalytics.lastAdTimestamp ? Math.floor(timeSinceLastAd / 1000) + "s" : "never",
-        shouldTrigger: shouldPlayAdOnTimeInterval(adAnalytics.sessionStartTime, adAnalytics.lastAdTimestamp),
-      });
-
-      if (shouldPlayAdOnTimeInterval(adAnalytics.sessionStartTime, adAnalytics.lastAdTimestamp)) {
-        console.log("✅ Triggering ad on time interval");
-        playAd();
-      }
-    }, 60000); // Check every minute
-
-    return () => {
-      if (adIntervalCheckRef.current) {
-        clearInterval(adIntervalCheckRef.current);
-      }
-    };
-  }, [isPlaying, adAnalytics]);
-
-  // Setup ad audio element
-  useEffect(() => {
-    const adAudio = adAudioRef.current;
-    if (!adAudio) return;
-
-    const handleAdLoaded = () => {
-      setAdDuration(Math.floor(adAudio.duration));
-    };
-
-    adAudio.addEventListener("loadedmetadata", handleAdLoaded);
-    adAudio.addEventListener("ended", handleAdEnded);
-
-    return () => {
-      adAudio.removeEventListener("loadedmetadata", handleAdLoaded);
-      adAudio.removeEventListener("ended", handleAdEnded);
-    };
-  }, []);
-
-  // Load station and auto-play (simple single audio element like MobilePlayer)
+  // Load station and auto-play
   useEffect(() => {
     if (!station || !audioRef.current) return;
 
-    // Update Media Session metadata immediately
-    if ("mediaSession" in navigator) {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: station.name,
-        artist: `${station.language || "Hindi"} • ${station.type}`,
-        album: "DesiMelody.com",
-        artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
-      });
-    }
-
-    setIsLoading(true);
-    setPlaybackTime(0);
-
     const audio = audioRef.current;
+    let timeoutId: number | null = null;
 
-    // Load new station immediately (single element approach like MobilePlayer)
-    const sep = station.link.includes("?") ? "&" : "?";
-    audio.src = `${station.link}${sep}ts=${Date.now()}`;
+    console.log(`🎵 Loading new station: ${station.name}`);
+    setIsLoading(true);
+    setLoadError(false);
+
+    audio.src = station.link;
     audio.load();
 
-    const handleCanPlay = async () => {
-      console.log("Station ready to play");
+    // Set timeout for station loading
+    timeoutId = window.setTimeout(() => {
+      console.error("⏱️ Station loading timeout");
       setIsLoading(false);
+      setLoadError(true);
+      audio.pause();
+    }, STATION_TIMEOUT);
 
-      // Seek to live edge if available
-      if (audio.seekable.length > 0) {
-        try {
-          audio.currentTime = audio.seekable.end(0);
-          console.log("Seeked to live edge:", audio.seekable.end(0));
-        } catch (e) {
-          console.warn("Could not seek to live edge:", e);
-        }
-      }
+    const handleCanPlay = async () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      console.log("✅ Station loaded - auto-playing");
+      setIsLoading(false);
+      setLoadError(false);
 
-      // Auto-play
       try {
-        // Set appropriate volume based on ad state
-        audio.volume = isPlayingAd ? 0.02 : isMuted ? 0 : volume / 100;
-
         await audio.play();
-        console.log("Successfully playing", isPlayingAd ? "at low volume (ad overlay)" : "at normal volume");
         setIsPlaying(true);
-
-        if ("mediaSession" in navigator) {
-          navigator.mediaSession.playbackState = "playing";
-        }
       } catch (error) {
-        console.log("Autoplay failed:", error);
+        console.log("Auto-play failed:", error);
         setIsPlaying(false);
       }
     };
 
     const handleError = () => {
-      console.log("❌ Station error - auto-skipping to next");
+      if (timeoutId) clearTimeout(timeoutId);
+      console.error("❌ Station loading error");
       setIsLoading(false);
-      // Auto-skip to next station
-      setTimeout(() => {
-        playNextStation();
-      }, 500);
+      setLoadError(true);
     };
 
     audio.addEventListener("canplay", handleCanPlay);
     audio.addEventListener("error", handleError);
 
     return () => {
+      if (timeoutId) clearTimeout(timeoutId);
       audio.removeEventListener("canplay", handleCanPlay);
       audio.removeEventListener("error", handleError);
     };
-  }, [station, isPlayingAd, isMuted, volume]);
+  }, [station]);
 
-  // Simple volume management like MobilePlayer
+  // Update playback time
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    if (!isPlaying) return;
 
-    // Apply volume changes, but respect ad overlay mode
-    if (isPlayingAd) {
-      audio.volume = 0.02; // Keep low during ad
-      console.log("🔉 Volume change during ad - keeping radio low");
-    } else {
-      audio.volume = isMuted ? 0 : volume / 100;
-      console.log(`🔊 Setting audio volume to ${Math.round((isMuted ? 0 : volume / 100) * 100)}%`);
+    const interval = setInterval(() => {
+      setPlaybackTime((prev) => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isPlaying]);
+
+  // Volume control
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = isMuted ? 0 : volume / 100;
     }
-  }, [volume, isMuted, isPlayingAd]);
+  }, [volume, isMuted]);
 
-  // Simple Media Session like MobilePlayer
+  // Media Session API
   useEffect(() => {
     if (!station || !("mediaSession" in navigator)) return;
 
@@ -380,14 +214,9 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
   return (
     <Card className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 relative overflow-hidden">
-      {/* Single audio element like MobilePlayer */}
       <audio ref={audioRef} crossOrigin="anonymous" preload="auto" playsInline />
-      {/* Ad audio element */}
-      <audio ref={adAudioRef} preload="auto" />
 
-      <AdOverlay isVisible={isPlayingAd} duration={adDuration} onSkip={skipAd} />
-
-      <AudioVisualizer audioRef={audioRef} isPlaying={isPlaying && !isPlayingAd} />
+      <AudioVisualizer audioRef={audioRef} isPlaying={isPlaying} />
 
       <div className="container py-4 relative z-10 max-w-full">
         <div className="flex items-center gap-2 sm:gap-4 max-w-full">
@@ -433,7 +262,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
                   variant="outline"
                   className="rounded-full w-8 h-8 sm:w-10 sm:h-10"
                   title="Previous Station"
-                  disabled={isPlayingAd}
                 >
                   <SkipBack className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
@@ -445,7 +273,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
                   disabled={isLoading}
                 >
                   {isPlaying ? (
-                    <Pause className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
+                    <Pause className="w-4 h-4 sm:w-5 sm:w-5 fill-current" />
                   ) : (
                     <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
                   )}
@@ -457,7 +285,6 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
                   variant="outline"
                   className="rounded-full w-8 h-8 sm:w-10 sm:h-10"
                   title="Next Station"
-                  disabled={isPlayingAd}
                 >
                   <SkipForward className="w-3 h-3 sm:w-4 sm:h-4" />
                 </Button>
