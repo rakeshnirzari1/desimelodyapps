@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RadioStation } from "@/types/station";
 import { getStationsWithSlugs } from "@/lib/station-utils";
+import logo from "@/assets/desimelodylogo.png";
 
 export default function CarPlayer() {
   const [allStations, setAllStations] = useState<RadioStation[]>([]);
@@ -200,7 +201,7 @@ export default function CarPlayer() {
 
     navigator.mediaSession.metadata = new MediaMetadata({
       title: currentStation.name,
-      artist: `${currentStation.language || "Hindi"} • ${currentStation.type}`,
+      artist: `DesiMelody.com • ${currentStation.language || "Hindi"} • ${currentStation.type}`,
       album: "DesiMelody.com",
       artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
     });
@@ -350,6 +351,11 @@ export default function CarPlayer() {
       <div className="min-h-screen bg-black text-white flex flex-col">
         <audio ref={audioRef} preload="auto" />
         <audio ref={silenceAudioRef} src="/silence.mp3" loop preload="auto" style={{ display: "none" }} />
+
+        {/* Logo Header */}
+        <div className="p-4 flex justify-center items-center border-b border-white/10">
+          <img src={logo} alt="DesiMelody.com" className="h-12 md:h-16" />
+        </div>
 
         {/* Search Bar */}
         <div className="p-4 border-b border-white/10">
