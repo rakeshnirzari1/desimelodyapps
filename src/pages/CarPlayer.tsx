@@ -354,12 +354,34 @@ export default function CarPlayer() {
   // Volume control
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : volume / 100;
+      const targetVolume = isMuted ? 0 : volume / 100;
+      audioRef.current.volume = targetVolume;
+      audioRef.current.muted = isMuted;
+      console.log(
+        "Volume effect - Volume:",
+        targetVolume,
+        "Muted:",
+        isMuted,
+        "Actual volume:",
+        audioRef.current.volume,
+        "Actual muted:",
+        audioRef.current.muted,
+      );
     }
   }, [volume, isMuted]);
 
   const toggleMute = () => {
-    setIsMuted(!isMuted);
+    const newMutedState = !isMuted;
+    setIsMuted(newMutedState);
+    console.log("Mute toggled:", newMutedState);
+
+    // Force volume change immediately for iOS
+    if (audioRef.current) {
+      const targetVolume = newMutedState ? 0 : volume / 100;
+      audioRef.current.volume = targetVolume;
+      audioRef.current.muted = newMutedState;
+      console.log("Audio muted property:", audioRef.current.muted, "Volume:", audioRef.current.volume);
+    }
   };
 
   return (
@@ -512,9 +534,19 @@ export default function CarPlayer() {
                 <Slider
                   value={[isMuted ? 0 : volume]}
                   onValueChange={(value) => {
-                    setVolume(value[0]);
-                    if (value[0] > 0 && isMuted) {
+                    console.log("Slider changed to:", value[0]);
+                    const newVolume = value[0];
+                    setVolume(newVolume);
+                    if (newVolume > 0 && isMuted) {
                       setIsMuted(false);
+                      if (audioRef.current) {
+                        audioRef.current.muted = false;
+                      }
+                    }
+                    // Directly update audio element
+                    if (audioRef.current) {
+                      audioRef.current.volume = newVolume / 100;
+                      console.log("Audio volume directly set to:", audioRef.current.volume);
                     }
                   }}
                   max={100}
