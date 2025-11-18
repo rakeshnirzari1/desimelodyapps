@@ -451,7 +451,14 @@ export default function CarPlayer() {
                       disabled={isLoading || isPlaying}
                       className="w-20 h-20 rounded-full bg-white hover:bg-white/90 text-[#1a1a2e] disabled:opacity-40 disabled:bg-white/50 shadow-2xl transition-all hover:scale-105 disabled:hover:scale-100 disabled:cursor-not-allowed border-4 border-white/20"
                     >
-                      <Play className="w-10 h-10 ml-1" />
+                      {isPlaying ? (
+                        <div className="flex flex-col items-center">
+                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mb-1" />
+                          <span className="text-[10px] font-bold">LIVE</span>
+                        </div>
+                      ) : (
+                        <Play className="w-10 h-10 ml-1" />
+                      )}
                     </Button>
                     {isLoading && (
                       <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap">
