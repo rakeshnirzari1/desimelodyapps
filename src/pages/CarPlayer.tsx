@@ -18,8 +18,6 @@ export default function CarPlayer() {
   const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const loadAttemptRef = useRef(0);
   const hasAutoSkippedRef = useRef(false);
-  const silentAudioRef = useRef<HTMLAudioElement | null>(null);
-  const beaconIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load stations
   useEffect(() => {
@@ -35,13 +33,15 @@ export default function CarPlayer() {
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const query = searchQuery.toLowerCase();
-    return allStations.filter(
-      (station) =>
-        station.name.toLowerCase().includes(query) ||
-        station.language?.toLowerCase().includes(query) ||
-        station.tags?.toLowerCase().includes(query) ||
-        station.type.toLowerCase().includes(query)
-    ).slice(0, 10); // Limit to 10 results
+    return allStations
+      .filter(
+        (station) =>
+          station.name.toLowerCase().includes(query) ||
+          station.language?.toLowerCase().includes(query) ||
+          station.tags?.toLowerCase().includes(query) ||
+          station.type.toLowerCase().includes(query),
+      )
+      .slice(0, 10); // Limit to 10 results
   }, [searchQuery, allStations]);
 
   // Update filtered stations based on search
@@ -58,7 +58,7 @@ export default function CarPlayer() {
     const audio = audioRef.current;
     loadAttemptRef.current += 1;
     const currentAttempt = loadAttemptRef.current;
-    
+
     audio.src = currentStation.link;
     setIsLoading(true);
 
@@ -75,8 +75,8 @@ export default function CarPlayer() {
         try {
           await audio.play();
           // Update media session to ensure it stays active
-          if ('mediaSession' in navigator) {
-            navigator.mediaSession.playbackState = 'playing';
+          if ("mediaSession" in navigator) {
+            navigator.mediaSession.playbackState = "playing";
           }
         } catch (error) {
           console.log("Auto-play failed:", error);
@@ -89,18 +89,13 @@ export default function CarPlayer() {
       if (currentAttempt !== loadAttemptRef.current) return;
       setIsLoading(false);
       console.error("Station loading error:", currentStation.name);
-      
-      // Play silent audio during error to maintain media session
-      if (isPlaying && silentAudioRef.current) {
-        silentAudioRef.current.play().catch(console.log);
-      }
-      
+
       // Keep playing state true to maintain lock screen controls
       // Only auto-skip once until a station successfully loads
       if (isPlaying && !hasAutoSkippedRef.current) {
         hasAutoSkippedRef.current = true;
         errorTimeoutRef.current = setTimeout(() => {
-          silentAudioRef.current?.pause();
+          console.log("Auto-skipping to next station...");
           handleNext();
         }, 2000);
       }
@@ -109,17 +104,12 @@ export default function CarPlayer() {
     const handleStalled = () => {
       if (currentAttempt !== loadAttemptRef.current) return;
       console.warn("Station stalled:", currentStation.name);
-      
-      // Play silent audio during stall
-      if (isPlaying && silentAudioRef.current) {
-        silentAudioRef.current.play().catch(console.log);
-      }
-      
+
       // Only auto-skip once until a station successfully loads
       if (isPlaying && !hasAutoSkippedRef.current) {
         hasAutoSkippedRef.current = true;
         errorTimeoutRef.current = setTimeout(() => {
-          silentAudioRef.current?.pause();
+          console.log("Stream stalled, skipping to next...");
           handleNext();
         }, 8000);
       }
@@ -197,43 +187,6 @@ export default function CarPlayer() {
     };
   }, [currentStation, isPlaying, filteredStations]);
 
-  // Create silent audio keep-alive
-  useEffect(() => {
-    const silentAudio = new Audio();
-    silentAudio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
-    silentAudio.loop = true;
-    silentAudio.volume = 0;
-    silentAudioRef.current = silentAudio;
-
-    return () => {
-      silentAudio.pause();
-      silentAudio.src = "";
-    };
-  }, []);
-
-  // Heartbeat to refresh media session
-  useEffect(() => {
-    if (!isPlaying || !('mediaSession' in navigator)) return;
-
-    beaconIntervalRef.current = setInterval(() => {
-      if (navigator.mediaSession && currentStation) {
-        navigator.mediaSession.playbackState = 'playing';
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: currentStation.name,
-          artist: `${currentStation.language || "Hindi"} • ${currentStation.type}`,
-          album: "DesiMelody.com",
-          artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
-        });
-      }
-    }, 5000);
-
-    return () => {
-      if (beaconIntervalRef.current) {
-        clearInterval(beaconIntervalRef.current);
-      }
-    };
-  }, [isPlaying, currentStation]);
-
   const togglePlay = async () => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -260,4 +213,151 @@ export default function CarPlayer() {
   };
 
   const handlePrevious = () => {
-    if
+    if (filteredStations.length === 0) return;
+    hasAutoSkippedRef.current = false; // Reset on manual skip
+    const currentIndex = filteredStations.findIndex((s) => s.id === currentStation?.id);
+    const prevIndex = currentIndex - 1 < 0 ? filteredStations.length - 1 : currentIndex - 1;
+    setCurrentStation(filteredStations[prevIndex]);
+  };
+
+  const handleStationSelect = (station: RadioStation) => {
+    hasAutoSkippedRef.current = false; // Reset on manual selection
+    setCurrentStation(station);
+    setSearchQuery(""); // Clear search
+    setShowSearchResults(false);
+    setFilteredStations(allStations); // Reset to all stations for next/prev
+    if (!isPlaying) {
+      setIsPlaying(true);
+    }
+  };
+
+  return (
+    <>
+      <Helmet>
+        <title>Car Player - DesiMelody.com</title>
+        <meta name="description" content="Car-friendly radio player with steering wheel controls support" />
+      </Helmet>
+
+      <div className="min-h-screen bg-black text-white flex flex-col">
+        <audio ref={audioRef} preload="auto" />
+
+        {/* Search Bar */}
+        <div className="p-4 border-b border-white/10">
+          <div className="relative max-w-2xl mx-auto">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50 z-10" />
+            <Input
+              type="text"
+              placeholder="Search stations..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowSearchResults(e.target.value.trim().length > 0);
+              }}
+              onFocus={() => setShowSearchResults(searchQuery.trim().length > 0)}
+              onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
+              className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-white/30"
+            />
+
+            {/* Search Results Dropdown */}
+            {showSearchResults && searchResults.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-zinc-900 border border-white/20 rounded-lg shadow-2xl max-h-96 overflow-y-auto z-50">
+                {searchResults.map((station) => (
+                  <button
+                    key={station.id}
+                    onClick={() => handleStationSelect(station)}
+                    className="w-full flex items-center gap-3 p-3 hover:bg-white/10 transition-colors text-left border-b border-white/5 last:border-0"
+                  >
+                    <img
+                      src={station.image}
+                      alt={station.name}
+                      className="w-12 h-12 rounded-lg object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400";
+                      }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-white truncate">{station.name}</div>
+                      <div className="text-sm text-white/60 truncate">
+                        {station.language || "Hindi"} • {station.type}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Player */}
+        <div className="flex-1 flex flex-col items-center justify-center p-8 space-y-8">
+          {currentStation ? (
+            <>
+              {/* Station Image */}
+              <img
+                src={currentStation.image}
+                alt={currentStation.name}
+                className="w-32 h-32 md:w-48 md:h-48 rounded-2xl object-cover shadow-2xl"
+                onError={(e) => {
+                  e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400";
+                }}
+              />
+
+              {/* Station Info */}
+              <div className="text-center space-y-2 max-w-2xl">
+                <h1 className="text-3xl md:text-5xl font-bold">{currentStation.name}</h1>
+                <p className="text-lg md:text-xl text-white/70">
+                  {currentStation.language || "Hindi"} • {currentStation.type}
+                </p>
+                {currentStation.tags && <p className="text-sm md:text-base text-white/50">{currentStation.tags}</p>}
+              </div>
+
+              {/* Loading Indicator */}
+              {isLoading && <p className="text-white/50 animate-pulse">Loading station...</p>}
+
+              {/* Controls */}
+              <div className="flex items-center gap-6 md:gap-8">
+                <Button
+                  onClick={handlePrevious}
+                  size="icon"
+                  variant="ghost"
+                  className="w-16 h-16 md:w-20 md:h-20 rounded-full hover:bg-white/10 text-white"
+                >
+                  <SkipBack className="w-8 h-8 md:w-10 md:h-10" />
+                </Button>
+
+                <Button
+                  onClick={togglePlay}
+                  size="icon"
+                  disabled={isLoading}
+                  className="w-20 h-20 md:w-28 md:h-28 rounded-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+                >
+                  {isPlaying ? (
+                    <Pause className="w-10 h-10 md:w-14 md:h-14" />
+                  ) : (
+                    <Play className="w-10 h-10 md:w-14 md:h-14 ml-1" />
+                  )}
+                </Button>
+
+                <Button
+                  onClick={handleNext}
+                  size="icon"
+                  variant="ghost"
+                  className="w-16 h-16 md:w-20 md:h-20 rounded-full hover:bg-white/10 text-white"
+                >
+                  <SkipForward className="w-8 h-8 md:w-10 md:h-10" />
+                </Button>
+              </div>
+
+              {/* Info Text */}
+              <p className="text-center text-sm md:text-base text-white/50 max-w-md px-4">
+                Steering wheel ⊂ / ⊃ = change station • Works in Android Auto & CarPlay
+              </p>
+            </>
+          ) : (
+            <p className="text-white/70 text-lg">No stations found</p>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
