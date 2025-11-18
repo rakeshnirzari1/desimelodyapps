@@ -35,7 +35,9 @@ export default function CarPlayer() {
     setFilteredStations(stations);
     if (stations.length > 0) {
       // Try to find Radio Mirchi Hindi as default, fallback to first station
-      const defaultStation = stations.find(s => s.name.toLowerCase().includes('radio mirchi') && s.name.toLowerCase().includes('hindi')) || stations[0];
+      const defaultStation =
+        stations.find((s) => s.name.toLowerCase().includes("radio mirchi") && s.name.toLowerCase().includes("hindi")) ||
+        stations[0];
       setCurrentStation(defaultStation);
     }
   }, []);
@@ -355,21 +357,30 @@ export default function CarPlayer() {
       const targetVolume = isMuted ? 0 : volume / 100;
       audioRef.current.volume = targetVolume;
       audioRef.current.muted = isMuted;
-      console.log('Volume effect - Volume:', targetVolume, 'Muted:', isMuted, 'Actual volume:', audioRef.current.volume, 'Actual muted:', audioRef.current.muted);
+      console.log(
+        "Volume effect - Volume:",
+        targetVolume,
+        "Muted:",
+        isMuted,
+        "Actual volume:",
+        audioRef.current.volume,
+        "Actual muted:",
+        audioRef.current.muted,
+      );
     }
   }, [volume, isMuted]);
 
   const toggleMute = () => {
     const newMutedState = !isMuted;
     setIsMuted(newMutedState);
-    console.log('Mute toggled:', newMutedState);
-    
+    console.log("Mute toggled:", newMutedState);
+
     // Force volume change immediately for iOS
     if (audioRef.current) {
       const targetVolume = newMutedState ? 0 : volume / 100;
       audioRef.current.volume = targetVolume;
       audioRef.current.muted = newMutedState;
-      console.log('Audio muted property:', audioRef.current.muted, 'Volume:', audioRef.current.volume);
+      console.log("Audio muted property:", audioRef.current.muted, "Volume:", audioRef.current.volume);
     }
   };
 
@@ -386,9 +397,15 @@ export default function CarPlayer() {
 
         {/* Animated background effects */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent pointer-events-none" />
-        <div className="absolute top-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }} />
-        
+        <div
+          className="absolute top-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"
+          style={{ animationDuration: "4s" }}
+        />
+        <div
+          className="absolute bottom-0 right-0 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse"
+          style={{ animationDuration: "5s", animationDelay: "1s" }}
+        />
+
         {/* Logo Header */}
         <div className="relative z-10 py-2 md:py-3 flex justify-center items-center">
           <div className="relative">
@@ -398,7 +415,7 @@ export default function CarPlayer() {
         </div>
 
         {/* Search Bar */}
-        <div className="relative z-10 px-4 pb-1 mt-4">
+        <div className="relative z-10 px-4 pb-1">
           <div className="relative max-w-2xl mx-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/70 z-10" />
             <Input
@@ -488,32 +505,83 @@ export default function CarPlayer() {
                 </div>
               </div>
 
-              {/* Audio Visualizer - Equalizer Bars */
+              {/* Volume Control */}
+              <div className="flex items-center justify-center gap-4 max-w-md mx-auto px-4">
+                <button
+                  onClick={toggleMute}
+                  className="text-white/70 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-full"
+                  title={isMuted ? "Unmute" : "Mute"}
+                >
+                  {isMuted ? (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"
+                      />
+                    </svg>
+                  ) : (
+                    <Volume2 className="w-6 h-6" />
+                  )}
+                </button>
+                <Slider
+                  value={[isMuted ? 0 : volume]}
+                  onValueChange={(value) => {
+                    console.log("Slider changed to:", value[0]);
+                    const newVolume = value[0];
+                    setVolume(newVolume);
+                    if (newVolume > 0 && isMuted) {
+                      setIsMuted(false);
+                      if (audioRef.current) {
+                        audioRef.current.muted = false;
+                      }
+                    }
+                    // Directly update audio element
+                    if (audioRef.current) {
+                      audioRef.current.volume = newVolume / 100;
+                      console.log("Audio volume directly set to:", audioRef.current.volume);
+                    }
+                  }}
+                  max={100}
+                  step={1}
+                  className="flex-1"
+                />
+                <span className="text-base text-white/70 font-medium w-12 text-right">{isMuted ? 0 : volume}%</span>
+              </div>
+
+              {/* Audio Visualizer - Equalizer Bars */}
               <div className="relative h-24 md:h-28 flex items-end justify-center gap-1.5 px-6 mt-2">
                 {[...Array(12)].map((_, i) => {
                   const heights = [60, 80, 95, 75, 90, 100, 85, 70, 95, 80, 75, 65];
                   const colors = [
-                    'from-red-500 to-red-600',
-                    'from-orange-500 to-orange-600',
-                    'from-amber-500 to-amber-600',
-                    'from-yellow-500 to-yellow-600',
-                    'from-lime-500 to-lime-600',
-                    'from-green-500 to-green-600',
-                    'from-emerald-500 to-emerald-600',
-                    'from-cyan-500 to-cyan-600',
-                    'from-sky-500 to-sky-600',
-                    'from-blue-500 to-blue-600',
-                    'from-purple-500 to-purple-600',
-                    'from-pink-500 to-pink-600',
+                    "from-red-500 to-red-600",
+                    "from-orange-500 to-orange-600",
+                    "from-amber-500 to-amber-600",
+                    "from-yellow-500 to-yellow-600",
+                    "from-lime-500 to-lime-600",
+                    "from-green-500 to-green-600",
+                    "from-emerald-500 to-emerald-600",
+                    "from-cyan-500 to-cyan-600",
+                    "from-sky-500 to-sky-600",
+                    "from-blue-500 to-blue-600",
+                    "from-purple-500 to-purple-600",
+                    "from-pink-500 to-pink-600",
                   ];
                   return (
                     <div
                       key={i}
                       className={`flex-1 max-w-[24px] rounded-full bg-gradient-to-t ${colors[i]} transition-all duration-300 shadow-lg ${
-                        isPlaying && !isLoading ? 'animate-pulse' : 'opacity-40'
+                        isPlaying && !isLoading ? "animate-pulse" : "opacity-40"
                       }`}
                       style={{
-                        height: isPlaying && !isLoading ? `${heights[i]}%` : '30%',
+                        height: isPlaying && !isLoading ? `${heights[i]}%` : "30%",
                         animationDelay: `${i * 0.1}s`,
                         animationDuration: `${0.8 + Math.random() * 0.4}s`,
                       }}
@@ -532,19 +600,19 @@ export default function CarPlayer() {
 
         {/* Search Results Modal - Rendered outside all containers */}
         {showSearchResults && searchResults.length > 0 && (
-          <div 
+          <div
             className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
-            style={{ pointerEvents: 'auto' }}
+            style={{ pointerEvents: "auto" }}
             onClick={() => setShowSearchResults(false)}
           >
-            <div 
+            <div
               className="w-full max-w-md bg-white rounded-3xl shadow-2xl max-h-[75vh] overflow-hidden flex flex-col"
               onClick={(e) => e.stopPropagation()}
-              style={{ pointerEvents: 'auto' }}
+              style={{ pointerEvents: "auto" }}
             >
               <div className="sticky top-0 bg-gradient-to-r from-purple-600 via-purple-500 to-pink-600 text-white p-4 flex items-center justify-between">
                 <h3 className="font-bold text-lg">Search Results ({searchResults.length})</h3>
-                <button 
+                <button
                   onClick={() => setShowSearchResults(false)}
                   className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
                 >
@@ -561,7 +629,7 @@ export default function CarPlayer() {
                       handleStationSelect(station);
                     }}
                     className="w-full flex items-center gap-4 p-4 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 active:from-purple-100 active:to-pink-100 transition-all text-left border-b border-gray-100 last:border-0"
-                    style={{ cursor: 'pointer', pointerEvents: 'auto' }}
+                    style={{ cursor: "pointer", pointerEvents: "auto" }}
                   >
                     <img
                       src={station.image}
