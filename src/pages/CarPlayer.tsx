@@ -34,6 +34,7 @@ export default function CarPlayer() {
   const [isPlayingAd, setIsPlayingAd] = useState(false);
   const [userCountry, setUserCountry] = useState<string>("india");
   const originalVolumeRef = useRef<number>(80);
+  const hasPlayedInitialAd = useRef(false);
 
   // Load stations and detect user country
   useEffect(() => {
@@ -74,6 +75,46 @@ export default function CarPlayer() {
     }
   }, [searchQuery, allStations]);
 
+  // Handle initial ad ending - switch to radio
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleAudioEnded = async () => {
+      // If initial ad just finished, switch to radio
+      if (isPlayingAd && hasPlayedInitialAd.current && currentStation) {
+        console.log("[INITIAL AD] Ad finished, switching to radio stream");
+        setIsPlayingAd(false);
+
+        // Switch to radio stream immediately (audio session is already active)
+        audio.src = currentStation.link;
+        audio.load();
+
+        // Restore Media Session to radio station
+        if ("mediaSession" in navigator) {
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: currentStation.name,
+            artist: `${currentStation.language || "Hindi"} • ${currentStation.type}`,
+            album: "DesiMelody.com, 1200 Radio Stations From South East Asia",
+            artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
+          });
+        }
+
+        try {
+          await audio.play();
+          console.log("[INITIAL AD] Radio stream started after ad");
+        } catch (error) {
+          console.error("[INITIAL AD] Failed to start radio after ad:", error);
+        }
+      }
+    };
+
+    audio.addEventListener("ended", handleAudioEnded);
+    return () => {
+      audio.removeEventListener("ended", handleAudioEnded);
+    };
+  }, [isPlayingAd, currentStation, volume]);
+
   // Load and play station with auto-skip on error
   useEffect(() => {
     if (!currentStation || !audioRef.current) return;
@@ -81,6 +122,11 @@ export default function CarPlayer() {
     const audio = audioRef.current;
     loadAttemptRef.current += 1;
     const currentAttempt = loadAttemptRef.current;
+
+    // Don't reload if initial ad is playing
+    if (isPlayingAd && hasPlayedInitialAd.current) {
+      return;
+    }
 
     audio.src = currentStation.link;
     setIsLoading(true);
@@ -304,21 +350,59 @@ export default function CarPlayer() {
     const silenceAudio = silenceAudioRef.current;
     if (!audio || isPlaying) return; // Do nothing if already playing
 
-    // Always reload source for fresh live stream
-    if (currentStation) {
-      audio.src = currentStation.link;
-      audio.load();
-    }
     // Stop silent audio immediately when playing
     if (silenceAudio) {
       silenceAudio.pause();
     }
-    try {
-      await audio.play();
+
+    // Play initial ad first to establish audio session (only once per session)
+    if (!hasPlayedInitialAd.current) {
+      console.log("[INITIAL AD] Playing initial advertisement before radio starts");
+      hasPlayedInitialAd.current = true;
       setIsPlaying(true);
-    } catch (error) {
-      console.log("Play failed:", error);
-      setIsPlaying(true); // Keep state true to maintain controls
+      setIsPlayingAd(true);
+
+      // Get ad for user's country
+      const adUrl = getRandomAd(userCountry);
+      audio.src = adUrl;
+      audio.volume = volume / 100;
+
+      // Update Media Session for ad
+      if ("mediaSession" in navigator && currentStation) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: "Advertisement",
+          artist: currentStation.name,
+          album: "DesiMelody.com",
+          artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
+        });
+      }
+
+      try {
+        await audio.play();
+        console.log("[INITIAL AD] Initial ad playing");
+      } catch (error) {
+        console.error("[INITIAL AD] Failed to play initial ad:", error);
+        // If ad fails, go straight to radio
+        setIsPlayingAd(false);
+        if (currentStation) {
+          audio.src = currentStation.link;
+          audio.load();
+          await audio.play().catch((e) => console.log("Radio play failed:", e));
+        }
+      }
+    } else {
+      // Normal play - reload source for fresh live stream
+      if (currentStation) {
+        audio.src = currentStation.link;
+        audio.load();
+      }
+      try {
+        await audio.play();
+        setIsPlaying(true);
+      } catch (error) {
+        console.log("Play failed:", error);
+        setIsPlaying(true); // Keep state true to maintain controls
+      }
     }
   };
 
