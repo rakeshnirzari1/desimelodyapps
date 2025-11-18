@@ -433,7 +433,7 @@ export default function CarPlayer() {
         </div>
 
         {/* Player */}
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-0">
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-4">
           {currentStation ? (
             <div className="relative w-full max-w-4xl space-y-3">
               {/* Station Info - Compact */}
