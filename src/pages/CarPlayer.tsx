@@ -145,6 +145,10 @@ export default function CarPlayer() {
         errorTimeoutRef.current = null;
       }
       hasAutoSkippedRef.current = false;
+      // Explicitly sync Media Session when audio is actually playing
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.playbackState = "playing";
+      }
     };
 
     audio.addEventListener("canplay", handleCanPlay);
@@ -165,14 +169,14 @@ export default function CarPlayer() {
     };
   }, [currentStation]);
 
-  // Handle silence audio during loading to keep lock screen controls active
+  // Handle silence audio to keep lock screen controls active
   useEffect(() => {
     if (!silenceAudioRef.current) return;
 
     const silenceAudio = silenceAudioRef.current;
     
-    // Play silence when loading and playing state is true
-    if (isLoading && isPlaying) {
+    // Play silence when: loading OR paused (to maintain lock screen presence)
+    if ((isLoading && isPlaying) || !isPlaying) {
       silenceAudio.play().catch(e => console.log("Silence play failed:", e));
     } else {
       silenceAudio.pause();
@@ -241,14 +245,27 @@ export default function CarPlayer() {
     if (!audio) return;
 
     if (isPlaying) {
+      // Pausing: main audio pauses, silent audio will play (via useEffect)
       audio.pause();
       setIsPlaying(false);
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.playbackState = "paused";
+      }
     } else {
+      // Resuming: reload source for fresh live stream, silent audio will stop (via useEffect)
+      if (currentStation) {
+        audio.src = currentStation.link; // Reload to get fresh live stream
+        audio.load();
+      }
       try {
         await audio.play();
         setIsPlaying(true);
+        if ("mediaSession" in navigator) {
+          navigator.mediaSession.playbackState = "playing";
+        }
       } catch (error) {
         console.log("Play failed:", error);
+        setIsPlaying(true); // Keep state true to maintain controls
       }
     }
   };
