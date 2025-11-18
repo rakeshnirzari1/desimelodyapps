@@ -23,11 +23,60 @@ export default function CarPlayer() {
   const [isMuted, setIsMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const silenceAudioRef = useRef<HTMLAudioElement>(null);
+  const adAudioRef = useRef<HTMLAudioElement>(null);
   const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const loadAttemptRef = useRef(0);
   const hasAutoSkippedRef = useRef(false);
   const mediaSessionSyncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const wasInterruptedRef = useRef(false);
+  
+  // Web Audio API for smooth ad transitions
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const radioGainNodeRef = useRef<GainNode | null>(null);
+  const adGainNodeRef = useRef<GainNode | null>(null);
+  const radioSourceRef = useRef<MediaElementAudioSourceNode | null>(null);
+  const adSourceRef = useRef<MediaElementAudioSourceNode | null>(null);
+  
+  // Ad management
+  const [isPlayingAd, setIsPlayingAd] = useState(false);
+  const adTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastAdTimeRef = useRef<number>(Date.now());
+  const isChangingStationRef = useRef(false);
+
+  // Initialize Web Audio API for ad mixing
+  useEffect(() => {
+    if (!audioRef.current || !adAudioRef.current) return;
+    
+    if (!audioContextRef.current) {
+      audioContextRef.current = new AudioContext();
+      
+      // Create gain nodes for volume control
+      radioGainNodeRef.current = audioContextRef.current.createGain();
+      adGainNodeRef.current = audioContextRef.current.createGain();
+      
+      // Create source nodes
+      radioSourceRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
+      adSourceRef.current = audioContextRef.current.createMediaElementSource(adAudioRef.current);
+      
+      // Connect radio: source -> gain -> destination
+      radioSourceRef.current.connect(radioGainNodeRef.current);
+      radioGainNodeRef.current.connect(audioContextRef.current.destination);
+      
+      // Connect ad: source -> gain -> destination
+      adSourceRef.current.connect(adGainNodeRef.current);
+      adGainNodeRef.current.connect(audioContextRef.current.destination);
+      
+      // Initialize gains
+      radioGainNodeRef.current.gain.value = 1.0;
+      adGainNodeRef.current.gain.value = 0.0;
+    }
+    
+    return () => {
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
+    };
+  }, []);
 
   // Load stations
   useEffect(() => {
@@ -313,43 +362,243 @@ export default function CarPlayer() {
     }
   };
 
+  // Ad playback logic with country-based selection
+  const playAdvertisement = async () => {
+    // Skip ad if station is being changed
+    if (isChangingStationRef.current) {
+      console.log("Station changing, skipping ad");
+      return;
+    }
+    
+    if (!adAudioRef.current || !radioGainNodeRef.current || !adGainNodeRef.current) return;
+    
+    try {
+      // Get user's country
+      const { getUserCountry } = await import("@/lib/geolocation");
+      const country = await getUserCountry();
+      
+      // Count available ads for this country (check existence)
+      const adCounts: Record<string, number> = {
+        'australia': 7,
+        'bangladesh': 14,
+        'canada': 2,
+        'india': 2,
+        'kuwait': 2,
+        'pakistan': 2,
+        'south-africa': 2,
+        'uae': 2,
+        'uk': 2,
+        'usa': 2
+      };
+      
+      const maxAds = adCounts[country] || 2;
+      const randomAd = Math.floor(Math.random() * maxAds) + 1;
+      const adUrl = `/ads/${country}/ad${randomAd}.mp3`;
+      
+      console.log(`Playing ad: ${adUrl}`);
+      setIsPlayingAd(true);
+      
+      const adAudio = adAudioRef.current;
+      adAudio.src = adUrl;
+      
+      // Smooth fade: Radio down, Ad up
+      const fadeDownRadio = async () => {
+        if (!radioGainNodeRef.current || !audioContextRef.current) return;
+        const now = audioContextRef.current.currentTime;
+        radioGainNodeRef.current.gain.exponentialRampToValueAtTime(0.1, now + 1.5); // Fade to 10% in 1.5s
+      };
+      
+      const fadeUpAd = async () => {
+        if (!adGainNodeRef.current || !audioContextRef.current) return;
+        const now = audioContextRef.current.currentTime;
+        adGainNodeRef.current.gain.exponentialRampToValueAtTime(1.0, now + 1.5); // Fade to 100% in 1.5s
+      };
+      
+      await fadeDownRadio();
+      await fadeUpAd();
+      
+      adAudio.onended = async () => {
+        // Check again if station is changing before restoring volume
+        if (isChangingStationRef.current) {
+          console.log("Station changed during ad, not restoring volume");
+          setIsPlayingAd(false);
+          if (adGainNodeRef.current && audioContextRef.current) {
+            adGainNodeRef.current.gain.value = 0.0;
+          }
+          return;
+        }
+        
+        console.log("Ad finished, restoring radio volume");
+        
+        // Smooth fade: Ad down, Radio up
+        if (adGainNodeRef.current && audioContextRef.current) {
+          const now = audioContextRef.current.currentTime;
+          adGainNodeRef.current.gain.exponentialRampToValueAtTime(0.01, now + 1.5);
+        }
+        
+        if (radioGainNodeRef.current && audioContextRef.current) {
+          const now = audioContextRef.current.currentTime;
+          radioGainNodeRef.current.gain.exponentialRampToValueAtTime(1.0, now + 1.5);
+        }
+        
+        setIsPlayingAd(false);
+        lastAdTimeRef.current = Date.now();
+      };
+      
+      await adAudio.play();
+    } catch (error) {
+      console.error("Ad playback error:", error);
+      setIsPlayingAd(false);
+      // Restore radio volume immediately on error
+      if (radioGainNodeRef.current && audioContextRef.current) {
+        const now = audioContextRef.current.currentTime;
+        radioGainNodeRef.current.gain.exponentialRampToValueAtTime(1.0, now + 0.5);
+      }
+      if (adGainNodeRef.current && audioContextRef.current) {
+        adGainNodeRef.current.gain.value = 0.0;
+      }
+    }
+  };
+
+  // 10-minute ad timer
+  useEffect(() => {
+    if (!isPlaying || isPlayingAd) {
+      return;
+    }
+    
+    // Check every minute if 10 minutes have passed
+    const checkAdTimer = () => {
+      const now = Date.now();
+      const timeSinceLastAd = now - lastAdTimeRef.current;
+      const tenMinutes = 10 * 60 * 1000;
+      
+      if (timeSinceLastAd >= tenMinutes && !isChangingStationRef.current) {
+        playAdvertisement();
+      }
+    };
+    
+    // Check immediately on mount
+    checkAdTimer();
+    
+    // Then check every minute
+    adTimerRef.current = setInterval(checkAdTimer, 60 * 1000);
+    
+    return () => {
+      if (adTimerRef.current) {
+        clearInterval(adTimerRef.current);
+        adTimerRef.current = null;
+      }
+    };
+  }, [isPlaying, isPlayingAd]);
+
   const handleNext = () => {
     if (filteredStations.length === 0) return;
+    
+    // Mark that we're changing stations
+    isChangingStationRef.current = true;
+    
+    // Stop any playing ad immediately
+    if (isPlayingAd && adAudioRef.current) {
+      adAudioRef.current.pause();
+      adAudioRef.current.currentTime = 0;
+      setIsPlayingAd(false);
+      
+      // Restore radio volume immediately
+      if (radioGainNodeRef.current && audioContextRef.current) {
+        radioGainNodeRef.current.gain.value = 1.0;
+      }
+      if (adGainNodeRef.current) {
+        adGainNodeRef.current.gain.value = 0.0;
+      }
+    }
+    
     if (errorTimeoutRef.current) {
       clearTimeout(errorTimeoutRef.current);
       errorTimeoutRef.current = null;
     }
-    hasAutoSkippedRef.current = false; // Reset on manual skip
+    hasAutoSkippedRef.current = false;
     const currentIndex = filteredStations.findIndex((s) => s.id === currentStation?.id);
     const nextIndex = (currentIndex + 1) % filteredStations.length;
     setCurrentStation(filteredStations[nextIndex]);
+    
+    // Reset changing flag after a short delay
+    setTimeout(() => {
+      isChangingStationRef.current = false;
+    }, 1000);
   };
 
   const handlePrevious = () => {
     if (filteredStations.length === 0) return;
+    
+    // Mark that we're changing stations
+    isChangingStationRef.current = true;
+    
+    // Stop any playing ad immediately
+    if (isPlayingAd && adAudioRef.current) {
+      adAudioRef.current.pause();
+      adAudioRef.current.currentTime = 0;
+      setIsPlayingAd(false);
+      
+      // Restore radio volume immediately
+      if (radioGainNodeRef.current && audioContextRef.current) {
+        radioGainNodeRef.current.gain.value = 1.0;
+      }
+      if (adGainNodeRef.current) {
+        adGainNodeRef.current.gain.value = 0.0;
+      }
+    }
+    
     if (errorTimeoutRef.current) {
       clearTimeout(errorTimeoutRef.current);
       errorTimeoutRef.current = null;
     }
-    hasAutoSkippedRef.current = false; // Reset on manual skip
+    hasAutoSkippedRef.current = false;
     const currentIndex = filteredStations.findIndex((s) => s.id === currentStation?.id);
     const prevIndex = currentIndex - 1 < 0 ? filteredStations.length - 1 : currentIndex - 1;
     setCurrentStation(filteredStations[prevIndex]);
+    
+    // Reset changing flag after a short delay
+    setTimeout(() => {
+      isChangingStationRef.current = false;
+    }, 1000);
   };
 
   const handleStationSelect = (station: RadioStation) => {
+    // Mark that we're changing stations
+    isChangingStationRef.current = true;
+    
+    // Stop any playing ad immediately
+    if (isPlayingAd && adAudioRef.current) {
+      adAudioRef.current.pause();
+      adAudioRef.current.currentTime = 0;
+      setIsPlayingAd(false);
+      
+      // Restore radio volume immediately
+      if (radioGainNodeRef.current && audioContextRef.current) {
+        radioGainNodeRef.current.gain.value = 1.0;
+      }
+      if (adGainNodeRef.current) {
+        adGainNodeRef.current.gain.value = 0.0;
+      }
+    }
+    
     if (errorTimeoutRef.current) {
       clearTimeout(errorTimeoutRef.current);
       errorTimeoutRef.current = null;
     }
-    hasAutoSkippedRef.current = false; // Reset on manual selection
+    hasAutoSkippedRef.current = false;
     setCurrentStation(station);
-    setSearchQuery(""); // Clear search
+    setSearchQuery("");
     setShowSearchResults(false);
-    setFilteredStations(allStations); // Reset to all stations for next/prev
+    setFilteredStations(allStations);
     if (!isPlaying) {
       setIsPlaying(true);
     }
+    
+    // Reset changing flag after a short delay
+    setTimeout(() => {
+      isChangingStationRef.current = false;
+    }, 1000);
   };
 
   // Volume control
@@ -394,6 +643,7 @@ export default function CarPlayer() {
 
       <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f1624] text-white flex flex-col relative overflow-hidden">
         <audio ref={audioRef} preload="auto" />
+        <audio ref={adAudioRef} preload="auto" style={{ display: "none" }} />
         <audio ref={silenceAudioRef} src="/silence.mp3" loop preload="auto" style={{ display: "none" }} />
 
         {/* Animated background effects */}
