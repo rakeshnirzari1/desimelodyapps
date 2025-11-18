@@ -368,18 +368,29 @@ export default function CarPlayer() {
         <audio ref={audioRef} preload="auto" />
         <audio ref={silenceAudioRef} src="/silence.mp3" loop preload="auto" style={{ display: "none" }} />
 
-        {/* Animated background effect */}
+        {/* Animated background effects */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent pointer-events-none" />
+        <div
+          className="absolute top-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"
+          style={{ animationDuration: "4s" }}
+        />
+        <div
+          className="absolute bottom-0 right-0 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse"
+          style={{ animationDuration: "5s", animationDelay: "1s" }}
+        />
 
         {/* Logo Header */}
-        <div className="relative z-10 py-2 md:py-3 flex justify-center items-center">
-          <img src={logo} alt="DesiMelody.com" className="h-12 md:h-14 w-auto drop-shadow-2xl" />
+        <div className="relative z-10 py-4 md:py-5 flex justify-center items-center">
+          <div className="relative">
+            <div className="absolute inset-0 blur-2xl bg-gradient-to-r from-purple-500 to-pink-500 opacity-30 animate-pulse" />
+            <img src={logo} alt="DesiMelody.com" className="relative h-20 md:h-24 w-auto drop-shadow-2xl" />
+          </div>
         </div>
 
         {/* Search Bar */}
-        <div className="relative z-10 px-4 pb-2">
+        <div className="relative z-10 px-4 pb-3">
           <div className="relative max-w-2xl mx-auto">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/70 z-10" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/70 z-10" />
             <Input
               type="text"
               placeholder="Search stations..."
@@ -389,53 +400,8 @@ export default function CarPlayer() {
                 setShowSearchResults(e.target.value.trim().length > 0);
               }}
               onFocus={() => setShowSearchResults(searchQuery.trim().length > 0)}
-              className="pl-10 h-11 bg-white/10 backdrop-blur-md border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-purple-400/50 rounded-2xl shadow-lg"
+              className="pl-11 h-12 bg-white/10 backdrop-blur-md border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-purple-400/50 rounded-2xl shadow-lg text-base"
             />
-
-            {/* Search Results Dropdown - Full overlay */}
-            {showSearchResults && searchResults.length > 0 && (
-              <div
-                className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
-                onClick={() => setShowSearchResults(false)}
-              >
-                <div
-                  className="w-full max-w-md bg-white/95 backdrop-blur-md border-2 border-purple-300 rounded-2xl shadow-2xl max-h-[70vh] overflow-y-auto"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-pink-600 text-white p-3 rounded-t-2xl border-b-2 border-white/20">
-                    <h3 className="font-bold text-base">Search Results ({searchResults.length})</h3>
-                  </div>
-                  {searchResults.map((station) => (
-                    <button
-                      key={station.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleStationSelect(station);
-                      }}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                      }}
-                      className="w-full flex items-center gap-3 p-3 hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 active:from-purple-200 active:to-pink-200 transition-all text-left border-b border-gray-200 last:border-0 cursor-pointer"
-                    >
-                      <img
-                        src={station.image}
-                        alt={station.name}
-                        className="w-12 h-12 rounded-lg object-cover shadow-md ring-2 ring-purple-300"
-                        onError={(e) => {
-                          e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400";
-                        }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="font-bold text-gray-800 truncate">{station.name}</div>
-                        <div className="text-sm text-gray-600 truncate">
-                          {station.language || "Hindi"} • {station.type}
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
@@ -559,6 +525,60 @@ export default function CarPlayer() {
 
         {/* Bottom gradient overlay */}
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+
+        {/* Search Results Modal - Rendered outside all containers */}
+        {showSearchResults && searchResults.length > 0 && (
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+            style={{ pointerEvents: "auto" }}
+            onClick={() => setShowSearchResults(false)}
+          >
+            <div
+              className="w-full max-w-md bg-white rounded-3xl shadow-2xl max-h-[75vh] overflow-hidden flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+              style={{ pointerEvents: "auto" }}
+            >
+              <div className="sticky top-0 bg-gradient-to-r from-purple-600 via-purple-500 to-pink-600 text-white p-4 flex items-center justify-between">
+                <h3 className="font-bold text-lg">Search Results ({searchResults.length})</h3>
+                <button
+                  onClick={() => setShowSearchResults(false)}
+                  className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="overflow-y-auto flex-1">
+                {searchResults.map((station) => (
+                  <button
+                    key={station.id}
+                    onClick={() => {
+                      handleStationSelect(station);
+                    }}
+                    className="w-full flex items-center gap-4 p-4 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 active:from-purple-100 active:to-pink-100 transition-all text-left border-b border-gray-100 last:border-0"
+                    style={{ cursor: "pointer", pointerEvents: "auto" }}
+                  >
+                    <img
+                      src={station.image}
+                      alt={station.name}
+                      className="w-14 h-14 rounded-xl object-cover shadow-lg ring-2 ring-purple-200"
+                      onError={(e) => {
+                        e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400";
+                      }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-gray-900 truncate text-base">{station.name}</div>
+                      <div className="text-sm text-gray-600 truncate">
+                        {station.language || "Hindi"} • {station.type}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
