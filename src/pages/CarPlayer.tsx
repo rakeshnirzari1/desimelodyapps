@@ -33,13 +33,15 @@ export default function CarPlayer() {
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const query = searchQuery.toLowerCase();
-    return allStations.filter(
-      (station) =>
-        station.name.toLowerCase().includes(query) ||
-        station.language?.toLowerCase().includes(query) ||
-        station.tags?.toLowerCase().includes(query) ||
-        station.type.toLowerCase().includes(query)
-    ).slice(0, 10); // Limit to 10 results
+    return allStations
+      .filter(
+        (station) =>
+          station.name.toLowerCase().includes(query) ||
+          station.language?.toLowerCase().includes(query) ||
+          station.tags?.toLowerCase().includes(query) ||
+          station.type.toLowerCase().includes(query),
+      )
+      .slice(0, 10); // Limit to 10 results
   }, [searchQuery, allStations]);
 
   // Update filtered stations based on search
@@ -56,7 +58,7 @@ export default function CarPlayer() {
     const audio = audioRef.current;
     loadAttemptRef.current += 1;
     const currentAttempt = loadAttemptRef.current;
-    
+
     audio.src = currentStation.link;
     setIsLoading(true);
 
@@ -72,8 +74,13 @@ export default function CarPlayer() {
       if (isPlaying) {
         try {
           await audio.play();
+          // Update media session to ensure it stays active
+          if ("mediaSession" in navigator) {
+            navigator.mediaSession.playbackState = "playing";
+          }
         } catch (error) {
           console.log("Auto-play failed:", error);
+          // Keep isPlaying true to maintain lock screen controls
         }
       }
     };
@@ -82,7 +89,8 @@ export default function CarPlayer() {
       if (currentAttempt !== loadAttemptRef.current) return;
       setIsLoading(false);
       console.error("Station loading error:", currentStation.name);
-      
+
+      // Keep playing state true to maintain lock screen controls
       // Only auto-skip once until a station successfully loads
       if (isPlaying && !hasAutoSkippedRef.current) {
         hasAutoSkippedRef.current = true;
@@ -96,7 +104,7 @@ export default function CarPlayer() {
     const handleStalled = () => {
       if (currentAttempt !== loadAttemptRef.current) return;
       console.warn("Station stalled:", currentStation.name);
-      
+
       // Only auto-skip once until a station successfully loads
       if (isPlaying && !hasAutoSkippedRef.current) {
         hasAutoSkippedRef.current = true;
@@ -133,12 +141,31 @@ export default function CarPlayer() {
       artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
     });
 
+    // Always set to 'playing' when isPlaying is true, even during loading
+    // This keeps the lock screen controls visible
     navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+
+    // Set position state for live streaming (helps maintain lock screen presence)
+    try {
+      navigator.mediaSession.setPositionState({
+        duration: Infinity, // Live stream has no duration
+        playbackRate: 1,
+        position: 0,
+      });
+    } catch (e) {
+      console.log("Position state not supported");
+    }
 
     navigator.mediaSession.setActionHandler("play", async () => {
       if (audioRef.current) {
-        await audioRef.current.play();
-        setIsPlaying(true);
+        try {
+          await audioRef.current.play();
+          setIsPlaying(true);
+        } catch (error) {
+          console.log("Play failed in media session:", error);
+          // Keep isPlaying true to maintain controls
+          setIsPlaying(true);
+        }
       }
     });
 
@@ -230,7 +257,7 @@ export default function CarPlayer() {
               onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
               className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-white/30"
             />
-            
+
             {/* Search Results Dropdown */}
             {showSearchResults && searchResults.length > 0 && (
               <div className="absolute top-full left-0 right-0 mt-2 bg-zinc-900 border border-white/20 rounded-lg shadow-2xl max-h-96 overflow-y-auto z-50">
@@ -281,15 +308,11 @@ export default function CarPlayer() {
                 <p className="text-lg md:text-xl text-white/70">
                   {currentStation.language || "Hindi"} • {currentStation.type}
                 </p>
-                {currentStation.tags && (
-                  <p className="text-sm md:text-base text-white/50">{currentStation.tags}</p>
-                )}
+                {currentStation.tags && <p className="text-sm md:text-base text-white/50">{currentStation.tags}</p>}
               </div>
 
               {/* Loading Indicator */}
-              {isLoading && (
-                <p className="text-white/50 animate-pulse">Loading station...</p>
-              )}
+              {isLoading && <p className="text-white/50 animate-pulse">Loading station...</p>}
 
               {/* Controls */}
               <div className="flex items-center gap-6 md:gap-8">
