@@ -360,10 +360,7 @@ export default function CarPlayer() {
         
         {/* Logo Header */}
         <div className="relative z-10 p-4 md:p-6 flex justify-center items-center">
-          <div className="flex flex-col items-center gap-2">
-            <img src={logo} alt="DesiMelody.com" className="h-12 md:h-16 w-auto drop-shadow-2xl" />
-            <p className="text-white/90 text-sm md:text-base font-medium tracking-wide">DesiMelody.com</p>
-          </div>
+          <img src={logo} alt="DesiMelody.com" className="h-20 md:h-28 w-auto drop-shadow-2xl" />
         </div>
 
         {/* Search Bar */}
@@ -385,12 +382,12 @@ export default function CarPlayer() {
 
             {/* Search Results Dropdown */}
             {showSearchResults && searchResults.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-black/80 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl max-h-96 overflow-y-auto z-50">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-gray-900/95 backdrop-blur-xl border border-white/30 rounded-2xl shadow-2xl max-h-96 overflow-y-auto z-50">
                 {searchResults.map((station) => (
                   <button
                     key={station.id}
-                    onClick={() => handleStationSelect(station)}
-                    className="w-full flex items-center gap-3 p-3 hover:bg-white/10 transition-colors text-left border-b border-white/5 last:border-0 first:rounded-t-2xl last:rounded-b-2xl"
+                    onMouseDown={() => handleStationSelect(station)}
+                    className="w-full flex items-center gap-3 p-3 hover:bg-white/20 transition-colors text-left border-b border-white/10 last:border-0 first:rounded-t-2xl last:rounded-b-2xl cursor-pointer"
                   >
                     <img
                       src={station.image}
@@ -402,7 +399,7 @@ export default function CarPlayer() {
                     />
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-white truncate">{station.name}</div>
-                      <div className="text-sm text-white/60 truncate">
+                      <div className="text-sm text-white/70 truncate">
                         {station.language || "Hindi"} • {station.type}
                       </div>
                     </div>
@@ -417,40 +414,6 @@ export default function CarPlayer() {
         <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 md:p-8">
           {currentStation ? (
             <div className="w-full max-w-md space-y-6 md:space-y-8">
-              {/* Audio Visualizer - Equalizer Bars */}
-              <div className="relative h-32 md:h-40 flex items-end justify-center gap-1 px-8">
-                {[...Array(12)].map((_, i) => {
-                  const heights = [60, 80, 95, 75, 90, 100, 85, 70, 95, 80, 75, 65];
-                  const colors = [
-                    'from-red-500 to-red-600',
-                    'from-orange-500 to-orange-600',
-                    'from-amber-500 to-amber-600',
-                    'from-yellow-500 to-yellow-600',
-                    'from-lime-500 to-lime-600',
-                    'from-green-500 to-green-600',
-                    'from-emerald-500 to-emerald-600',
-                    'from-cyan-500 to-cyan-600',
-                    'from-sky-500 to-sky-600',
-                    'from-blue-500 to-blue-600',
-                    'from-purple-500 to-purple-600',
-                    'from-pink-500 to-pink-600',
-                  ];
-                  return (
-                    <div
-                      key={i}
-                      className={`flex-1 rounded-t-lg bg-gradient-to-t ${colors[i]} transition-all duration-300 shadow-lg ${
-                        isPlaying && !isLoading ? 'animate-pulse' : 'opacity-60'
-                      }`}
-                      style={{
-                        height: isPlaying && !isLoading ? `${heights[i]}%` : '30%',
-                        animationDelay: `${i * 0.1}s`,
-                        animationDuration: `${0.8 + Math.random() * 0.4}s`,
-                      }}
-                    />
-                  );
-                })}
-              </div>
-
               {/* Station Info */}
               <div className="text-center space-y-3 px-4">
                 <div className="space-y-1">
@@ -517,11 +480,39 @@ export default function CarPlayer() {
                 </Button>
               </div>
 
-              {/* Info Text */}
-              <p className="text-center text-xs md:text-sm text-white/40 max-w-md px-4 pt-2">
-                Steering wheel ⊂ / ⊃ = change station<br className="md:hidden" />
-                <span className="hidden md:inline"> • </span>Works in Android Auto & CarPlay
-              </p>
+              {/* Audio Visualizer - Equalizer Bars */}
+              <div className="relative h-24 md:h-32 flex items-end justify-center gap-1 px-8 pt-6">
+                {[...Array(12)].map((_, i) => {
+                  const heights = [60, 80, 95, 75, 90, 100, 85, 70, 95, 80, 75, 65];
+                  const colors = [
+                    'from-red-500 to-red-600',
+                    'from-orange-500 to-orange-600',
+                    'from-amber-500 to-amber-600',
+                    'from-yellow-500 to-yellow-600',
+                    'from-lime-500 to-lime-600',
+                    'from-green-500 to-green-600',
+                    'from-emerald-500 to-emerald-600',
+                    'from-cyan-500 to-cyan-600',
+                    'from-sky-500 to-sky-600',
+                    'from-blue-500 to-blue-600',
+                    'from-purple-500 to-purple-600',
+                    'from-pink-500 to-pink-600',
+                  ];
+                  return (
+                    <div
+                      key={i}
+                      className={`flex-1 rounded-t-lg bg-gradient-to-t ${colors[i]} transition-all duration-300 shadow-lg ${
+                        isPlaying && !isLoading ? 'animate-pulse' : 'opacity-60'
+                      }`}
+                      style={{
+                        height: isPlaying && !isLoading ? `${heights[i]}%` : '30%',
+                        animationDelay: `${i * 0.1}s`,
+                        animationDuration: `${0.8 + Math.random() * 0.4}s`,
+                      }}
+                    />
+                  );
+                })}
+              </div>
             </div>
           ) : (
             <p className="text-white/70 text-lg">No stations found</p>
