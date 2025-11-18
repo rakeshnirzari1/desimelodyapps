@@ -383,7 +383,7 @@ export default function CarPlayer() {
         <div className="relative z-10 py-2 md:py-3 flex justify-center items-center">
           <div className="relative">
             <div className="absolute inset-0 blur-2xl bg-gradient-to-r from-purple-500 to-pink-500 opacity-30 animate-pulse" />
-            <img src={logo} alt="DesiMelody.com" className="relative h-20 md:h-24 w-auto drop-shadow-2xl" />
+            <img src={logo} alt="DesiMelody.com" className="relative h-24 md:h-28 w-auto drop-shadow-2xl" />
           </div>
         </div>
 
