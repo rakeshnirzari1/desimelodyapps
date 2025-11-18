@@ -418,17 +418,6 @@ export default function CarPlayer() {
                 </p>
               </div>
 
-              {/* Loading Indicator - Prominent Overlay */}
-              {isLoading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-black/60 via-black/70 to-black/60 backdrop-blur-md rounded-3xl z-30">
-                  <div className="text-center space-y-4 px-6">
-                    <div className="w-20 h-20 mx-auto border-4 border-purple-400/30 border-t-purple-400 rounded-full animate-spin" />
-                    <p className="text-white text-2xl font-bold tracking-wide drop-shadow-lg">Loading Station...</p>
-                    <p className="text-purple-300 text-sm">Please wait</p>
-                  </div>
-                </div>
-              )}
-
               {/* Station Image + Controls in Row */}
               <div className="flex items-center justify-center gap-8">
                 {/* Station Image */}
@@ -455,14 +444,21 @@ export default function CarPlayer() {
                     <SkipBack className="w-7 h-7" />
                   </Button>
 
-                  <Button
-                    onClick={handlePlay}
-                    size="icon"
-                    disabled={isLoading || isPlaying}
-                    className="w-20 h-20 rounded-full bg-white hover:bg-white/90 text-[#1a1a2e] disabled:opacity-40 disabled:bg-white/50 shadow-2xl transition-all hover:scale-105 disabled:hover:scale-100 disabled:cursor-not-allowed border-4 border-white/20"
-                  >
-                    <Play className="w-10 h-10 ml-1" />
-                  </Button>
+                  <div className="relative">
+                    <Button
+                      onClick={handlePlay}
+                      size="icon"
+                      disabled={isLoading || isPlaying}
+                      className="w-20 h-20 rounded-full bg-white hover:bg-white/90 text-[#1a1a2e] disabled:opacity-40 disabled:bg-white/50 shadow-2xl transition-all hover:scale-105 disabled:hover:scale-100 disabled:cursor-not-allowed border-4 border-white/20"
+                    >
+                      <Play className="w-10 h-10 ml-1" />
+                    </Button>
+                    {isLoading && (
+                      <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                        <p className="text-white text-base font-semibold animate-pulse">Loading...</p>
+                      </div>
+                    )}
+                  </div>
 
                   <Button
                     onClick={handleNext}
