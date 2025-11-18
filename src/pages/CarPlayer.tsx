@@ -66,28 +66,25 @@ export default function CarPlayer() {
     // Clear any existing error timeout
     if (errorTimeoutRef.current) {
       clearTimeout(errorTimeoutRef.current);
+      errorTimeoutRef.current = null;
     }
 
     const handleCanPlay = async () => {
       if (currentAttempt !== loadAttemptRef.current) return;
       setIsLoading(false);
-      hasAutoSkippedRef.current = false; // Reset auto-skip flag on successful load
-      
-      // Stop silence audio when main station loads
+      // Stop silence audio when main station becomes ready
       if (silenceAudioRef.current) {
         silenceAudioRef.current.pause();
       }
-      
       if (isPlaying) {
         try {
           await audio.play();
-          // Update media session to ensure it stays active
           if ("mediaSession" in navigator) {
             navigator.mediaSession.playbackState = "playing";
           }
         } catch (error) {
           console.log("Auto-play failed:", error);
-          // Keep isPlaying true to maintain lock screen controls
+          // Keep isPlaying true to maintain controls
         }
       }
     };
@@ -117,6 +114,12 @@ export default function CarPlayer() {
       if (currentAttempt !== loadAttemptRef.current) return;
       console.warn("Station stalled:", currentStation.name);
 
+      const audioEl = audioRef.current;
+      if (audioEl && !audioEl.paused && audioEl.readyState >= 3) {
+        // If audio is actually playing, ignore transient stalled events
+        return;
+      }
+
       // Play silence to keep lock screen controls active
       if (isPlaying && silenceAudioRef.current) {
         silenceAudioRef.current.play().catch(e => console.log("Silence play failed:", e));
@@ -131,18 +134,33 @@ export default function CarPlayer() {
         }, 8000);
       }
     };
+    const handlePlaying = () => {
+      if (currentAttempt !== loadAttemptRef.current) return;
+      setIsLoading(false);
+      if (silenceAudioRef.current) {
+        silenceAudioRef.current.pause();
+      }
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+        errorTimeoutRef.current = null;
+      }
+      hasAutoSkippedRef.current = false;
+    };
 
     audio.addEventListener("canplay", handleCanPlay);
+    audio.addEventListener("playing", handlePlaying);
     audio.addEventListener("error", handleError);
     audio.addEventListener("stalled", handleStalled);
     audio.load();
 
     return () => {
       audio.removeEventListener("canplay", handleCanPlay);
+      audio.removeEventListener("playing", handlePlaying);
       audio.removeEventListener("error", handleError);
       audio.removeEventListener("stalled", handleStalled);
       if (errorTimeoutRef.current) {
         clearTimeout(errorTimeoutRef.current);
+        errorTimeoutRef.current = null;
       }
     };
   }, [currentStation]);
@@ -237,6 +255,10 @@ export default function CarPlayer() {
 
   const handleNext = () => {
     if (filteredStations.length === 0) return;
+    if (errorTimeoutRef.current) {
+      clearTimeout(errorTimeoutRef.current);
+      errorTimeoutRef.current = null;
+    }
     hasAutoSkippedRef.current = false; // Reset on manual skip
     const currentIndex = filteredStations.findIndex((s) => s.id === currentStation?.id);
     const nextIndex = (currentIndex + 1) % filteredStations.length;
@@ -245,6 +267,10 @@ export default function CarPlayer() {
 
   const handlePrevious = () => {
     if (filteredStations.length === 0) return;
+    if (errorTimeoutRef.current) {
+      clearTimeout(errorTimeoutRef.current);
+      errorTimeoutRef.current = null;
+    }
     hasAutoSkippedRef.current = false; // Reset on manual skip
     const currentIndex = filteredStations.findIndex((s) => s.id === currentStation?.id);
     const prevIndex = currentIndex - 1 < 0 ? filteredStations.length - 1 : currentIndex - 1;
@@ -252,6 +278,10 @@ export default function CarPlayer() {
   };
 
   const handleStationSelect = (station: RadioStation) => {
+    if (errorTimeoutRef.current) {
+      clearTimeout(errorTimeoutRef.current);
+      errorTimeoutRef.current = null;
+    }
     hasAutoSkippedRef.current = false; // Reset on manual selection
     setCurrentStation(station);
     setSearchQuery(""); // Clear search
