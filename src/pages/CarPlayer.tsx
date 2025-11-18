@@ -47,7 +47,7 @@ export default function CarPlayer() {
         stations[0];
       setCurrentStation(defaultStation);
     }
-
+    
     // Detect user country for ads
     getUserCountry().then(setUserCountry);
   }, []);
@@ -420,7 +420,7 @@ export default function CarPlayer() {
     element: HTMLAudioElement,
     startVolume: number,
     endVolume: number,
-    duration: number,
+    duration: number
   ): Promise<void> => {
     return new Promise((resolve) => {
       const startTime = Date.now();
@@ -429,10 +429,12 @@ export default function CarPlayer() {
       const fade = () => {
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
-
+        
         // Ease-in-out curve for smoother transition
-        const easedProgress = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-
+        const easedProgress = progress < 0.5
+          ? 2 * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+        
         const currentVolume = startVolume + volumeDiff * easedProgress;
         element.volume = Math.max(0, Math.min(1, currentVolume));
 
@@ -503,13 +505,10 @@ export default function CarPlayer() {
       return;
     }
 
-    // Start 2-minute interval for ads
-    adIntervalRef.current = setInterval(
-      () => {
-        playAdvertisement();
-      },
-      2 * 60 * 1000,
-    ); // 2 minutes
+    // Start 10-minute interval for ads
+    adIntervalRef.current = setInterval(() => {
+      playAdvertisement();
+    }, 10 * 60 * 1000); // 10 minutes
 
     return () => {
       if (adIntervalRef.current) {
@@ -519,7 +518,7 @@ export default function CarPlayer() {
     };
   }, [isPlaying, userCountry, volume]);
 
-  return (
+  return(
     <>
       <Helmet>
         <title>Car Player - DesiMelody.com</title>
