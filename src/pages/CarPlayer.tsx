@@ -29,14 +29,14 @@ export default function CarPlayer() {
   const hasAutoSkippedRef = useRef(false);
   const mediaSessionSyncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const wasInterruptedRef = useRef(false);
-  
+
   // Web Audio API for smooth ad transitions
   const audioContextRef = useRef<AudioContext | null>(null);
   const radioGainNodeRef = useRef<GainNode | null>(null);
   const adGainNodeRef = useRef<GainNode | null>(null);
   const radioSourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const adSourceRef = useRef<MediaElementAudioSourceNode | null>(null);
-  
+
   // Ad management
   const [isPlayingAd, setIsPlayingAd] = useState(false);
   const adTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -46,31 +46,31 @@ export default function CarPlayer() {
   // Initialize Web Audio API for ad mixing
   useEffect(() => {
     if (!audioRef.current || !adAudioRef.current) return;
-    
+
     if (!audioContextRef.current) {
       audioContextRef.current = new AudioContext();
-      
+
       // Create gain nodes for volume control
       radioGainNodeRef.current = audioContextRef.current.createGain();
       adGainNodeRef.current = audioContextRef.current.createGain();
-      
+
       // Create source nodes
       radioSourceRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
       adSourceRef.current = audioContextRef.current.createMediaElementSource(adAudioRef.current);
-      
+
       // Connect radio: source -> gain -> destination
       radioSourceRef.current.connect(radioGainNodeRef.current);
       radioGainNodeRef.current.connect(audioContextRef.current.destination);
-      
+
       // Connect ad: source -> gain -> destination
       adSourceRef.current.connect(adGainNodeRef.current);
       adGainNodeRef.current.connect(audioContextRef.current.destination);
-      
+
       // Initialize gains
       radioGainNodeRef.current.gain.value = 1.0;
       adGainNodeRef.current.gain.value = 0.0;
     }
-    
+
     return () => {
       if (audioContextRef.current) {
         audioContextRef.current.close();
@@ -369,54 +369,54 @@ export default function CarPlayer() {
       console.log("Station changing, skipping ad");
       return;
     }
-    
+
     if (!adAudioRef.current || !radioGainNodeRef.current || !adGainNodeRef.current) return;
-    
+
     try {
       // Get user's country
       const { getUserCountry } = await import("@/lib/geolocation");
       const country = await getUserCountry();
-      
+
       // Count available ads for this country (check existence)
       const adCounts: Record<string, number> = {
-        'australia': 7,
-        'bangladesh': 14,
-        'canada': 2,
-        'india': 2,
-        'kuwait': 2,
-        'pakistan': 2,
-        'south-africa': 2,
-        'uae': 2,
-        'uk': 2,
-        'usa': 2
+        australia: 7,
+        bangladesh: 14,
+        canada: 2,
+        india: 2,
+        kuwait: 2,
+        pakistan: 2,
+        "south-africa": 2,
+        uae: 2,
+        uk: 2,
+        usa: 2,
       };
-      
+
       const maxAds = adCounts[country] || 2;
       const randomAd = Math.floor(Math.random() * maxAds) + 1;
       const adUrl = `/ads/${country}/ad${randomAd}.mp3`;
-      
+
       console.log(`Playing ad: ${adUrl}`);
       setIsPlayingAd(true);
-      
+
       const adAudio = adAudioRef.current;
       adAudio.src = adUrl;
-      
+
       // Smooth fade: Radio down, Ad up
       const fadeDownRadio = async () => {
         if (!radioGainNodeRef.current || !audioContextRef.current) return;
         const now = audioContextRef.current.currentTime;
         radioGainNodeRef.current.gain.exponentialRampToValueAtTime(0.1, now + 1.5); // Fade to 10% in 1.5s
       };
-      
+
       const fadeUpAd = async () => {
         if (!adGainNodeRef.current || !audioContextRef.current) return;
         const now = audioContextRef.current.currentTime;
         adGainNodeRef.current.gain.exponentialRampToValueAtTime(1.0, now + 1.5); // Fade to 100% in 1.5s
       };
-      
+
       await fadeDownRadio();
       await fadeUpAd();
-      
+
       adAudio.onended = async () => {
         // Check again if station is changing before restoring volume
         if (isChangingStationRef.current) {
@@ -427,24 +427,24 @@ export default function CarPlayer() {
           }
           return;
         }
-        
+
         console.log("Ad finished, restoring radio volume");
-        
+
         // Smooth fade: Ad down, Radio up
         if (adGainNodeRef.current && audioContextRef.current) {
           const now = audioContextRef.current.currentTime;
           adGainNodeRef.current.gain.exponentialRampToValueAtTime(0.01, now + 1.5);
         }
-        
+
         if (radioGainNodeRef.current && audioContextRef.current) {
           const now = audioContextRef.current.currentTime;
           radioGainNodeRef.current.gain.exponentialRampToValueAtTime(1.0, now + 1.5);
         }
-        
+
         setIsPlayingAd(false);
         lastAdTimeRef.current = Date.now();
       };
-      
+
       await adAudio.play();
     } catch (error) {
       console.error("Ad playback error:", error);
@@ -465,24 +465,24 @@ export default function CarPlayer() {
     if (!isPlaying || isPlayingAd) {
       return;
     }
-    
+
     // Check every minute if 10 minutes have passed
     const checkAdTimer = () => {
       const now = Date.now();
       const timeSinceLastAd = now - lastAdTimeRef.current;
-      const tenMinutes = 10 * 60 * 1000;
-      
+      const tenMinutes = 2 * 60 * 1000;
+
       if (timeSinceLastAd >= tenMinutes && !isChangingStationRef.current) {
         playAdvertisement();
       }
     };
-    
+
     // Check immediately on mount
     checkAdTimer();
-    
+
     // Then check every minute
     adTimerRef.current = setInterval(checkAdTimer, 60 * 1000);
-    
+
     return () => {
       if (adTimerRef.current) {
         clearInterval(adTimerRef.current);
@@ -493,16 +493,16 @@ export default function CarPlayer() {
 
   const handleNext = () => {
     if (filteredStations.length === 0) return;
-    
+
     // Mark that we're changing stations
     isChangingStationRef.current = true;
-    
+
     // Stop any playing ad immediately
     if (isPlayingAd && adAudioRef.current) {
       adAudioRef.current.pause();
       adAudioRef.current.currentTime = 0;
       setIsPlayingAd(false);
-      
+
       // Restore radio volume immediately
       if (radioGainNodeRef.current && audioContextRef.current) {
         radioGainNodeRef.current.gain.value = 1.0;
@@ -511,7 +511,7 @@ export default function CarPlayer() {
         adGainNodeRef.current.gain.value = 0.0;
       }
     }
-    
+
     if (errorTimeoutRef.current) {
       clearTimeout(errorTimeoutRef.current);
       errorTimeoutRef.current = null;
@@ -520,7 +520,7 @@ export default function CarPlayer() {
     const currentIndex = filteredStations.findIndex((s) => s.id === currentStation?.id);
     const nextIndex = (currentIndex + 1) % filteredStations.length;
     setCurrentStation(filteredStations[nextIndex]);
-    
+
     // Reset changing flag after a short delay
     setTimeout(() => {
       isChangingStationRef.current = false;
@@ -529,16 +529,16 @@ export default function CarPlayer() {
 
   const handlePrevious = () => {
     if (filteredStations.length === 0) return;
-    
+
     // Mark that we're changing stations
     isChangingStationRef.current = true;
-    
+
     // Stop any playing ad immediately
     if (isPlayingAd && adAudioRef.current) {
       adAudioRef.current.pause();
       adAudioRef.current.currentTime = 0;
       setIsPlayingAd(false);
-      
+
       // Restore radio volume immediately
       if (radioGainNodeRef.current && audioContextRef.current) {
         radioGainNodeRef.current.gain.value = 1.0;
@@ -547,7 +547,7 @@ export default function CarPlayer() {
         adGainNodeRef.current.gain.value = 0.0;
       }
     }
-    
+
     if (errorTimeoutRef.current) {
       clearTimeout(errorTimeoutRef.current);
       errorTimeoutRef.current = null;
@@ -556,7 +556,7 @@ export default function CarPlayer() {
     const currentIndex = filteredStations.findIndex((s) => s.id === currentStation?.id);
     const prevIndex = currentIndex - 1 < 0 ? filteredStations.length - 1 : currentIndex - 1;
     setCurrentStation(filteredStations[prevIndex]);
-    
+
     // Reset changing flag after a short delay
     setTimeout(() => {
       isChangingStationRef.current = false;
@@ -566,13 +566,13 @@ export default function CarPlayer() {
   const handleStationSelect = (station: RadioStation) => {
     // Mark that we're changing stations
     isChangingStationRef.current = true;
-    
+
     // Stop any playing ad immediately
     if (isPlayingAd && adAudioRef.current) {
       adAudioRef.current.pause();
       adAudioRef.current.currentTime = 0;
       setIsPlayingAd(false);
-      
+
       // Restore radio volume immediately
       if (radioGainNodeRef.current && audioContextRef.current) {
         radioGainNodeRef.current.gain.value = 1.0;
@@ -581,7 +581,7 @@ export default function CarPlayer() {
         adGainNodeRef.current.gain.value = 0.0;
       }
     }
-    
+
     if (errorTimeoutRef.current) {
       clearTimeout(errorTimeoutRef.current);
       errorTimeoutRef.current = null;
@@ -594,7 +594,7 @@ export default function CarPlayer() {
     if (!isPlaying) {
       setIsPlaying(true);
     }
-    
+
     // Reset changing flag after a short delay
     setTimeout(() => {
       isChangingStationRef.current = false;
