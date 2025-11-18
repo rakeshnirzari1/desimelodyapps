@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AudioProvider } from "@/contexts/AudioContext";
 import { useEffect } from "react";
 import Index from "./pages/Index";
@@ -22,6 +22,11 @@ import CarPlayer from "./pages/CarPlayer";
 
 const queryClient = new QueryClient();
 
+// Detect mobile device
+const isMobileDevice = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
 // Scroll to top on route change
 const ScrollToTop = () => {
   const location = useLocation();
@@ -29,6 +34,14 @@ const ScrollToTop = () => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
   return null;
+};
+
+// Mobile redirect component for home page
+const HomeWithMobileRedirect = () => {
+  if (isMobileDevice()) {
+    return <Navigate to="/m" replace />;
+  }
+  return <Index />;
 };
 
 const App = () => (
@@ -40,7 +53,7 @@ const App = () => (
         <BrowserRouter>
           <ScrollToTop />
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<HomeWithMobileRedirect />} />
             <Route path="/m" element={<CarPlayer />} />
             <Route path="/mobile" element={<Mobile />} />
             <Route path="/browse" element={<Browse />} />

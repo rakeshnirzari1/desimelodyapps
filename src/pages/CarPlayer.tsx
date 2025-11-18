@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Helmet } from "react-helmet";
-import { Play, Pause, SkipForward, SkipBack, Search } from "lucide-react";
+import { Play, Pause, SkipForward, SkipBack, Search, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 import { RadioStation } from "@/types/station";
 import { getStationsWithSlugs } from "@/lib/station-utils";
 import { AudioVisualizer } from "@/components/AudioVisualizer";
@@ -17,6 +18,7 @@ export default function CarPlayer() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isInterrupted, setIsInterrupted] = useState(false);
+  const [volume, setVolume] = useState(80);
   const audioRef = useRef<HTMLAudioElement>(null);
   const silenceAudioRef = useRef<HTMLAudioElement>(null);
   const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -346,6 +348,13 @@ export default function CarPlayer() {
     }
   };
 
+  // Volume control
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume / 100;
+    }
+  }, [volume]);
+
   return (
     <>
       <Helmet>
@@ -353,22 +362,22 @@ export default function CarPlayer() {
         <meta name="description" content="Car-friendly radio player with steering wheel controls support" />
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white flex flex-col relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 text-white flex flex-col relative overflow-hidden">
         <audio ref={audioRef} preload="auto" />
         <audio ref={silenceAudioRef} src="/silence.mp3" loop preload="auto" style={{ display: "none" }} />
 
         {/* Animated background effect */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-700/20 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent pointer-events-none" />
         
         {/* Logo Header */}
-        <div className="relative z-10 py-2 md:py-3 flex justify-center items-center">
-          <img src={logo} alt="DesiMelody.com" className="h-16 md:h-20 w-auto drop-shadow-2xl" />
+        <div className="relative z-10 py-1 md:py-2 flex justify-center items-center">
+          <img src={logo} alt="DesiMelody.com" className="h-14 md:h-16 w-auto drop-shadow-2xl" />
         </div>
 
         {/* Search Bar */}
-        <div className="relative z-10 px-4 pb-2">
+        <div className="relative z-10 px-4 pb-1">
           <div className="relative max-w-2xl mx-auto">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 z-10" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/70 z-10" />
             <Input
               type="text"
               placeholder="Search stations..."
@@ -378,38 +387,36 @@ export default function CarPlayer() {
                 setShowSearchResults(e.target.value.trim().length > 0);
               }}
               onFocus={() => setShowSearchResults(searchQuery.trim().length > 0)}
-              onBlur={() => setTimeout(() => setShowSearchResults(false), 300)}
-              className="pl-10 h-10 bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-white/30 rounded-2xl"
+              className="pl-10 h-9 bg-white/20 backdrop-blur-md border-white/30 text-white placeholder:text-white/60 focus:bg-white/25 focus:border-white/40 rounded-xl"
             />
 
             {/* Search Results Dropdown - Full overlay */}
             {showSearchResults && searchResults.length > 0 && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                <div className="w-full max-w-md bg-gradient-to-br from-purple-900 to-pink-900 border-2 border-white/30 rounded-3xl shadow-2xl max-h-[70vh] overflow-y-auto">
-                  <div className="sticky top-0 bg-gradient-to-br from-purple-900 to-pink-900 p-4 border-b border-white/20 rounded-t-3xl">
-                    <h3 className="text-white font-bold text-lg">Search Results</h3>
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+                <div className="w-full max-w-md bg-white/95 backdrop-blur-md border-2 border-purple-300 rounded-2xl shadow-2xl max-h-[70vh] overflow-y-auto">
+                  <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-pink-600 text-white p-3 rounded-t-2xl border-b-2 border-white/20">
+                    <h3 className="font-bold text-base">Search Results ({searchResults.length})</h3>
                   </div>
                   {searchResults.map((station) => (
                     <button
                       key={station.id}
-                      onClick={(e) => {
+                      onMouseDown={(e) => {
                         e.preventDefault();
-                        e.stopPropagation();
                         handleStationSelect(station);
                       }}
-                      className="w-full flex items-center gap-3 p-4 hover:bg-white/20 active:bg-white/30 transition-colors text-left border-b border-white/10 last:border-0 cursor-pointer"
+                      className="w-full flex items-center gap-3 p-3 hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 active:from-purple-200 active:to-pink-200 transition-all text-left border-b border-gray-200 last:border-0 cursor-pointer"
                     >
                       <img
                         src={station.image}
                         alt={station.name}
-                        className="w-14 h-14 rounded-xl object-cover shadow-lg ring-2 ring-white/20"
+                        className="w-12 h-12 rounded-lg object-cover shadow-md ring-2 ring-purple-300"
                         onError={(e) => {
                           e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400";
                         }}
                       />
                       <div className="flex-1 min-w-0">
-                        <div className="font-bold text-white truncate text-base">{station.name}</div>
-                        <div className="text-sm text-white/80 truncate">
+                        <div className="font-bold text-gray-800 truncate">{station.name}</div>
+                        <div className="text-sm text-gray-600 truncate">
                           {station.language || "Hindi"} • {station.type}
                         </div>
                       </div>
@@ -422,102 +429,110 @@ export default function CarPlayer() {
         </div>
 
         {/* Player */}
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-2">
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-1">
           {currentStation ? (
-            <div className="w-full max-w-5xl">
-              {/* Two Column Layout */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                {/* Left: Station Image */}
-                <div className="flex justify-center">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-500 rounded-full blur-2xl opacity-50 animate-pulse" />
-                    <img
-                      src={currentStation.image}
-                      alt={currentStation.name}
-                      className="relative w-32 h-32 md:w-40 md:h-40 rounded-full object-cover shadow-2xl ring-4 ring-white/20"
-                      onError={(e) => {
-                        e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400";
-                      }}
-                    />
-                  </div>
+            <div className="w-full max-w-4xl space-y-2">
+              {/* Station Info - Compact */}
+              <div className="text-center space-y-0.5">
+                <p className="text-white/70 text-xs uppercase tracking-wider">Now Playing</p>
+                <h1 className="text-lg md:text-xl font-bold text-white drop-shadow-lg">{currentStation.name}</h1>
+                <p className="text-xs md:text-sm text-white/80">
+                  {currentStation.language || "Hindi"} • {currentStation.type}
+                </p>
+              </div>
+
+              {/* Loading Indicator */}
+              {isLoading && (
+                <div className="text-center">
+                  <p className="text-white/70 text-xs animate-pulse">Loading...</p>
+                </div>
+              )}
+
+              {/* Station Image + Controls in Row */}
+              <div className="flex items-center justify-center gap-6">
+                {/* Station Image */}
+                <div className="relative flex-shrink-0">
+                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 via-pink-400 to-purple-500 rounded-full blur-xl opacity-60 animate-pulse" />
+                  <img
+                    src={currentStation.image}
+                    alt={currentStation.name}
+                    className="relative w-24 h-24 md:w-28 md:h-28 rounded-full object-cover shadow-2xl ring-4 ring-white/30"
+                    onError={(e) => {
+                      e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400";
+                    }}
+                  />
                 </div>
 
-                {/* Right: Station Info + Controls */}
-                <div className="space-y-3">
-                  {/* Station Info */}
-                  <div className="text-center md:text-left space-y-1">
-                    <p className="text-white/60 text-xs uppercase tracking-wider">Now Playing</p>
-                    <h1 className="text-xl md:text-2xl font-bold text-white drop-shadow-lg">{currentStation.name}</h1>
-                    <p className="text-sm md:text-base text-white/80">
-                      {currentStation.language || "Hindi"} • {currentStation.type}
-                    </p>
-                  </div>
+                {/* Controls */}
+                <div className="flex items-center gap-3">
+                  <Button
+                    onClick={handlePrevious}
+                    size="icon"
+                    variant="ghost"
+                    className="w-14 h-14 rounded-full hover:bg-white/30 text-white backdrop-blur-sm transition-all hover:scale-110"
+                  >
+                    <SkipBack className="w-6 h-6" />
+                  </Button>
 
-                  {/* Loading Indicator */}
-                  {isLoading && (
-                    <div className="text-center md:text-left">
-                      <p className="text-white/70 text-xs animate-pulse">Loading...</p>
-                    </div>
-                  )}
+                  <Button
+                    onClick={handlePlay}
+                    size="icon"
+                    disabled={isLoading || isPlaying}
+                    className="w-16 h-16 rounded-full bg-gradient-to-br from-white/90 to-white/70 hover:from-white hover:to-white/80 text-purple-600 disabled:opacity-50 backdrop-blur-sm shadow-2xl transition-all hover:scale-110 disabled:hover:scale-100"
+                  >
+                    <Play className="w-8 h-8 ml-1" />
+                  </Button>
 
-                  {/* Controls */}
-                  <div className="flex items-center justify-center md:justify-start gap-3 pt-2">
-                    <Button
-                      onClick={handlePrevious}
-                      size="icon"
-                      variant="ghost"
-                      className="w-12 h-12 rounded-full hover:bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-110"
-                    >
-                      <SkipBack className="w-5 h-5" />
-                    </Button>
-
-                    <Button
-                      onClick={handlePlay}
-                      size="icon"
-                      disabled={isLoading || isPlaying}
-                      className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-500 hover:from-pink-600 hover:via-purple-600 hover:to-indigo-600 text-white disabled:opacity-50 shadow-2xl transition-all hover:scale-105 disabled:scale-100"
-                    >
-                      <Play className="w-7 h-7 ml-1" />
-                    </Button>
-
-                    <Button
-                      onClick={handleNext}
-                      size="icon"
-                      variant="ghost"
-                      className="w-12 h-12 rounded-full hover:bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-110"
-                    >
-                      <SkipForward className="w-5 h-5" />
-                    </Button>
-                  </div>
+                  <Button
+                    onClick={handleNext}
+                    size="icon"
+                    variant="ghost"
+                    className="w-14 h-14 rounded-full hover:bg-white/30 text-white backdrop-blur-sm transition-all hover:scale-110"
+                  >
+                    <SkipForward className="w-6 h-6" />
+                  </Button>
                 </div>
               </div>
 
-              {/* Audio Visualizer - Equalizer Bars - Full Width Below */}
-              <div className="relative h-20 md:h-24 flex items-end justify-center gap-1 px-4 mt-4">
+              {/* Volume Control */}
+              <div className="flex items-center justify-center gap-3 max-w-xs mx-auto">
+                <Volume2 className="w-5 h-5 text-white/80" />
+                <Slider
+                  value={[volume]}
+                  onValueChange={(value) => setVolume(value[0])}
+                  max={100}
+                  step={1}
+                  className="flex-1"
+                />
+                <span className="text-sm text-white/80 font-medium w-10 text-right">{volume}%</span>
+              </div>
+
+              {/* Audio Visualizer - Equalizer Bars */}
+              <div className="relative h-16 md:h-20 flex items-end justify-center gap-1 px-4 mt-2">
                 {[...Array(12)].map((_, i) => {
                   const heights = [60, 80, 95, 75, 90, 100, 85, 70, 95, 80, 75, 65];
                   const colors = [
-                    'from-red-500 to-red-600',
-                    'from-orange-500 to-orange-600',
-                    'from-amber-500 to-amber-600',
-                    'from-yellow-500 to-yellow-600',
-                    'from-lime-500 to-lime-600',
-                    'from-green-500 to-green-600',
-                    'from-emerald-500 to-emerald-600',
-                    'from-cyan-500 to-cyan-600',
-                    'from-sky-500 to-sky-600',
-                    'from-blue-500 to-blue-600',
-                    'from-purple-500 to-purple-600',
-                    'from-pink-500 to-pink-600',
+                    'from-red-400 to-red-500',
+                    'from-orange-400 to-orange-500',
+                    'from-amber-400 to-amber-500',
+                    'from-yellow-400 to-yellow-500',
+                    'from-lime-400 to-lime-500',
+                    'from-green-400 to-green-500',
+                    'from-emerald-400 to-emerald-500',
+                    'from-cyan-400 to-cyan-500',
+                    'from-sky-400 to-sky-500',
+                    'from-blue-400 to-blue-500',
+                    'from-purple-400 to-purple-500',
+                    'from-pink-400 to-pink-500',
                   ];
                   return (
                     <div
                       key={i}
-                      className={`flex-1 rounded-t-lg bg-gradient-to-t ${colors[i]} transition-all duration-300 shadow-lg ${
-                        isPlaying && !isLoading ? 'animate-pulse' : 'opacity-60'
+                      className={`flex-1 rounded-t-lg bg-gradient-to-t ${colors[i]} transition-all duration-300 shadow-md ${
+                        isPlaying && !isLoading ? 'animate-pulse' : 'opacity-50'
                       }`}
                       style={{
-                        height: isPlaying && !isLoading ? `${heights[i]}%` : '30%',
+                        height: isPlaying && !isLoading ? `${heights[i]}%` : '25%',
                         animationDelay: `${i * 0.1}s`,
                         animationDuration: `${0.8 + Math.random() * 0.4}s`,
                       }}
