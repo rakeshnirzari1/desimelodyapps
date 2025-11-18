@@ -15,6 +15,7 @@ export default function CarPlayer() {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInterrupted, setIsInterrupted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const silenceAudioRef = useRef<HTMLAudioElement>(null);
   const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -180,7 +181,7 @@ export default function CarPlayer() {
     }
 
     // Play silence during loading OR when interrupted (phone call) to maintain lock screen controls
-    if ((isLoading && isPlaying) || wasInterruptedRef.current) {
+    if ((isLoading && isPlaying) || isInterrupted) {
       silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
     } else {
       // Stop silence when station is actually playing
@@ -193,7 +194,7 @@ export default function CarPlayer() {
         mediaSessionSyncTimeoutRef.current = null;
       }
     };
-  }, [isLoading, isPlaying]);
+  }, [isLoading, isPlaying, isInterrupted]);
 
   // Media Session API for car controls
   useEffect(() => {
@@ -244,11 +245,11 @@ export default function CarPlayer() {
 
     // Handle when main audio is interrupted (e.g., phone call)
     const handleAudioInterruption = () => {
-      if (isPlaying) {
+      if (isPlaying && !isInterrupted) {
         console.log("Audio interrupted - likely phone call");
         wasInterruptedRef.current = true;
-        // Start playing silent audio to maintain media session
-        silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
+        setIsInterrupted(true);
+        // Silent audio will start playing via the effect above
       }
     };
 
@@ -257,6 +258,7 @@ export default function CarPlayer() {
       if (!document.hidden && wasInterruptedRef.current && isPlaying) {
         console.log("App visible again after interruption - resuming");
         wasInterruptedRef.current = false;
+        setIsInterrupted(false);
         // Stop silent audio and reload/resume main station
         silenceAudio.pause();
         if (currentStation) {
