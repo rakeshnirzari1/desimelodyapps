@@ -408,7 +408,7 @@ export default function CarPlayer() {
         {/* Player */}
         <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-2">
           {currentStation ? (
-            <div className="w-full max-w-4xl space-y-6">
+            <div className="relative w-full max-w-4xl space-y-6">
               {/* Station Info - Compact */}
               <div className="text-center space-y-2">
                 <p className="text-purple-300 text-xs uppercase tracking-widest font-semibold">Now Playing</p>
@@ -418,10 +418,14 @@ export default function CarPlayer() {
                 </p>
               </div>
 
-              {/* Loading Indicator */}
+              {/* Loading Indicator - Prominent Overlay */}
               {isLoading && (
-                <div className="text-center">
-                  <p className="text-white/70 text-xs animate-pulse">Loading...</p>
+                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-black/60 via-black/70 to-black/60 backdrop-blur-md rounded-3xl z-30">
+                  <div className="text-center space-y-4 px-6">
+                    <div className="w-20 h-20 mx-auto border-4 border-purple-400/30 border-t-purple-400 rounded-full animate-spin" />
+                    <p className="text-white text-2xl font-bold tracking-wide drop-shadow-lg">Loading Station...</p>
+                    <p className="text-purple-300 text-sm">Please wait</p>
+                  </div>
                 </div>
               )}
 
@@ -455,7 +459,7 @@ export default function CarPlayer() {
                     onClick={handlePlay}
                     size="icon"
                     disabled={isLoading || isPlaying}
-                    className="w-20 h-20 rounded-full bg-white hover:bg-white/90 text-[#1a1a2e] disabled:opacity-70 shadow-2xl transition-all hover:scale-105 disabled:hover:scale-100 border-4 border-white/20"
+                    className="w-20 h-20 rounded-full bg-white hover:bg-white/90 text-[#1a1a2e] disabled:opacity-40 disabled:bg-white/50 shadow-2xl transition-all hover:scale-105 disabled:hover:scale-100 disabled:cursor-not-allowed border-4 border-white/20"
                   >
                     <Play className="w-10 h-10 ml-1" />
                   </Button>
