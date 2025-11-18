@@ -432,25 +432,6 @@ export default function CarPlayer() {
             />
           </div>
         </div>
-
-        {/* Advertisement Banner */}
-        <div className="relative z-10 px-4 py-3">
-          <div className="max-w-2xl mx-auto flex justify-center">
-            <a
-              href="https://remitrates.com.au"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block transition-transform hover:scale-105"
-            >
-              <img
-                src={adBanner}
-                alt="RemitRates - Best Exchange Rates"
-                className="w-full max-w-xl h-auto rounded-lg shadow-lg"
-              />
-            </a>
-          </div>
-        </div>
-
         {/* Player */}
         <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-4">
           {currentStation ? (
