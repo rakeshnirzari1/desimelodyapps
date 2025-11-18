@@ -6,8 +6,5 @@
  */
 export const EXCLUDED_STATION_NAMES = [
   "Fnf.Fm Hindi",
-  "clubmirchi",
-  "Vivid Bharti",
-  "Hindi Gold Radio",
   // Add more station names below as needed
 ] as const;
