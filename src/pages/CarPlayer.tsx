@@ -80,9 +80,6 @@ export default function CarPlayer() {
       if (isPlaying) {
         try {
           await audio.play();
-          if ("mediaSession" in navigator) {
-            navigator.mediaSession.playbackState = "playing";
-          }
         } catch (error) {
           console.log("Auto-play failed:", error);
           // Keep isPlaying true to maintain controls
@@ -146,10 +143,6 @@ export default function CarPlayer() {
         errorTimeoutRef.current = null;
       }
       hasAutoSkippedRef.current = false;
-      // Explicitly sync Media Session when audio is actually playing
-      if ("mediaSession" in navigator) {
-        navigator.mediaSession.playbackState = "playing";
-      }
     };
 
     audio.addEventListener("canplay", handleCanPlay);
@@ -185,18 +178,9 @@ export default function CarPlayer() {
     // Play silence only during loading to maintain lock screen controls
     if (isLoading && isPlaying) {
       silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
-      // Force correct media session state after silent audio starts
-      if ("mediaSession" in navigator) {
-        mediaSessionSyncTimeoutRef.current = setTimeout(() => {
-          navigator.mediaSession.playbackState = "playing";
-        }, 150);
-      }
     } else {
       // Stop silence when station is actually playing
       silenceAudio.pause();
-      if ("mediaSession" in navigator) {
-        navigator.mediaSession.playbackState = "playing";
-      }
     }
 
     return () => {
@@ -217,10 +201,6 @@ export default function CarPlayer() {
       album: "DesiMelody.com",
       artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
     });
-
-    // Always set to 'playing' when isPlaying is true, even during loading
-    // This keeps the lock screen controls visible
-    navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
 
     // Set position state for live streaming (helps maintain lock screen presence)
     try {
@@ -246,7 +226,6 @@ export default function CarPlayer() {
         try {
           await audioRef.current.play();
           setIsPlaying(true);
-          navigator.mediaSession.playbackState = "playing";
         } catch (error) {
           console.log("Play failed in media session:", error);
           setIsPlaying(true);
@@ -281,9 +260,6 @@ export default function CarPlayer() {
     try {
       await audio.play();
       setIsPlaying(true);
-      if ("mediaSession" in navigator) {
-        navigator.mediaSession.playbackState = "playing";
-      }
     } catch (error) {
       console.log("Play failed:", error);
       setIsPlaying(true); // Keep state true to maintain controls
