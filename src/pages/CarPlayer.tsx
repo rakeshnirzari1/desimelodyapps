@@ -215,7 +215,15 @@ export default function CarPlayer() {
       console.log("Position state not supported");
     }
 
-    // Only next and previous handlers - no play/pause
+    // Explicitly disable play and pause handlers to hide those buttons
+    try {
+      navigator.mediaSession.setActionHandler("play", null);
+      navigator.mediaSession.setActionHandler("pause", null);
+    } catch (e) {
+      console.log("Could not disable play/pause handlers");
+    }
+
+    // Only next and previous handlers
     navigator.mediaSession.setActionHandler("nexttrack", handleNext);
     navigator.mediaSession.setActionHandler("previoustrack", handlePrevious);
 
