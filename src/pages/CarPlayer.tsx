@@ -380,7 +380,7 @@ export default function CarPlayer() {
         />
 
         {/* Logo Header */}
-        <div className="relative z-10 py-4 md:py-5 flex justify-center items-center">
+        <div className="relative z-10 py-2 md:py-3 flex justify-center items-center">
           <div className="relative">
             <div className="absolute inset-0 blur-2xl bg-gradient-to-r from-purple-500 to-pink-500 opacity-30 animate-pulse" />
             <img src={logo} alt="DesiMelody.com" className="relative h-20 md:h-24 w-auto drop-shadow-2xl" />
@@ -388,7 +388,7 @@ export default function CarPlayer() {
         </div>
 
         {/* Search Bar */}
-        <div className="relative z-10 px-4 pb-3">
+        <div className="relative z-10 px-4 pb-1">
           <div className="relative max-w-2xl mx-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/70 z-10" />
             <Input
@@ -406,11 +406,11 @@ export default function CarPlayer() {
         </div>
 
         {/* Player */}
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-2">
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-0">
           {currentStation ? (
-            <div className="relative w-full max-w-4xl space-y-6">
+            <div className="relative w-full max-w-4xl space-y-3">
               {/* Station Info - Compact */}
-              <div className="text-center space-y-2">
+              <div className="text-center space-y-1">
                 <p className="text-purple-300 text-xs uppercase tracking-widest font-semibold">Now Playing</p>
                 <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-2xl">{currentStation.name}</h1>
                 <p className="text-sm md:text-base text-white/70">
@@ -419,7 +419,7 @@ export default function CarPlayer() {
               </div>
 
               {/* Station Image + Controls in Row */}
-              <div className="flex items-center justify-center gap-8">
+              <div className="flex items-center justify-center gap-4">
                 {/* Station Image */}
                 <div className="relative flex-shrink-0">
                   <div className="absolute inset-0 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 rounded-3xl blur-2xl opacity-50 animate-pulse" />
@@ -492,7 +492,7 @@ export default function CarPlayer() {
               </div>
 
               {/* Audio Visualizer - Equalizer Bars */}
-              <div className="relative h-24 md:h-28 flex items-end justify-center gap-1.5 px-6 mt-4">
+              <div className="relative h-24 md:h-28 flex items-end justify-center gap-1.5 px-6 mt-2">
                 {[...Array(12)].map((_, i) => {
                   const heights = [60, 80, 95, 75, 90, 100, 85, 70, 95, 80, 75, 65];
                   const colors = [
