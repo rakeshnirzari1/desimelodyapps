@@ -355,8 +355,8 @@ export default function CarPlayer() {
         <audio ref={silenceAudioRef} src="/silence.mp3" loop preload="auto" style={{ display: "none" }} />
 
         {/* Logo Header */}
-        <div className="p-4 flex justify-center items-center border-b border-white/10">
-          <img src={logo} alt="DesiMelody.com" className="h-16 md:h-26" />
+        <div className="p-6 md:p-8 flex justify-center items-center border-b border-white/10 bg-gradient-to-b from-black to-zinc-900">
+          <img src={logo} alt="DesiMelody.com" className="h-16 md:h-20 lg:h-24 w-auto" />
         </div>
 
         {/* Search Bar */}
