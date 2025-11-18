@@ -13,11 +13,12 @@ export default function CarPlayer() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [retryCount, setRetryCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
   const audioRef = useRef<HTMLAudioElement>(null);
   const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const loadAttemptRef = useRef(0);
+  const skipAttemptsRef = useRef(0);
 
   // Load stations
   useEffect(() => {
@@ -27,6 +28,8 @@ export default function CarPlayer() {
     if (stations.length > 0) {
       setCurrentStation(stations[0]);
     }
+    // Simulate app loading
+    setTimeout(() => setPageLoading(false), 1500);
   }, []);
 
   // Search results - don't auto-select
@@ -59,7 +62,7 @@ export default function CarPlayer() {
     
     audio.src = currentStation.link;
     setIsLoading(true);
-    setRetryCount(0);
+    skipAttemptsRef.current = 0;
 
     // Clear any existing error timeout
     if (errorTimeoutRef.current) {
@@ -69,7 +72,7 @@ export default function CarPlayer() {
     const handleCanPlay = async () => {
       if (currentAttempt !== loadAttemptRef.current) return;
       setIsLoading(false);
-      setRetryCount(0);
+      skipAttemptsRef.current = 0;
       if (isPlaying) {
         try {
           await audio.play();
@@ -84,13 +87,12 @@ export default function CarPlayer() {
       setIsLoading(false);
       console.error("Station loading error:", currentStation.name);
       
-      // Try next station after 2 seconds if this was a play attempt
-      if (isPlaying && retryCount < 1) {
-        setRetryCount(prev => prev + 1);
-        errorTimeoutRef.current = setTimeout(() => {
-          console.log("Auto-skipping to next station...");
-          handleNext();
-        }, 2000);
+      // Auto-skip immediately if playing (works even when screen locked)
+      if (isPlaying && skipAttemptsRef.current < 3) {
+        skipAttemptsRef.current += 1;
+        console.log("Auto-skipping to next station...");
+        // Use immediate skip without timeout for reliability when locked
+        handleNext();
       }
     };
 
@@ -98,12 +100,13 @@ export default function CarPlayer() {
       if (currentAttempt !== loadAttemptRef.current) return;
       console.warn("Station stalled:", currentStation.name);
       
-      // Auto-skip if playing and stalled for too long
-      if (isPlaying) {
+      // Auto-skip if playing and stalled (works when screen locked)
+      if (isPlaying && skipAttemptsRef.current < 3) {
+        skipAttemptsRef.current += 1;
         errorTimeoutRef.current = setTimeout(() => {
           console.log("Stream stalled, skipping to next...");
           handleNext();
-        }, 8000);
+        }, 5000);
       }
     };
 
@@ -208,8 +211,20 @@ export default function CarPlayer() {
         <meta name="description" content="Car-friendly radio player with steering wheel controls support" />
       </Helmet>
 
-      <div className="min-h-screen bg-black text-white flex flex-col">
-        <audio ref={audioRef} preload="auto" />
+      {pageLoading ? (
+        <div className="min-h-screen bg-black flex items-center justify-center">
+          <div className="flex flex-col items-center gap-6 animate-fade-in">
+            <img
+              src="/src/assets/desimelodylogo.png"
+              alt="DesiMelody"
+              className="w-32 h-32 md:w-48 md:h-48 rounded-2xl shadow-2xl animate-pulse"
+            />
+            <div className="text-white/70 text-lg">Loading...</div>
+          </div>
+        </div>
+      ) : (
+        <div className="min-h-screen bg-black text-white flex flex-col">
+          <audio ref={audioRef} preload="auto" />
 
         {/* Search Bar */}
         <div className="p-4 border-b border-white/10">
@@ -332,6 +347,7 @@ export default function CarPlayer() {
           )}
         </div>
       </div>
+      )}
     </>
   );
 }
