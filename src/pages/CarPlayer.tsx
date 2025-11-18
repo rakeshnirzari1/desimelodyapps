@@ -7,6 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { RadioStation } from "@/types/station";
 import { getStationsWithSlugs } from "@/lib/station-utils";
 import { AudioVisualizer } from "@/components/AudioVisualizer";
+import { getUserCountry } from "@/lib/geolocation";
 import logo from "@/assets/desimelodylogo.png";
 import adBanner from "@/assets/advertisementbanner.gif";
 
@@ -23,13 +24,18 @@ export default function CarPlayer() {
   const [isMuted, setIsMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const silenceAudioRef = useRef<HTMLAudioElement>(null);
+  const adAudioRef = useRef<HTMLAudioElement>(null);
   const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const loadAttemptRef = useRef(0);
   const hasAutoSkippedRef = useRef(false);
   const mediaSessionSyncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const wasInterruptedRef = useRef(false);
+  const adIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [isPlayingAd, setIsPlayingAd] = useState(false);
+  const [userCountry, setUserCountry] = useState<string>("india");
+  const originalVolumeRef = useRef<number>(80);
 
-  // Load stations
+  // Load stations and detect user country
   useEffect(() => {
     const stations = getStationsWithSlugs();
     setAllStations(stations);
@@ -41,6 +47,9 @@ export default function CarPlayer() {
         stations[0];
       setCurrentStation(defaultStation);
     }
+    
+    // Detect user country for ads
+    getUserCountry().then(setUserCountry);
   }, []);
 
   // Search results - don't auto-select
@@ -385,6 +394,130 @@ export default function CarPlayer() {
     }
   };
 
+  // Helper function to get random ad from country folder
+  const getRandomAd = (country: string): string => {
+    // Define number of ads per country
+    const adCounts: Record<string, number> = {
+      australia: 7,
+      bangladesh: 14,
+      canada: 2,
+      india: 2,
+      kuwait: 2,
+      pakistan: 2,
+      "south-africa": 2,
+      uae: 2,
+      uk: 2,
+      usa: 2,
+    };
+
+    const count = adCounts[country] || 2;
+    const adNumber = Math.floor(Math.random() * count) + 1;
+    return `/ads/${country}/ad${adNumber}.mp3`;
+  };
+
+  // Smooth volume fade function
+  const fadeVolume = (
+    element: HTMLAudioElement,
+    startVolume: number,
+    endVolume: number,
+    duration: number
+  ): Promise<void> => {
+    return new Promise((resolve) => {
+      const startTime = Date.now();
+      const volumeDiff = endVolume - startVolume;
+
+      const fade = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Ease-in-out curve for smoother transition
+        const easedProgress = progress < 0.5
+          ? 2 * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+        
+        const currentVolume = startVolume + volumeDiff * easedProgress;
+        element.volume = Math.max(0, Math.min(1, currentVolume));
+
+        if (progress < 1) {
+          requestAnimationFrame(fade);
+        } else {
+          resolve();
+        }
+      };
+
+      fade();
+    });
+  };
+
+  // Play advertisement with volume crossfade
+  const playAdvertisement = async () => {
+    if (!audioRef.current || !adAudioRef.current || !isPlaying || isPlayingAd) return;
+
+    const radioAudio = audioRef.current;
+    const adAudio = adAudioRef.current;
+
+    try {
+      setIsPlayingAd(true);
+      originalVolumeRef.current = volume;
+
+      // Get random ad for user's country
+      const adUrl = getRandomAd(userCountry);
+      adAudio.src = adUrl;
+
+      // Fade radio volume down to very low (5%)
+      await fadeVolume(radioAudio, volume / 100, 0.05, 1500);
+
+      // Play advertisement
+      adAudio.volume = volume / 100;
+      await adAudio.play();
+
+      // Wait for ad to finish
+      await new Promise<void>((resolve) => {
+        const handleAdEnd = () => {
+          adAudio.removeEventListener("ended", handleAdEnd);
+          resolve();
+        };
+        adAudio.addEventListener("ended", handleAdEnd);
+      });
+
+      // Fade radio volume back up to original
+      await fadeVolume(radioAudio, 0.05, originalVolumeRef.current / 100, 1500);
+
+      setIsPlayingAd(false);
+    } catch (error) {
+      console.error("Error playing advertisement:", error);
+      // Restore radio volume on error
+      if (radioAudio) {
+        radioAudio.volume = originalVolumeRef.current / 100;
+      }
+      setIsPlayingAd(false);
+    }
+  };
+
+  // Set up 10-minute advertisement interval
+  useEffect(() => {
+    if (!isPlaying) {
+      // Clear interval when not playing
+      if (adIntervalRef.current) {
+        clearInterval(adIntervalRef.current);
+        adIntervalRef.current = null;
+      }
+      return;
+    }
+
+    // Start 10-minute interval for ads
+    adIntervalRef.current = setInterval(() => {
+      playAdvertisement();
+    }, 10 * 60 * 1000); // 10 minutes
+
+    return () => {
+      if (adIntervalRef.current) {
+        clearInterval(adIntervalRef.current);
+        adIntervalRef.current = null;
+      }
+    };
+  }, [isPlaying, userCountry, volume]);
+
   return(
     <>
       <Helmet>
@@ -395,6 +528,7 @@ export default function CarPlayer() {
       <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f1624] text-white flex flex-col relative overflow-hidden">
         <audio ref={audioRef} preload="auto" />
         <audio ref={silenceAudioRef} src="/silence.mp3" loop preload="auto" style={{ display: "none" }} />
+        <audio ref={adAudioRef} preload="auto" style={{ display: "none" }} />
 
         {/* Animated background effects */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent pointer-events-none" />
@@ -668,6 +802,6 @@ export default function CarPlayer() {
           </div>
         )}
       </div>
-    </>,
+    </>
   );
 }
