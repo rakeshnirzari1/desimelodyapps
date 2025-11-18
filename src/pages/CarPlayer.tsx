@@ -170,7 +170,7 @@ export default function CarPlayer() {
     };
   }, [currentStation]);
 
-  // Handle silence audio to keep lock screen controls active
+  // Handle silence audio to keep lock screen controls active during loading
   useEffect(() => {
     if (!silenceAudioRef.current) return;
 
@@ -182,20 +182,18 @@ export default function CarPlayer() {
       mediaSessionSyncTimeoutRef.current = null;
     }
 
-    // Play silence when: loading while playing OR paused (to maintain lock screen presence)
-    if ((isLoading && isPlaying) || !isPlaying) {
+    // Play silence only during loading to maintain lock screen controls
+    if (isLoading && isPlaying) {
       silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
       // Force correct media session state after silent audio starts
       if ("mediaSession" in navigator) {
-        // Use a small delay to ensure the state is set after silent audio's automatic state update
         mediaSessionSyncTimeoutRef.current = setTimeout(() => {
-          navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+          navigator.mediaSession.playbackState = "playing";
         }, 150);
       }
     } else {
       // Stop silence when station is actually playing
       silenceAudio.pause();
-      // Ensure media session reflects playing state
       if ("mediaSession" in navigator) {
         navigator.mediaSession.playbackState = "playing";
       }
@@ -235,6 +233,7 @@ export default function CarPlayer() {
       console.log("Position state not supported");
     }
 
+    // No pause handler - only play, next, and previous
     navigator.mediaSession.setActionHandler("play", async () => {
       if (audioRef.current && currentStation) {
         // Always reload stream source for fresh live stream
@@ -250,18 +249,8 @@ export default function CarPlayer() {
           navigator.mediaSession.playbackState = "playing";
         } catch (error) {
           console.log("Play failed in media session:", error);
-          // Keep isPlaying true to maintain controls
           setIsPlaying(true);
         }
-      }
-    });
-
-    navigator.mediaSession.setActionHandler("pause", () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        setIsPlaying(false);
-        // Silent audio will play via useEffect to maintain lock screen
-        navigator.mediaSession.playbackState = "paused";
       }
     });
 
@@ -270,45 +259,34 @@ export default function CarPlayer() {
 
     return () => {
       navigator.mediaSession.setActionHandler("play", null);
-      navigator.mediaSession.setActionHandler("pause", null);
       navigator.mediaSession.setActionHandler("nexttrack", null);
       navigator.mediaSession.setActionHandler("previoustrack", null);
     };
   }, [currentStation, isPlaying, filteredStations]);
 
-  const togglePlay = async () => {
+  const handlePlay = async () => {
     const audio = audioRef.current;
     const silenceAudio = silenceAudioRef.current;
-    if (!audio) return;
+    if (!audio || isPlaying) return; // Do nothing if already playing
 
-    if (isPlaying) {
-      // Pausing: main audio pauses, silent audio will play (via useEffect)
-      audio.pause();
-      setIsPlaying(false);
-      // Silent audio will start playing via useEffect to maintain lock screen
+    // Always reload source for fresh live stream
+    if (currentStation) {
+      audio.src = currentStation.link;
+      audio.load();
+    }
+    // Stop silent audio immediately when playing
+    if (silenceAudio) {
+      silenceAudio.pause();
+    }
+    try {
+      await audio.play();
+      setIsPlaying(true);
       if ("mediaSession" in navigator) {
-        navigator.mediaSession.playbackState = "paused";
+        navigator.mediaSession.playbackState = "playing";
       }
-    } else {
-      // Resuming: ALWAYS reload source for fresh live stream
-      if (currentStation) {
-        audio.src = currentStation.link; // Always reload to get fresh live stream
-        audio.load();
-      }
-      // Stop silent audio immediately when resuming
-      if (silenceAudio) {
-        silenceAudio.pause();
-      }
-      try {
-        await audio.play();
-        setIsPlaying(true);
-        if ("mediaSession" in navigator) {
-          navigator.mediaSession.playbackState = "playing";
-        }
-      } catch (error) {
-        console.log("Play failed:", error);
-        setIsPlaying(true); // Keep state true to maintain controls
-      }
+    } catch (error) {
+      console.log("Play failed:", error);
+      setIsPlaying(true); // Keep state true to maintain controls
     }
   };
 
@@ -447,16 +425,12 @@ export default function CarPlayer() {
                 </Button>
 
                 <Button
-                  onClick={togglePlay}
+                  onClick={handlePlay}
                   size="icon"
-                  disabled={isLoading}
+                  disabled={isLoading || isPlaying}
                   className="w-20 h-20 md:w-28 md:h-28 rounded-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
                 >
-                  {isPlaying ? (
-                    <Pause className="w-10 h-10 md:w-14 md:h-14" />
-                  ) : (
-                    <Play className="w-10 h-10 md:w-14 md:h-14 ml-1" />
-                  )}
+                  <Play className="w-10 h-10 md:w-14 md:h-14 ml-1" />
                 </Button>
 
                 <Button
