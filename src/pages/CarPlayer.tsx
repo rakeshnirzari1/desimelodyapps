@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Helmet } from "react-helmet";
 import { Play, Pause, SkipForward, SkipBack, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,9 +11,13 @@ export default function CarPlayer() {
   const [filteredStations, setFilteredStations] = useState<RadioStation[]>([]);
   const [currentStation, setCurrentStation] = useState<RadioStation | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const loadAttemptRef = useRef(0);
 
   // Load stations
   useEffect(() => {
@@ -25,36 +29,47 @@ export default function CarPlayer() {
     }
   }, []);
 
-  // Filter stations based on search
+  // Search results - don't auto-select
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const query = searchQuery.toLowerCase();
+    return allStations.filter(
+      (station) =>
+        station.name.toLowerCase().includes(query) ||
+        station.language?.toLowerCase().includes(query) ||
+        station.tags?.toLowerCase().includes(query) ||
+        station.type.toLowerCase().includes(query)
+    ).slice(0, 10); // Limit to 10 results
+  }, [searchQuery, allStations]);
+
+  // Update filtered stations based on search
   useEffect(() => {
     if (!searchQuery.trim()) {
       setFilteredStations(allStations);
-    } else {
-      const query = searchQuery.toLowerCase();
-      const filtered = allStations.filter(
-        (station) =>
-          station.name.toLowerCase().includes(query) ||
-          station.language?.toLowerCase().includes(query) ||
-          station.tags?.toLowerCase().includes(query) ||
-          station.type.toLowerCase().includes(query)
-      );
-      setFilteredStations(filtered);
-      if (filtered.length > 0 && !filtered.find(s => s.id === currentStation?.id)) {
-        setCurrentStation(filtered[0]);
-      }
     }
-  }, [searchQuery, allStations, currentStation]);
+  }, [searchQuery, allStations]);
 
-  // Load and play station
+  // Load and play station with auto-skip on error
   useEffect(() => {
     if (!currentStation || !audioRef.current) return;
 
     const audio = audioRef.current;
+    loadAttemptRef.current += 1;
+    const currentAttempt = loadAttemptRef.current;
+    
     audio.src = currentStation.link;
     setIsLoading(true);
+    setRetryCount(0);
+
+    // Clear any existing error timeout
+    if (errorTimeoutRef.current) {
+      clearTimeout(errorTimeoutRef.current);
+    }
 
     const handleCanPlay = async () => {
+      if (currentAttempt !== loadAttemptRef.current) return;
       setIsLoading(false);
+      setRetryCount(0);
       if (isPlaying) {
         try {
           await audio.play();
@@ -65,19 +80,47 @@ export default function CarPlayer() {
     };
 
     const handleError = () => {
+      if (currentAttempt !== loadAttemptRef.current) return;
       setIsLoading(false);
-      console.error("Station loading error");
+      console.error("Station loading error:", currentStation.name);
+      
+      // Try next station after 2 seconds if this was a play attempt
+      if (isPlaying && retryCount < 1) {
+        setRetryCount(prev => prev + 1);
+        errorTimeoutRef.current = setTimeout(() => {
+          console.log("Auto-skipping to next station...");
+          handleNext();
+        }, 2000);
+      }
+    };
+
+    const handleStalled = () => {
+      if (currentAttempt !== loadAttemptRef.current) return;
+      console.warn("Station stalled:", currentStation.name);
+      
+      // Auto-skip if playing and stalled for too long
+      if (isPlaying) {
+        errorTimeoutRef.current = setTimeout(() => {
+          console.log("Stream stalled, skipping to next...");
+          handleNext();
+        }, 8000);
+      }
     };
 
     audio.addEventListener("canplay", handleCanPlay);
     audio.addEventListener("error", handleError);
+    audio.addEventListener("stalled", handleStalled);
     audio.load();
 
     return () => {
       audio.removeEventListener("canplay", handleCanPlay);
       audio.removeEventListener("error", handleError);
+      audio.removeEventListener("stalled", handleStalled);
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
     };
-  }, [currentStation, isPlaying]);
+  }, [currentStation]);
 
   // Media Session API for car controls
   useEffect(() => {
@@ -148,6 +191,16 @@ export default function CarPlayer() {
     setCurrentStation(filteredStations[prevIndex]);
   };
 
+  const handleStationSelect = (station: RadioStation) => {
+    setCurrentStation(station);
+    setSearchQuery(""); // Clear search
+    setShowSearchResults(false);
+    setFilteredStations(allStations); // Reset to all stations for next/prev
+    if (!isPlaying) {
+      setIsPlaying(true);
+    }
+  };
+
   return (
     <>
       <Helmet>
@@ -161,14 +214,47 @@ export default function CarPlayer() {
         {/* Search Bar */}
         <div className="p-4 border-b border-white/10">
           <div className="relative max-w-2xl mx-auto">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50 z-10" />
             <Input
               type="text"
               placeholder="Search stations..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowSearchResults(e.target.value.trim().length > 0);
+              }}
+              onFocus={() => setShowSearchResults(searchQuery.trim().length > 0)}
+              onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
               className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-white/30"
             />
+            
+            {/* Search Results Dropdown */}
+            {showSearchResults && searchResults.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-zinc-900 border border-white/20 rounded-lg shadow-2xl max-h-96 overflow-y-auto z-50">
+                {searchResults.map((station) => (
+                  <button
+                    key={station.id}
+                    onClick={() => handleStationSelect(station)}
+                    className="w-full flex items-center gap-3 p-3 hover:bg-white/10 transition-colors text-left border-b border-white/5 last:border-0"
+                  >
+                    <img
+                      src={station.image}
+                      alt={station.name}
+                      className="w-12 h-12 rounded-lg object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400";
+                      }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-white truncate">{station.name}</div>
+                      <div className="text-sm text-white/60 truncate">
+                        {station.language || "Hindi"} • {station.type}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
