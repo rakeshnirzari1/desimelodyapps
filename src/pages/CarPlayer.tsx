@@ -507,7 +507,7 @@ export default function CarPlayer() {
     }
   };
 
-  // Set up 2-minute advertisement interval
+  // Set up advertisement interval: first ad at 10 seconds, then every 15 minutes
   useEffect(() => {
     if (!isPlaying) {
       // Clear interval when not playing
@@ -518,20 +518,20 @@ export default function CarPlayer() {
       return;
     }
 
-    // Play FIRST ad after 10 seconds
+    // Play first ad after 10 seconds
     const firstAdTimeout = setTimeout(() => {
       console.log("[AD] Triggering first advertisement");
       playAdvertisement();
-
-      // After the first ad, start the regular 15-minute interval
-      adIntervalRef.current = setInterval(
-        () => {
-          console.log("[AD] Triggering scheduled advertisement (every 15 min)");
-          playAdvertisement();
-        },
-        15 * 60 * 1000,
-      ); // 15 minutes
     }, 10 * 1000); // 10 seconds
+
+    // Then continue with 15-minute interval
+    adIntervalRef.current = setInterval(
+      () => {
+        console.log("[AD] Triggering scheduled advertisement");
+        playAdvertisement();
+      },
+      15 * 60 * 1000,
+    ); // 15 minutes
 
     return () => {
       clearTimeout(firstAdTimeout);
