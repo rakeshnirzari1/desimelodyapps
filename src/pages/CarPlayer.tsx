@@ -19,6 +19,7 @@ export default function CarPlayer() {
   const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const loadAttemptRef = useRef(0);
   const hasAutoSkippedRef = useRef(false);
+  const mediaSessionSyncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load stations
   useEffect(() => {
@@ -175,20 +176,37 @@ export default function CarPlayer() {
 
     const silenceAudio = silenceAudioRef.current;
 
+    // Clear any pending media session sync
+    if (mediaSessionSyncTimeoutRef.current) {
+      clearTimeout(mediaSessionSyncTimeoutRef.current);
+      mediaSessionSyncTimeoutRef.current = null;
+    }
+
     // Play silence when: loading while playing OR paused (to maintain lock screen presence)
     if ((isLoading && isPlaying) || !isPlaying) {
       silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
       // Force correct media session state after silent audio starts
       if ("mediaSession" in navigator) {
         // Use a small delay to ensure the state is set after silent audio's automatic state update
-        setTimeout(() => {
+        mediaSessionSyncTimeoutRef.current = setTimeout(() => {
           navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
-        }, 100);
+        }, 150);
       }
     } else {
       // Stop silence when station is actually playing
       silenceAudio.pause();
+      // Ensure media session reflects playing state
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.playbackState = "playing";
+      }
     }
+
+    return () => {
+      if (mediaSessionSyncTimeoutRef.current) {
+        clearTimeout(mediaSessionSyncTimeoutRef.current);
+        mediaSessionSyncTimeoutRef.current = null;
+      }
+    };
   }, [isLoading, isPlaying]);
 
   // Media Session API for car controls
