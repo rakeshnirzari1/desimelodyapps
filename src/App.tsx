@@ -18,6 +18,7 @@ import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import India from "./pages/India";
 import Mobile from "./pages/Mobile";
+import CarPlayer from "./pages/CarPlayer";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App = () => (
           <ScrollToTop />
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/m" element={<CarPlayer />} />
             <Route path="/mobile" element={<Mobile />} />
             <Route path="/browse" element={<Browse />} />
             <Route path="/india" element={<India />} />
