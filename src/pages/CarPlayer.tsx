@@ -20,6 +20,7 @@ export default function CarPlayer() {
   const loadAttemptRef = useRef(0);
   const hasAutoSkippedRef = useRef(false);
   const mediaSessionSyncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const wasInterruptedRef = useRef(false);
 
   // Load stations
   useEffect(() => {
@@ -163,7 +164,7 @@ export default function CarPlayer() {
     };
   }, [currentStation]);
 
-  // Handle silence audio to keep lock screen controls active during loading
+  // Handle silence audio to keep lock screen controls active during loading and interruptions
   useEffect(() => {
     if (!silenceAudioRef.current) return;
 
@@ -177,8 +178,8 @@ export default function CarPlayer() {
       mediaSessionSyncTimeoutRef.current = null;
     }
 
-    // Play silence only during loading to maintain lock screen controls
-    if (isLoading && isPlaying) {
+    // Play silence during loading OR when interrupted (phone call) to maintain lock screen controls
+    if ((isLoading && isPlaying) || wasInterruptedRef.current) {
       silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
     } else {
       // Stop silence when station is actually playing
@@ -232,6 +233,50 @@ export default function CarPlayer() {
       navigator.mediaSession.setActionHandler("previoustrack", null);
     };
   }, [currentStation, isPlaying, filteredStations]);
+
+  // Handle phone call interruptions
+  useEffect(() => {
+    if (!audioRef.current || !silenceAudioRef.current) return;
+
+    const audio = audioRef.current;
+    const silenceAudio = silenceAudioRef.current;
+
+    // Handle when main audio is interrupted (e.g., phone call)
+    const handleAudioInterruption = () => {
+      if (isPlaying) {
+        console.log("Audio interrupted - likely phone call");
+        wasInterruptedRef.current = true;
+        // Start playing silent audio to maintain media session
+        silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
+      }
+    };
+
+    // Handle when interruption ends and we can resume
+    const handleVisibilityChange = () => {
+      if (!document.hidden && wasInterruptedRef.current && isPlaying) {
+        console.log("App visible again after interruption - resuming");
+        wasInterruptedRef.current = false;
+        // Stop silent audio and reload/resume main station
+        silenceAudio.pause();
+        if (currentStation) {
+          audio.src = currentStation.link;
+          audio.load();
+          audio.play().catch((e) => console.log("Resume failed:", e));
+        }
+      }
+    };
+
+    // Listen for audio pause events (could be phone call)
+    audio.addEventListener("pause", handleAudioInterruption);
+
+    // Listen for visibility changes (when call ends and user returns)
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      audio.removeEventListener("pause", handleAudioInterruption);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [currentStation, isPlaying]);
 
   const handlePlay = async () => {
     const audio = audioRef.current;
