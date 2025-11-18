@@ -8,7 +8,7 @@ import { RadioStation } from "@/types/station";
 import { getStationsWithSlugs } from "@/lib/station-utils";
 import { AudioVisualizer } from "@/components/AudioVisualizer";
 import logo from "@/assets/desimelodylogo.png";
-import adBanner from "@/assets/advertisementbanner.png";
+import adBanner from "@/assets/advertisementbanner.gif";
 
 export default function CarPlayer() {
   const [allStations, setAllStations] = useState<RadioStation[]>([]);
@@ -436,15 +436,15 @@ export default function CarPlayer() {
         {/* Advertisement Banner */}
         <div className="relative z-10 px-4 py-3">
           <div className="max-w-2xl mx-auto flex justify-center">
-            <a 
-              href="https://remitrates.com.au" 
-              target="_blank" 
+            <a
+              href="https://remitrates.com.au"
+              target="_blank"
               rel="noopener noreferrer"
               className="block transition-transform hover:scale-105"
             >
-              <img 
-                src={adBanner} 
-                alt="RemitRates - Best Exchange Rates" 
+              <img
+                src={adBanner}
+                alt="RemitRates - Best Exchange Rates"
                 className="w-full max-w-xl h-auto rounded-lg shadow-lg"
               />
             </a>
