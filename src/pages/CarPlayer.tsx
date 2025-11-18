@@ -613,7 +613,23 @@ export default function CarPlayer() {
             <p className="text-white/70 text-lg">No stations found</p>
           )}
         </div>
-
+        {/* Advertisement Banner */}
+        <div className="relative z-10 px-4 py-3">
+          <div className="max-w-2xl mx-auto flex justify-center">
+            <a
+              href="https://remitrates.com.au"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block transition-transform hover:scale-105"
+            >
+              <img
+                src={adBanner}
+                alt="RemitRates - Best Exchange Rates"
+                className="w-full max-w-xl h-auto rounded-lg shadow-lg"
+              />
+            </a>
+          </div>
+        </div>
         {/* Bottom gradient overlay */}
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
 
