@@ -405,13 +405,17 @@ export default function CarPlayer() {
       const fadeDownRadio = async () => {
         if (!radioGainNodeRef.current || !audioContextRef.current) return;
         const now = audioContextRef.current.currentTime;
+        console.log("Radio gain before ad:", radioGainNodeRef.current.gain.value);
         radioGainNodeRef.current.gain.exponentialRampToValueAtTime(0.1, now + 1.5); // Fade to 10% in 1.5s
+        console.log("Fading radio down to 0.1");
       };
 
       const fadeUpAd = async () => {
         if (!adGainNodeRef.current || !audioContextRef.current) return;
         const now = audioContextRef.current.currentTime;
+        console.log("Ad gain before play:", adGainNodeRef.current.gain.value);
         adGainNodeRef.current.gain.exponentialRampToValueAtTime(1.0, now + 1.5); // Fade to 100% in 1.5s
+        console.log("Fading ad up to 1.0");
       };
 
       await fadeDownRadio();
@@ -429,16 +433,24 @@ export default function CarPlayer() {
         }
 
         console.log("Ad finished, restoring radio volume");
+        console.log("Radio gain before restore:", radioGainNodeRef.current?.gain.value);
 
         // Smooth fade: Ad down, Radio up
         if (adGainNodeRef.current && audioContextRef.current) {
           const now = audioContextRef.current.currentTime;
           adGainNodeRef.current.gain.exponentialRampToValueAtTime(0.01, now + 1.5);
+          console.log("Ad gain fading to 0.01");
         }
 
         if (radioGainNodeRef.current && audioContextRef.current) {
           const now = audioContextRef.current.currentTime;
           radioGainNodeRef.current.gain.exponentialRampToValueAtTime(1.0, now + 1.5);
+          console.log("Radio gain fading to 1.0");
+
+          // Verify after fade completes
+          setTimeout(() => {
+            console.log("Radio gain after restore:", radioGainNodeRef.current?.gain.value);
+          }, 1600);
         }
 
         setIsPlayingAd(false);
