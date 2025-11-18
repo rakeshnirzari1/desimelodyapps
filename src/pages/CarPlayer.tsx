@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RadioStation } from "@/types/station";
 import { getStationsWithSlugs } from "@/lib/station-utils";
+import { AudioVisualizer } from "@/components/AudioVisualizer";
 import logo from "@/assets/desimelodylogo.png";
 
 export default function CarPlayer() {
@@ -350,17 +351,23 @@ export default function CarPlayer() {
         <meta name="description" content="Car-friendly radio player with steering wheel controls support" />
       </Helmet>
 
-      <div className="min-h-screen bg-black text-white flex flex-col">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white flex flex-col relative overflow-hidden">
         <audio ref={audioRef} preload="auto" />
         <audio ref={silenceAudioRef} src="/silence.mp3" loop preload="auto" style={{ display: "none" }} />
 
+        {/* Animated background effect */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-700/20 via-transparent to-transparent pointer-events-none" />
+        
         {/* Logo Header */}
-        <div className="p-6 md:p-8 flex justify-center items-center border-b border-white/10 bg-gradient-to-b from-black to-zinc-900">
-          <img src={logo} alt="DesiMelody.com" className="h-16 md:h-20 lg:h-24 w-auto" />
+        <div className="relative z-10 p-4 md:p-6 flex justify-center items-center">
+          <div className="flex flex-col items-center gap-2">
+            <img src={logo} alt="DesiMelody.com" className="h-12 md:h-16 w-auto drop-shadow-2xl" />
+            <p className="text-white/90 text-sm md:text-base font-medium tracking-wide">DesiMelody.com</p>
+          </div>
         </div>
 
         {/* Search Bar */}
-        <div className="p-4 border-b border-white/10">
+        <div className="relative z-10 px-4 pb-4">
           <div className="relative max-w-2xl mx-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50 z-10" />
             <Input
@@ -373,22 +380,22 @@ export default function CarPlayer() {
               }}
               onFocus={() => setShowSearchResults(searchQuery.trim().length > 0)}
               onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
-              className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-white/30"
+              className="pl-10 bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-white/30 rounded-2xl"
             />
 
             {/* Search Results Dropdown */}
             {showSearchResults && searchResults.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-zinc-900 border border-white/20 rounded-lg shadow-2xl max-h-96 overflow-y-auto z-50">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-black/80 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl max-h-96 overflow-y-auto z-50">
                 {searchResults.map((station) => (
                   <button
                     key={station.id}
                     onClick={() => handleStationSelect(station)}
-                    className="w-full flex items-center gap-3 p-3 hover:bg-white/10 transition-colors text-left border-b border-white/5 last:border-0"
+                    className="w-full flex items-center gap-3 p-3 hover:bg-white/10 transition-colors text-left border-b border-white/5 last:border-0 first:rounded-t-2xl last:rounded-b-2xl"
                   >
                     <img
                       src={station.image}
                       alt={station.name}
-                      className="w-12 h-12 rounded-lg object-cover"
+                      className="w-12 h-12 rounded-xl object-cover shadow-lg"
                       onError={(e) => {
                         e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400";
                       }}
@@ -407,70 +414,122 @@ export default function CarPlayer() {
         </div>
 
         {/* Player */}
-        <div className="flex-1 flex flex-col items-center justify-center p-8 space-y-8">
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 md:p-8">
           {currentStation ? (
-            <>
-              {/* Station Image */}
-              <img
-                src={currentStation.image}
-                alt={currentStation.name}
-                className="w-32 h-32 md:w-48 md:h-48 rounded-2xl object-cover shadow-2xl"
-                onError={(e) => {
-                  e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400";
-                }}
-              />
+            <div className="w-full max-w-md space-y-6 md:space-y-8">
+              {/* Audio Visualizer - Equalizer Bars */}
+              <div className="relative h-32 md:h-40 flex items-end justify-center gap-1 px-8">
+                {[...Array(12)].map((_, i) => {
+                  const heights = [60, 80, 95, 75, 90, 100, 85, 70, 95, 80, 75, 65];
+                  const colors = [
+                    'from-red-500 to-red-600',
+                    'from-orange-500 to-orange-600',
+                    'from-amber-500 to-amber-600',
+                    'from-yellow-500 to-yellow-600',
+                    'from-lime-500 to-lime-600',
+                    'from-green-500 to-green-600',
+                    'from-emerald-500 to-emerald-600',
+                    'from-cyan-500 to-cyan-600',
+                    'from-sky-500 to-sky-600',
+                    'from-blue-500 to-blue-600',
+                    'from-purple-500 to-purple-600',
+                    'from-pink-500 to-pink-600',
+                  ];
+                  return (
+                    <div
+                      key={i}
+                      className={`flex-1 rounded-t-lg bg-gradient-to-t ${colors[i]} transition-all duration-300 shadow-lg ${
+                        isPlaying && !isLoading ? 'animate-pulse' : 'opacity-60'
+                      }`}
+                      style={{
+                        height: isPlaying && !isLoading ? `${heights[i]}%` : '30%',
+                        animationDelay: `${i * 0.1}s`,
+                        animationDuration: `${0.8 + Math.random() * 0.4}s`,
+                      }}
+                    />
+                  );
+                })}
+              </div>
 
               {/* Station Info */}
-              <div className="text-center space-y-2 max-w-2xl">
-                <h1 className="text-3xl md:text-5xl font-bold">{currentStation.name}</h1>
-                <p className="text-lg md:text-xl text-white/70">
+              <div className="text-center space-y-3 px-4">
+                <div className="space-y-1">
+                  <p className="text-white/60 text-xs md:text-sm uppercase tracking-wider">Now Playing</p>
+                  <h1 className="text-2xl md:text-4xl font-bold text-white drop-shadow-lg">{currentStation.name}</h1>
+                </div>
+                <p className="text-base md:text-lg text-white/80">
                   {currentStation.language || "Hindi"} • {currentStation.type}
                 </p>
-                {currentStation.tags && <p className="text-sm md:text-base text-white/50">{currentStation.tags}</p>}
+                {currentStation.tags && (
+                  <p className="text-xs md:text-sm text-white/50">{currentStation.tags}</p>
+                )}
+              </div>
+
+              {/* Station Image - Circular with glow */}
+              <div className="flex justify-center">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-500 rounded-full blur-2xl opacity-50 animate-pulse" />
+                  <img
+                    src={currentStation.image}
+                    alt={currentStation.name}
+                    className="relative w-40 h-40 md:w-48 md:h-48 rounded-full object-cover shadow-2xl ring-4 ring-white/20"
+                    onError={(e) => {
+                      e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400";
+                    }}
+                  />
+                </div>
               </div>
 
               {/* Loading Indicator */}
-              {isLoading && <p className="text-white/50 animate-pulse">Loading station...</p>}
+              {isLoading && (
+                <div className="text-center">
+                  <p className="text-white/70 text-sm animate-pulse">Loading station...</p>
+                </div>
+              )}
 
               {/* Controls */}
-              <div className="flex items-center gap-6 md:gap-8">
+              <div className="flex items-center justify-center gap-4 md:gap-6 pt-4">
                 <Button
                   onClick={handlePrevious}
                   size="icon"
                   variant="ghost"
-                  className="w-16 h-16 md:w-20 md:h-20 rounded-full hover:bg-white/10 text-white"
+                  className="w-14 h-14 md:w-16 md:h-16 rounded-full hover:bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-110"
                 >
-                  <SkipBack className="w-8 h-8 md:w-10 md:h-10" />
+                  <SkipBack className="w-6 h-6 md:w-7 md:h-7" />
                 </Button>
 
                 <Button
                   onClick={handlePlay}
                   size="icon"
                   disabled={isLoading || isPlaying}
-                  className="w-20 h-20 md:w-28 md:h-28 rounded-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+                  className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-500 hover:from-pink-600 hover:via-purple-600 hover:to-indigo-600 text-white disabled:opacity-50 shadow-2xl transition-all hover:scale-105 disabled:scale-100"
                 >
-                  <Play className="w-10 h-10 md:w-14 md:h-14 ml-1" />
+                  <Play className="w-9 h-9 md:w-11 md:h-11 ml-1" />
                 </Button>
 
                 <Button
                   onClick={handleNext}
                   size="icon"
                   variant="ghost"
-                  className="w-16 h-16 md:w-20 md:h-20 rounded-full hover:bg-white/10 text-white"
+                  className="w-14 h-14 md:w-16 md:h-16 rounded-full hover:bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-110"
                 >
-                  <SkipForward className="w-8 h-8 md:w-10 md:h-10" />
+                  <SkipForward className="w-6 h-6 md:w-7 md:h-7" />
                 </Button>
               </div>
 
               {/* Info Text */}
-              <p className="text-center text-sm md:text-base text-white/50 max-w-md px-4">
-                Steering wheel ⊂ / ⊃ = change station • Works in Android Auto & CarPlay
+              <p className="text-center text-xs md:text-sm text-white/40 max-w-md px-4 pt-2">
+                Steering wheel ⊂ / ⊃ = change station<br className="md:hidden" />
+                <span className="hidden md:inline"> • </span>Works in Android Auto & CarPlay
               </p>
-            </>
+            </div>
           ) : (
             <p className="text-white/70 text-lg">No stations found</p>
           )}
         </div>
+
+        {/* Bottom gradient overlay */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
       </div>
     </>
   );
