@@ -14,10 +14,10 @@ export default function CarPlayer() {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [retryCount, setRetryCount] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
   const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const loadAttemptRef = useRef(0);
+  const hasAutoSkippedRef = useRef(false);
 
   // Load stations
   useEffect(() => {
@@ -59,7 +59,6 @@ export default function CarPlayer() {
     
     audio.src = currentStation.link;
     setIsLoading(true);
-    setRetryCount(0);
 
     // Clear any existing error timeout
     if (errorTimeoutRef.current) {
@@ -69,7 +68,7 @@ export default function CarPlayer() {
     const handleCanPlay = async () => {
       if (currentAttempt !== loadAttemptRef.current) return;
       setIsLoading(false);
-      setRetryCount(0);
+      hasAutoSkippedRef.current = false; // Reset auto-skip flag on successful load
       if (isPlaying) {
         try {
           await audio.play();
@@ -84,9 +83,9 @@ export default function CarPlayer() {
       setIsLoading(false);
       console.error("Station loading error:", currentStation.name);
       
-      // Try next station after 2 seconds if this was a play attempt
-      if (isPlaying && retryCount < 1) {
-        setRetryCount(prev => prev + 1);
+      // Only auto-skip once until a station successfully loads
+      if (isPlaying && !hasAutoSkippedRef.current) {
+        hasAutoSkippedRef.current = true;
         errorTimeoutRef.current = setTimeout(() => {
           console.log("Auto-skipping to next station...");
           handleNext();
@@ -98,8 +97,9 @@ export default function CarPlayer() {
       if (currentAttempt !== loadAttemptRef.current) return;
       console.warn("Station stalled:", currentStation.name);
       
-      // Auto-skip if playing and stalled for too long
-      if (isPlaying) {
+      // Only auto-skip once until a station successfully loads
+      if (isPlaying && !hasAutoSkippedRef.current) {
+        hasAutoSkippedRef.current = true;
         errorTimeoutRef.current = setTimeout(() => {
           console.log("Stream stalled, skipping to next...");
           handleNext();
@@ -179,6 +179,7 @@ export default function CarPlayer() {
 
   const handleNext = () => {
     if (filteredStations.length === 0) return;
+    hasAutoSkippedRef.current = false; // Reset on manual skip
     const currentIndex = filteredStations.findIndex((s) => s.id === currentStation?.id);
     const nextIndex = (currentIndex + 1) % filteredStations.length;
     setCurrentStation(filteredStations[nextIndex]);
@@ -186,12 +187,14 @@ export default function CarPlayer() {
 
   const handlePrevious = () => {
     if (filteredStations.length === 0) return;
+    hasAutoSkippedRef.current = false; // Reset on manual skip
     const currentIndex = filteredStations.findIndex((s) => s.id === currentStation?.id);
     const prevIndex = currentIndex - 1 < 0 ? filteredStations.length - 1 : currentIndex - 1;
     setCurrentStation(filteredStations[prevIndex]);
   };
 
   const handleStationSelect = (station: RadioStation) => {
+    hasAutoSkippedRef.current = false; // Reset on manual selection
     setCurrentStation(station);
     setSearchQuery(""); // Clear search
     setShowSearchResults(false);
