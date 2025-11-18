@@ -15,6 +15,7 @@ export default function CarPlayer() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const silenceAudioRef = useRef<HTMLAudioElement>(null);
   const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const loadAttemptRef = useRef(0);
   const hasAutoSkippedRef = useRef(false);
@@ -71,6 +72,12 @@ export default function CarPlayer() {
       if (currentAttempt !== loadAttemptRef.current) return;
       setIsLoading(false);
       hasAutoSkippedRef.current = false; // Reset auto-skip flag on successful load
+      
+      // Stop silence audio when main station loads
+      if (silenceAudioRef.current) {
+        silenceAudioRef.current.pause();
+      }
+      
       if (isPlaying) {
         try {
           await audio.play();
@@ -90,6 +97,11 @@ export default function CarPlayer() {
       setIsLoading(false);
       console.error("Station loading error:", currentStation.name);
 
+      // Play silence to keep lock screen controls active
+      if (isPlaying && silenceAudioRef.current) {
+        silenceAudioRef.current.play().catch(e => console.log("Silence play failed:", e));
+      }
+
       // Keep playing state true to maintain lock screen controls
       // Only auto-skip once until a station successfully loads
       if (isPlaying && !hasAutoSkippedRef.current) {
@@ -104,6 +116,11 @@ export default function CarPlayer() {
     const handleStalled = () => {
       if (currentAttempt !== loadAttemptRef.current) return;
       console.warn("Station stalled:", currentStation.name);
+
+      // Play silence to keep lock screen controls active
+      if (isPlaying && silenceAudioRef.current) {
+        silenceAudioRef.current.play().catch(e => console.log("Silence play failed:", e));
+      }
 
       // Only auto-skip once until a station successfully loads
       if (isPlaying && !hasAutoSkippedRef.current) {
@@ -129,6 +146,20 @@ export default function CarPlayer() {
       }
     };
   }, [currentStation]);
+
+  // Handle silence audio during loading to keep lock screen controls active
+  useEffect(() => {
+    if (!silenceAudioRef.current) return;
+
+    const silenceAudio = silenceAudioRef.current;
+    
+    // Play silence when loading and playing state is true
+    if (isLoading && isPlaying) {
+      silenceAudio.play().catch(e => console.log("Silence play failed:", e));
+    } else {
+      silenceAudio.pause();
+    }
+  }, [isLoading, isPlaying]);
 
   // Media Session API for car controls
   useEffect(() => {
@@ -240,6 +271,7 @@ export default function CarPlayer() {
 
       <div className="min-h-screen bg-black text-white flex flex-col">
         <audio ref={audioRef} preload="auto" />
+        <audio ref={silenceAudioRef} src="/silence.mp3" loop preload="auto" style={{ display: 'none' }} />
 
         {/* Search Bar */}
         <div className="p-4 border-b border-white/10">
