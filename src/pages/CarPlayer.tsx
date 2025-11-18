@@ -178,6 +178,13 @@ export default function CarPlayer() {
     // Play silence when: loading while playing OR paused (to maintain lock screen presence)
     if ((isLoading && isPlaying) || !isPlaying) {
       silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
+      // Force correct media session state after silent audio starts
+      if ("mediaSession" in navigator) {
+        // Use a small delay to ensure the state is set after silent audio's automatic state update
+        setTimeout(() => {
+          navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+        }, 100);
+      }
     } else {
       // Stop silence when station is actually playing
       silenceAudio.pause();
