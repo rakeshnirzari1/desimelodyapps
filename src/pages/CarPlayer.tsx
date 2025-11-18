@@ -47,7 +47,7 @@ export default function CarPlayer() {
         stations[0];
       setCurrentStation(defaultStation);
     }
-    
+
     // Detect user country for ads
     getUserCountry().then(setUserCountry);
   }, []);
@@ -415,41 +415,12 @@ export default function CarPlayer() {
     return `/ads/${country}/ad${adNumber}.mp3`;
   };
 
-  // Smooth volume fade function
-  const fadeVolume = (
-    element: HTMLAudioElement,
-    startVolume: number,
-    endVolume: number,
-    duration: number
-  ): Promise<void> => {
-    return new Promise((resolve) => {
-      const startTime = Date.now();
-      const volumeDiff = endVolume - startVolume;
-
-      const fade = () => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        
-        // Ease-in-out curve for smoother transition
-        const easedProgress = progress < 0.5
-          ? 2 * progress * progress
-          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-        
-        const currentVolume = startVolume + volumeDiff * easedProgress;
-        element.volume = Math.max(0, Math.min(1, currentVolume));
-
-        if (progress < 1) {
-          requestAnimationFrame(fade);
-        } else {
-          resolve();
-        }
-      };
-
-      fade();
-    });
+  // Simple volume control for mobile lock screen compatibility
+  const setAudioVolume = (element: HTMLAudioElement, volumeLevel: number) => {
+    element.volume = Math.max(0, Math.min(1, volumeLevel));
   };
 
-  // Play advertisement with volume crossfade
+  // Play advertisement - optimized for mobile lock screen
   const playAdvertisement = async () => {
     if (!audioRef.current || !adAudioRef.current || !isPlaying || isPlayingAd) return;
 
@@ -457,44 +428,86 @@ export default function CarPlayer() {
     const adAudio = adAudioRef.current;
 
     try {
+      console.log("[AD] Starting advertisement playback");
       setIsPlayingAd(true);
       originalVolumeRef.current = volume;
 
       // Get random ad for user's country
       const adUrl = getRandomAd(userCountry);
       adAudio.src = adUrl;
+      console.log("[AD] Playing:", adUrl);
 
-      // Fade radio volume down to very low (5%)
-      await fadeVolume(radioAudio, volume / 100, 0.05, 1500);
+      // Lower radio volume immediately (no animation for mobile lock screen)
+      setAudioVolume(radioAudio, 0.05);
+      console.log("[AD] Radio volume lowered");
 
-      // Play advertisement
-      adAudio.volume = volume / 100;
+      // Set ad volume and play
+      setAudioVolume(adAudio, volume / 100);
+
+      // Update Media Session for lock screen
+      if ("mediaSession" in navigator && currentStation) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: "Advertisement",
+          artist: currentStation.name,
+          album: "DesiMelody.com",
+          artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
+        });
+      }
+
       await adAudio.play();
+      console.log("[AD] Ad playback started");
 
       // Wait for ad to finish
       await new Promise<void>((resolve) => {
         const handleAdEnd = () => {
+          console.log("[AD] Ad finished");
           adAudio.removeEventListener("ended", handleAdEnd);
           resolve();
         };
+        const handleAdError = () => {
+          console.error("[AD] Ad playback error");
+          adAudio.removeEventListener("error", handleAdError);
+          resolve();
+        };
         adAudio.addEventListener("ended", handleAdEnd);
+        adAudio.addEventListener("error", handleAdError);
       });
 
-      // Fade radio volume back up to original
-      await fadeVolume(radioAudio, 0.05, originalVolumeRef.current / 100, 1500);
+      // Restore radio volume immediately
+      setAudioVolume(radioAudio, originalVolumeRef.current / 100);
+      console.log("[AD] Radio volume restored");
+
+      // Restore Media Session
+      if ("mediaSession" in navigator && currentStation) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: currentStation.name,
+          artist: `${currentStation.language || "Hindi"} • ${currentStation.type}`,
+          album: "DesiMelody.com, 1200 Radio Stations From South East Asia",
+          artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
+        });
+      }
 
       setIsPlayingAd(false);
     } catch (error) {
-      console.error("Error playing advertisement:", error);
+      console.error("[AD] Error playing advertisement:", error);
       // Restore radio volume on error
       if (radioAudio) {
-        radioAudio.volume = originalVolumeRef.current / 100;
+        setAudioVolume(radioAudio, originalVolumeRef.current / 100);
+      }
+      // Restore Media Session on error
+      if ("mediaSession" in navigator && currentStation) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: currentStation.name,
+          artist: `${currentStation.language || "Hindi"} • ${currentStation.type}`,
+          album: "DesiMelody.com, 1200 Radio Stations From South East Asia",
+          artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
+        });
       }
       setIsPlayingAd(false);
     }
   };
 
-  // Set up 10-minute advertisement interval
+  // Set up 2-minute advertisement interval
   useEffect(() => {
     if (!isPlaying) {
       // Clear interval when not playing
@@ -505,12 +518,26 @@ export default function CarPlayer() {
       return;
     }
 
-    // Start 10-minute interval for ads
-    adIntervalRef.current = setInterval(() => {
-      playAdvertisement();
-    }, 10 * 60 * 1000); // 10 minutes
+    // Play first ad after 2 minutes
+    const firstAdTimeout = setTimeout(
+      () => {
+        console.log("[AD] Triggering first advertisement");
+        playAdvertisement();
+      },
+      2 * 60 * 1000,
+    ); // 2 minutes
+
+    // Then continue with 2-minute interval
+    adIntervalRef.current = setInterval(
+      () => {
+        console.log("[AD] Triggering scheduled advertisement");
+        playAdvertisement();
+      },
+      2 * 60 * 1000,
+    ); // 2 minutes
 
     return () => {
+      clearTimeout(firstAdTimeout);
       if (adIntervalRef.current) {
         clearInterval(adIntervalRef.current);
         adIntervalRef.current = null;
@@ -518,7 +545,7 @@ export default function CarPlayer() {
     };
   }, [isPlaying, userCountry, volume]);
 
-  return(
+  return (
     <>
       <Helmet>
         <title>Car Player - DesiMelody.com</title>
