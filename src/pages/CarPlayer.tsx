@@ -356,7 +356,7 @@ export default function CarPlayer() {
 
         {/* Logo Header */}
         <div className="p-4 flex justify-center items-center border-b border-white/10">
-          <img src={logo} alt="DesiMelody.com" className="h-12 md:h-16" />
+          <img src={logo} alt="DesiMelody.com" className="h-14 md:h-20" />
         </div>
 
         {/* Search Bar */}
