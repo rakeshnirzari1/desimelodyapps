@@ -168,6 +168,8 @@ export default function CarPlayer() {
     if (!silenceAudioRef.current) return;
 
     const silenceAudio = silenceAudioRef.current;
+    // Set volume to very low to prevent it from taking over media controls
+    silenceAudio.volume = 0.01;
 
     // Clear any pending media session sync
     if (mediaSessionSyncTimeoutRef.current) {
@@ -213,31 +215,11 @@ export default function CarPlayer() {
       console.log("Position state not supported");
     }
 
-    // No pause handler - only play, next, and previous
-    navigator.mediaSession.setActionHandler("play", async () => {
-      if (audioRef.current && currentStation) {
-        // Always reload stream source for fresh live stream
-        audioRef.current.src = currentStation.link;
-        audioRef.current.load();
-        // Stop silent audio
-        if (silenceAudioRef.current) {
-          silenceAudioRef.current.pause();
-        }
-        try {
-          await audioRef.current.play();
-          setIsPlaying(true);
-        } catch (error) {
-          console.log("Play failed in media session:", error);
-          setIsPlaying(true);
-        }
-      }
-    });
-
+    // Only next and previous handlers - no play/pause
     navigator.mediaSession.setActionHandler("nexttrack", handleNext);
     navigator.mediaSession.setActionHandler("previoustrack", handlePrevious);
 
     return () => {
-      navigator.mediaSession.setActionHandler("play", null);
       navigator.mediaSession.setActionHandler("nexttrack", null);
       navigator.mediaSession.setActionHandler("previoustrack", null);
     };
