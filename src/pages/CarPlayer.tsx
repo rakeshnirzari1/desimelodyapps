@@ -151,16 +151,8 @@ export default function CarPlayer() {
       }
     };
 
-    const handlePause = () => {
-      // Sync media session when audio pauses
-      if ("mediaSession" in navigator && !isPlaying) {
-        navigator.mediaSession.playbackState = "paused";
-      }
-    };
-
     audio.addEventListener("canplay", handleCanPlay);
     audio.addEventListener("playing", handlePlaying);
-    audio.addEventListener("pause", handlePause);
     audio.addEventListener("error", handleError);
     audio.addEventListener("stalled", handleStalled);
     audio.load();
@@ -168,7 +160,6 @@ export default function CarPlayer() {
     return () => {
       audio.removeEventListener("canplay", handleCanPlay);
       audio.removeEventListener("playing", handlePlaying);
-      audio.removeEventListener("pause", handlePause);
       audio.removeEventListener("error", handleError);
       audio.removeEventListener("stalled", handleStalled);
       if (errorTimeoutRef.current) {
@@ -187,10 +178,6 @@ export default function CarPlayer() {
     // Play silence when: loading while playing OR paused (to maintain lock screen presence)
     if ((isLoading && isPlaying) || !isPlaying) {
       silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
-      // Ensure media session stays active while paused
-      if (!isPlaying && "mediaSession" in navigator) {
-        navigator.mediaSession.playbackState = "paused";
-      }
     } else {
       // Stop silence when station is actually playing
       silenceAudio.pause();
