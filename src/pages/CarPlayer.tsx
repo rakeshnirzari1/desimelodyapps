@@ -372,12 +372,12 @@ export default function CarPlayer() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent pointer-events-none" />
 
         {/* Logo Header */}
-        <div className="relative z-10 py-3 md:py-4 flex justify-center items-center">
+        <div className="relative z-10 py-2 md:py-3 flex justify-center items-center">
           <img src={logo} alt="DesiMelody.com" className="h-12 md:h-14 w-auto drop-shadow-2xl" />
         </div>
 
         {/* Search Bar */}
-        <div className="relative z-10 px-4 pb-4">
+        <div className="relative z-10 px-4 pb-2">
           <div className="relative max-w-2xl mx-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/70 z-10" />
             <Input
@@ -394,17 +394,26 @@ export default function CarPlayer() {
 
             {/* Search Results Dropdown - Full overlay */}
             {showSearchResults && searchResults.length > 0 && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-                <div className="w-full max-w-md bg-white/95 backdrop-blur-md border-2 border-purple-300 rounded-2xl shadow-2xl max-h-[70vh] overflow-y-auto">
+              <div
+                className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+                onClick={() => setShowSearchResults(false)}
+              >
+                <div
+                  className="w-full max-w-md bg-white/95 backdrop-blur-md border-2 border-purple-300 rounded-2xl shadow-2xl max-h-[70vh] overflow-y-auto"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-pink-600 text-white p-3 rounded-t-2xl border-b-2 border-white/20">
                     <h3 className="font-bold text-base">Search Results ({searchResults.length})</h3>
                   </div>
                   {searchResults.map((station) => (
                     <button
                       key={station.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleStationSelect(station);
+                      }}
                       onMouseDown={(e) => {
                         e.preventDefault();
-                        handleStationSelect(station);
                       }}
                       className="w-full flex items-center gap-3 p-3 hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 active:from-purple-200 active:to-pink-200 transition-all text-left border-b border-gray-200 last:border-0 cursor-pointer"
                     >
@@ -431,7 +440,7 @@ export default function CarPlayer() {
         </div>
 
         {/* Player */}
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-6">
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-2">
           {currentStation ? (
             <div className="w-full max-w-4xl space-y-6">
               {/* Station Info - Compact */}
