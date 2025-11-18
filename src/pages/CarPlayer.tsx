@@ -407,7 +407,7 @@ export default function CarPlayer() {
         />
 
         {/* Logo Header */}
-        <div className="relative z-10 py-2 md:py-3 flex justify-center items-center">
+        <div className="relative z-10 py-4 md:py-6 flex justify-center items-center">
           <div className="relative">
             <div className="absolute inset-0 blur-2xl bg-gradient-to-r from-purple-500 to-pink-500 opacity-30 animate-pulse" />
             <img src={logo} alt="DesiMelody.com" className="relative h-24 md:h-28 w-auto drop-shadow-2xl" />
@@ -415,7 +415,7 @@ export default function CarPlayer() {
         </div>
 
         {/* Search Bar */}
-        <div className="relative z-10 px-4 pb-1">
+        <div className="relative z-10 px-4 pb-1 mt-4">
           <div className="relative max-w-2xl mx-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/70 z-10" />
             <Input
