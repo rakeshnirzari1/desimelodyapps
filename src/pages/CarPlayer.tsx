@@ -8,6 +8,7 @@ import { RadioStation } from "@/types/station";
 import { getStationsWithSlugs } from "@/lib/station-utils";
 import { AudioVisualizer } from "@/components/AudioVisualizer";
 import logo from "@/assets/desimelodylogo.png";
+import adBanner from "@/assets/advertisementbanner.png";
 
 export default function CarPlayer() {
   const [allStations, setAllStations] = useState<RadioStation[]>([]);
@@ -429,6 +430,24 @@ export default function CarPlayer() {
               onFocus={() => setShowSearchResults(searchQuery.trim().length > 0)}
               className="pl-11 h-12 bg-white/10 backdrop-blur-md border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-purple-400/50 rounded-2xl shadow-lg text-base"
             />
+          </div>
+        </div>
+
+        {/* Advertisement Banner */}
+        <div className="relative z-10 px-4 py-3">
+          <div className="max-w-2xl mx-auto flex justify-center">
+            <a 
+              href="https://remitrates.com.au" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="block transition-transform hover:scale-105"
+            >
+              <img 
+                src={adBanner} 
+                alt="RemitRates - Best Exchange Rates" 
+                className="w-full max-w-xl h-auto rounded-lg shadow-lg"
+              />
+            </a>
           </div>
         </div>
 
