@@ -19,6 +19,7 @@ export default function CarPlayer() {
   const [isLoading, setIsLoading] = useState(true);
   const [isInterrupted, setIsInterrupted] = useState(false);
   const [volume, setVolume] = useState(80);
+  const [isMuted, setIsMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const silenceAudioRef = useRef<HTMLAudioElement>(null);
   const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -353,9 +354,13 @@ export default function CarPlayer() {
   // Volume control
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.volume = volume / 100;
+      audioRef.current.volume = isMuted ? 0 : volume / 100;
     }
-  }, [volume]);
+  }, [volume, isMuted]);
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+  };
 
   return (
     <>
@@ -480,15 +485,43 @@ export default function CarPlayer() {
 
               {/* Volume Control */}
               <div className="flex items-center justify-center gap-4 max-w-md mx-auto px-4">
-                <Volume2 className="w-6 h-6 text-white/70" />
+                <button
+                  onClick={toggleMute}
+                  className="text-white/70 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-full"
+                  title={isMuted ? "Unmute" : "Mute"}
+                >
+                  {isMuted ? (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"
+                      />
+                    </svg>
+                  ) : (
+                    <Volume2 className="w-6 h-6" />
+                  )}
+                </button>
                 <Slider
-                  value={[volume]}
-                  onValueChange={(value) => setVolume(value[0])}
+                  value={[isMuted ? 0 : volume]}
+                  onValueChange={(value) => {
+                    setVolume(value[0]);
+                    if (value[0] > 0 && isMuted) {
+                      setIsMuted(false);
+                    }
+                  }}
                   max={100}
                   step={1}
                   className="flex-1"
                 />
-                <span className="text-base text-white/70 font-medium w-12 text-right">{volume}%</span>
+                <span className="text-base text-white/70 font-medium w-12 text-right">{isMuted ? 0 : volume}%</span>
               </div>
 
               {/* Audio Visualizer - Equalizer Bars */}
