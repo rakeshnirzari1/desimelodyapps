@@ -4,8 +4,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AudioProvider } from "@/contexts/AudioContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { useEffect } from "react";
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+import Favorites from "./pages/premium/Favorites";
+import History from "./pages/premium/History";
+import Alarms from "./pages/premium/Alarms";
+import Folders from "./pages/premium/Folders";
 import Browse from "./pages/Browse";
 import About from "./pages/About";
 import StationDetail from "./pages/StationDetail";
@@ -64,10 +70,11 @@ const HomeWithMobileRedirect = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <AudioProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+      <AuthProvider>
+        <AudioProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
           <ScrollToTop />
           <Routes>
             <Route path="/" element={<HomeWithMobileRedirect />} />
@@ -84,6 +91,11 @@ const App = () => (
             <Route path="/mobile" element={<Mobile />} />
             <Route path="/browse" element={<Browse />} />
             <Route path="/india" element={<India />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/premium/favorites" element={<Favorites />} />
+            <Route path="/premium/history" element={<History />} />
+            <Route path="/premium/alarms" element={<Alarms />} />
+            <Route path="/premium/folders" element={<Folders />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/contact" element={<Contact />} />
@@ -95,8 +107,9 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
-      </AudioProvider>
+          </BrowserRouter>
+        </AudioProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

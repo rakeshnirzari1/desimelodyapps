@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Radio, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { UserMenu } from "@/components/premium/UserMenu";
 
 export const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -32,6 +33,7 @@ export const Header = () => {
           <Link to="/about" className="text-sm font-medium hover:text-primary transition-colors">
             About
           </Link>
+          <UserMenu />
         </nav>
 
         {/* Mobile Hamburger */}
