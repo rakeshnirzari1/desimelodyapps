@@ -66,14 +66,18 @@ export const UserMenu = () => {
           <Heart className="mr-2 h-4 w-4" />
           Favorites
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate(`${basePath}/premium/history`)}>
-          <History className="mr-2 h-4 w-4" />
-          Listening History
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate(`${basePath}/premium/folders`)}>
-          <FolderHeart className="mr-2 h-4 w-4" />
-          My Folders
-        </DropdownMenuItem>
+        {basePath === "" && (
+          <>
+            <DropdownMenuItem onClick={() => navigate(`${basePath}/premium/history`)}>
+              <History className="mr-2 h-4 w-4" />
+              Listening History
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate(`${basePath}/premium/folders`)}>
+              <FolderHeart className="mr-2 h-4 w-4" />
+              My Folders
+            </DropdownMenuItem>
+          </>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut} disabled={isLoading}>
           <LogOut className="mr-2 h-4 w-4" />
