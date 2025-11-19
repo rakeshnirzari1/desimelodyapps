@@ -8,6 +8,7 @@ import { AudioVisualizer } from "./AudioVisualizer";
 import { getStationsWithSlugs } from "@/lib/station-utils";
 import { useAudio } from "@/contexts/AudioContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { getUserCountry } from "@/lib/geolocation";
 
 interface AudioPlayerProps {
   station: RadioStation | null;
@@ -24,11 +25,18 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
-  const {
-    setCurrentStation,
-    filteredStations,
-  } = useAudio();
+  const adAudioRef = useRef<HTMLAudioElement>(null);
+  const adIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [isPlayingAd, setIsPlayingAd] = useState(false);
+  const [userCountry, setUserCountry] = useState<string>("india");
+  const originalVolumeRef = useRef<number>(70);
+  const { setCurrentStation, filteredStations } = useAudio();
   const isMobile = useIsMobile();
+
+  // Detect user country for ads
+  useEffect(() => {
+    getUserCountry().then(setUserCountry);
+  }, []);
 
   // Change to next station without navigation
   const playNextStation = () => {
@@ -199,6 +207,119 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     setIsMuted(!isMuted);
   };
 
+  // Helper function to get random ad from country folder
+  const getRandomAd = (country: string): string => {
+    // Define number of ads per country
+    const adCounts: Record<string, number> = {
+      australia: 7,
+      bangladesh: 14,
+      canada: 2,
+      india: 2,
+      kuwait: 2,
+      pakistan: 2,
+      "south-africa": 2,
+      uae: 2,
+      uk: 2,
+      usa: 2,
+    };
+
+    const count = adCounts[country] || 2;
+    const adNumber = Math.floor(Math.random() * count) + 1;
+    return `/ads/${country}/ad${adNumber}.mp3`;
+  };
+
+  // Simple volume control for mobile lock screen compatibility
+  const setAudioVolume = (element: HTMLAudioElement, volumeLevel: number) => {
+    element.volume = Math.max(0, Math.min(1, volumeLevel));
+  };
+
+  // Play advertisement - optimized for mobile lock screen
+  const playAdvertisement = async () => {
+    if (!audioRef.current || !adAudioRef.current || !isPlaying || isPlayingAd) return;
+
+    const radioAudio = audioRef.current;
+    const adAudio = adAudioRef.current;
+
+    try {
+      console.log("[AD] Starting advertisement playback");
+      setIsPlayingAd(true);
+      originalVolumeRef.current = volume;
+
+      // Get random ad for user's country
+      const adUrl = getRandomAd(userCountry);
+      adAudio.src = adUrl;
+      console.log("[AD] Playing:", adUrl);
+
+      // Lower radio volume immediately (no animation for mobile lock screen)
+      setAudioVolume(radioAudio, 0.05);
+      console.log("[AD] Radio volume lowered");
+
+      // Set ad volume and play
+      setAudioVolume(adAudio, volume / 100);
+
+      // Update Media Session for lock screen
+      if ("mediaSession" in navigator && station) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: "Advertisement",
+          artist: station.name,
+          album: "DesiMelody.com",
+          artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
+        });
+      }
+
+      await adAudio.play();
+      console.log("[AD] Ad playback started");
+
+      // Wait for ad to finish
+      await new Promise<void>((resolve) => {
+        const handleAdEnd = () => {
+          console.log("[AD] Ad finished");
+          adAudio.removeEventListener("ended", handleAdEnd);
+          resolve();
+        };
+        const handleAdError = () => {
+          console.error("[AD] Ad playback error");
+          adAudio.removeEventListener("error", handleAdError);
+          resolve();
+        };
+        adAudio.addEventListener("ended", handleAdEnd);
+        adAudio.addEventListener("error", handleAdError);
+      });
+
+      // Restore radio volume immediately
+      setAudioVolume(radioAudio, originalVolumeRef.current / 100);
+      console.log("[AD] Radio volume restored");
+
+      // Restore Media Session
+      if ("mediaSession" in navigator && station) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: station.name,
+          artist: `${station.language || "Hindi"} • ${station.type}`,
+          album: "DesiMelody.com",
+          artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
+        });
+      }
+
+      setIsPlayingAd(false);
+    } catch (error) {
+      console.error("[AD] Error playing advertisement:", error);
+      // Restore radio volume on error
+      if (radioAudio) {
+        setAudioVolume(radioAudio, originalVolumeRef.current / 100);
+      }
+      // Restore Media Session on error
+      if ("mediaSession" in navigator && station) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: station.name,
+          artist: `${station.language || "Hindi"} • ${station.type}`,
+          album: "DesiMelody.com",
+          artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
+        });
+      }
+      setIsPlayingAd(false);
+    }
+  };
+
   const formatTime = (seconds: number) => {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
@@ -210,11 +331,50 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
+  // Set up advertisement interval - 2 minutes first, then 10 minutes
+  useEffect(() => {
+    if (!isPlaying) {
+      // Clear interval when not playing
+      if (adIntervalRef.current) {
+        clearInterval(adIntervalRef.current);
+        adIntervalRef.current = null;
+      }
+      return;
+    }
+
+    // Play first ad after 2 minutes
+    const firstAdTimeout = setTimeout(
+      () => {
+        console.log("[AD] Triggering first advertisement");
+        playAdvertisement();
+      },
+      2 * 60 * 1000,
+    ); // 2 minutes
+
+    // Then continue with 10-minute interval
+    adIntervalRef.current = setInterval(
+      () => {
+        console.log("[AD] Triggering scheduled advertisement");
+        playAdvertisement();
+      },
+      10 * 60 * 1000,
+    ); // 10 minutes
+
+    return () => {
+      clearTimeout(firstAdTimeout);
+      if (adIntervalRef.current) {
+        clearInterval(adIntervalRef.current);
+        adIntervalRef.current = null;
+      }
+    };
+  }, [isPlaying, userCountry, volume]);
+
   if (!station) return null;
 
   return (
     <Card className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 relative overflow-hidden">
       <audio ref={audioRef} crossOrigin="anonymous" preload="auto" playsInline />
+      <audio ref={adAudioRef} preload="auto" style={{ display: "none" }} />
 
       <AudioVisualizer audioRef={audioRef} isPlaying={isPlaying} />
 
