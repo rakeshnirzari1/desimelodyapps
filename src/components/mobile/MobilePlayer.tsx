@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { RadioStation } from "@/types/station";
 import { Play, Pause, SkipForward, SkipBack } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FavoritesManager } from "@/components/premium/FavoritesManager";
 
 interface MobilePlayerProps {
   station: RadioStation;
@@ -118,7 +119,10 @@ export const MobilePlayer = ({ station, onNext, onPrevious }: MobilePlayerProps)
         />
 
         <div className="flex-1 min-w-0">
-          <h4 className="font-semibold truncate marquee-text">{station.name}</h4>
+          <div className="flex items-center gap-2">
+            <h4 className="font-semibold truncate marquee-text flex-1">{station.name}</h4>
+            <FavoritesManager station={station} />
+          </div>
           <p className="text-sm text-muted-foreground truncate">
             {isLoading ? "Loading..." : `${station.language || "Hindi"} • Live`}
           </p>

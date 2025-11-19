@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { RadioStation } from "@/types/station";
 import { useAudio } from "@/contexts/AudioContext";
-import { Heart, Play, ArrowLeft } from "lucide-react";
+import { Heart, Play, ArrowLeft, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function MobileFavorites() {
@@ -42,6 +42,20 @@ export default function MobileFavorites() {
   const playStation = (stationData: any) => {
     setCurrentStation(stationData as RadioStation);
     navigate("/m");
+  };
+
+  const removeFavorite = async (favoriteId: string) => {
+    const { error } = await supabase
+      .from("favorites")
+      .delete()
+      .eq("id", favoriteId);
+
+    if (error) {
+      toast.error("Failed to remove favorite");
+    } else {
+      toast.success("Removed from favorites");
+      loadFavorites();
+    }
   };
 
   if (isLoading) {
@@ -91,12 +105,20 @@ export default function MobileFavorites() {
                     {fav.station_data?.language} • {fav.station_data?.location}
                   </p>
                 </div>
-                <button
-                  onClick={() => playStation(fav.station_data)}
-                  className="p-3 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground transition-colors"
-                >
-                  <Play className="h-6 w-6" />
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => playStation(fav.station_data)}
+                    className="p-3 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground transition-colors"
+                  >
+                    <Play className="h-6 w-6" />
+                  </button>
+                  <button
+                    onClick={() => removeFavorite(fav.id)}
+                    className="p-3 rounded-full bg-destructive hover:bg-destructive/90 text-destructive-foreground transition-colors"
+                  >
+                    <Trash2 className="h-6 w-6" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
