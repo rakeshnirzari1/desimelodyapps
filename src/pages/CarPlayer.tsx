@@ -41,24 +41,24 @@ export default function CarPlayer() {
   useEffect(() => {
     const stations = getStationsWithSlugs();
     setAllStations(stations);
-    
+
     // Detect user country for ads
     getUserCountry().then(setUserCountry);
   }, []);
 
   // Update playlist stations based on context filtering or use all stations
   useEffect(() => {
-    const baseStations = contextFilteredStations && contextFilteredStations.length > 0 
-      ? contextFilteredStations 
-      : allStations;
-    
+    const baseStations =
+      contextFilteredStations && contextFilteredStations.length > 0 ? contextFilteredStations : allStations;
+
     setPlaylistStations(baseStations);
-    
+
     // Set initial station if we don't have one yet
     if (!currentStation && baseStations.length > 0) {
       const defaultStation =
-        baseStations.find((s) => s.name.toLowerCase().includes("radio mirchi") && s.name.toLowerCase().includes("hindi")) ||
-        baseStations[0];
+        baseStations.find(
+          (s) => s.name.toLowerCase().includes("radio mirchi") && s.name.toLowerCase().includes("hindi"),
+        ) || baseStations[0];
       setCurrentStation(defaultStation);
     }
   }, [contextFilteredStations, allStations]);
@@ -572,12 +572,14 @@ export default function CarPlayer() {
           style={{ animationDuration: "5s", animationDelay: "1s" }}
         />
 
-        {/* Logo Header */}
+        {/* Logo Header - Clickable */}
         <div className="relative z-10 py-4 md:py-6 flex justify-center items-center">
-          <div className="relative">
-            <div className="absolute inset-0 blur-2xl bg-gradient-to-r from-purple-500 to-pink-500 opacity-30 animate-pulse" />
-            <img src={logo} alt="DesiMelody.com" className="relative h-24 md:h-28 w-auto drop-shadow-2xl" />
-          </div>
+          <a href="https://desimelody.com/m" target="_self" rel="noopener" className="relative block">
+            <div className="relative">
+              <div className="absolute inset-0 blur-2xl bg-gradient-to-r from-purple-500 to-pink-500 opacity-30 animate-pulse" />
+              <img src={logo} alt="DesiMelody.com" className="relative h-24 md:h-28 w-auto drop-shadow-2xl" />
+            </div>
+          </a>
         </div>
 
         {/* Search Bar */}
@@ -800,15 +802,17 @@ export default function CarPlayer() {
             <div>
               <h3 className="text-white font-bold text-lg mb-3 text-center">Browse by Language</h3>
               <div className="flex flex-wrap gap-2 justify-center">
-                {["Hindi", "Tamil", "Malayalam", "Kannada", "Telugu", "Punjabi", "Bengali", "Marathi", "Gujarati"].map((language) => (
-                  <a
-                    key={language}
-                    href={`/m/browse?language=${language.toLowerCase()}`}
-                    className="px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-full text-sm font-medium transition-all hover:scale-105 border border-white/20"
-                  >
-                    {language}
-                  </a>
-                ))}
+                {["Hindi", "Tamil", "Malayalam", "Kannada", "Telugu", "Punjabi", "Bengali", "Marathi", "Gujarati"].map(
+                  (language) => (
+                    <a
+                      key={language}
+                      href={`/m/browse?language=${language.toLowerCase()}`}
+                      className="px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-full text-sm font-medium transition-all hover:scale-105 border border-white/20"
+                    >
+                      {language}
+                    </a>
+                  ),
+                )}
               </div>
             </div>
           </div>
