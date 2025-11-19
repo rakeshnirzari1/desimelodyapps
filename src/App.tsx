@@ -20,6 +20,10 @@ import India from "./pages/India";
 import Mobile from "./pages/Mobile";
 import CarPlayer from "./pages/CarPlayer";
 import IOSPlayer from "./pages/ios";
+import IOSTagIndex from "./pages/ios/IOSTagIndex";
+import IOSLanguageIndex from "./pages/ios/IOSLanguageIndex";
+import IOSTagPlayer from "./pages/ios/IOSTagPlayer";
+import IOSBrowse from "./pages/ios/IOSBrowse";
 import MobileTagIndex from "./pages/mobile/MobileTagIndex";
 import MobileLanguageIndex from "./pages/mobile/MobileLanguageIndex";
 import MobileTagPlayer from "./pages/mobile/MobileTagPlayer";
@@ -68,6 +72,10 @@ const App = () => (
           <Routes>
             <Route path="/" element={<HomeWithMobileRedirect />} />
             <Route path="/ios" element={<IOSPlayer />} />
+            <Route path="/ios/tags" element={<IOSTagIndex />} />
+            <Route path="/ios/languages" element={<IOSLanguageIndex />} />
+            <Route path="/ios/tag/:tag" element={<IOSTagPlayer />} />
+            <Route path="/ios/browse" element={<IOSBrowse />} />
             <Route path="/m" element={<CarPlayer />} />
             <Route path="/m/tags" element={<MobileTagIndex />} />
             <Route path="/m/languages" element={<MobileLanguageIndex />} />

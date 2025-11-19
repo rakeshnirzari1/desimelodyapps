@@ -793,7 +793,7 @@ export default function CarPlayer() {
                 {["MP3", "Bollywood", "Classical", "Devotional", "Pop", "Rock", "Folk", "News"].map((tag) => (
                   <a
                     key={tag}
-                    href={`/m/tag/${tag.toLowerCase()}`}
+                    href={`/ios/tag/${tag.toLowerCase()}`}
                     className="px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-full text-sm font-medium transition-all hover:scale-105 border border-white/20"
                   >
                     {tag}
@@ -810,7 +810,7 @@ export default function CarPlayer() {
                   (language) => (
                     <a
                       key={language}
-                      href={`/m/browse?language=${language.toLowerCase()}`}
+                      href={`/ios/browse?language=${language.toLowerCase()}`}
                       className="px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-full text-sm font-medium transition-all hover:scale-105 border border-white/20"
                     >
                       {language}
