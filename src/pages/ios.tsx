@@ -55,8 +55,8 @@ export default function CarPlayer() {
 
     // Set initial station if we don't have one yet OR if current station is not in the new playlist
     if (baseStations.length > 0) {
-      const currentStationInPlaylist = currentStation && baseStations.some(s => s.id === currentStation.id);
-      
+      const currentStationInPlaylist = currentStation && baseStations.some((s) => s.id === currentStation.id);
+
       if (!currentStation || !currentStationInPlaylist) {
         const defaultStation =
           baseStations.find(
@@ -806,7 +806,7 @@ export default function CarPlayer() {
             <div>
               <h3 className="text-white font-bold text-lg mb-3 text-center">Browse by Language</h3>
               <div className="flex flex-wrap gap-2 justify-center">
-                {["Hindi", "Tamil", "Malayalam", "Kannada", "Telugu", "Punjabi", "Bengali", "Marathi", "Gujarati"].map(
+                {["Hindi", "Tamil", "Malayalam", "Kannada", "Telugu", "Punjabi", "Bengali", "Marathi"].map(
                   (language) => (
                     <a
                       key={language}
