@@ -16,11 +16,11 @@ import { FolderManager } from "@/components/premium/FolderManager";
 import { UserMenu } from "@/components/premium/UserMenu";
 
 export default function CarPlayer() {
-  const { filteredStations: contextFilteredStations } = useAudio();
+  const { filteredStations: contextFilteredStations, currentStation: contextStation, setCurrentStation: setContextStation } = useAudio();
   
   const [allStations, setAllStations] = useState<RadioStation[]>([]);
   const [playlistStations, setPlaylistStations] = useState<RadioStation[]>([]);
-  const [currentStation, setCurrentStation] = useState<RadioStation | null>(null);
+  const [currentStation, setCurrentStation] = useState<RadioStation | null>(contextStation);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -50,6 +50,13 @@ export default function CarPlayer() {
     getUserCountry().then(setUserCountry);
   }, []);
 
+  // Sync with context station when it changes (e.g., from favorites)
+  useEffect(() => {
+    if (contextStation) {
+      setCurrentStation(contextStation);
+    }
+  }, [contextStation]);
+
   // Update playlist stations based on context filtering or use all stations
   useEffect(() => {
     const baseStations =
@@ -57,19 +64,16 @@ export default function CarPlayer() {
 
     setPlaylistStations(baseStations);
 
-    // Set initial station if we don't have one yet OR if current station is not in the new playlist
-    if (baseStations.length > 0) {
-      const currentStationInPlaylist = currentStation && baseStations.some((s) => s.id === currentStation.id);
-
-      if (!currentStation || !currentStationInPlaylist) {
-        const defaultStation =
-          baseStations.find(
-            (s) => s.name.toLowerCase().includes("radio mirchi") && s.name.toLowerCase().includes("hindi"),
-          ) || baseStations[0];
-        setCurrentStation(defaultStation);
-      }
+    // Set initial station only if we don't have one from context
+    if (baseStations.length > 0 && !currentStation && !contextStation) {
+      const defaultStation =
+        baseStations.find(
+          (s) => s.name.toLowerCase().includes("radio mirchi") && s.name.toLowerCase().includes("hindi"),
+        ) || baseStations[0];
+      setCurrentStation(defaultStation);
+      setContextStation(defaultStation);
     }
-  }, [contextFilteredStations, allStations, currentStation]);
+  }, [contextFilteredStations, allStations]);
 
   // Search results - search within the current playlist (respects tag/language filtering)
   const searchResults = useMemo(() => {
@@ -343,7 +347,9 @@ export default function CarPlayer() {
     hasAutoSkippedRef.current = false; // Reset on manual skip
     const currentIndex = playlistStations.findIndex((s) => s.id === currentStation?.id);
     const nextIndex = (currentIndex + 1) % playlistStations.length;
-    setCurrentStation(playlistStations[nextIndex]);
+    const nextStation = playlistStations[nextIndex];
+    setCurrentStation(nextStation);
+    setContextStation(nextStation);
   };
 
   const handlePrevious = () => {
@@ -355,7 +361,9 @@ export default function CarPlayer() {
     hasAutoSkippedRef.current = false; // Reset on manual skip
     const currentIndex = playlistStations.findIndex((s) => s.id === currentStation?.id);
     const prevIndex = currentIndex - 1 < 0 ? playlistStations.length - 1 : currentIndex - 1;
-    setCurrentStation(playlistStations[prevIndex]);
+    const prevStation = playlistStations[prevIndex];
+    setCurrentStation(prevStation);
+    setContextStation(prevStation);
   };
 
   const handleStationSelect = (station: RadioStation) => {
@@ -365,6 +373,7 @@ export default function CarPlayer() {
     }
     hasAutoSkippedRef.current = false; // Reset on manual selection
     setCurrentStation(station);
+    setContextStation(station);
     setSearchQuery(""); // Clear search
     setShowSearchResults(false);
     // Playlist stays as current filtered list (tag/language specific)

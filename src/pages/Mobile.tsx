@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Search, Radio, User } from "lucide-react";
 import { Helmet } from "react-helmet";
 import { UserMenu } from "@/components/premium/UserMenu";
+import { useAudio } from "@/contexts/AudioContext";
 
 const Mobile = () => {
+  const { currentStation: contextStation, setCurrentStation: setContextStation } = useAudio();
 
   // All stations sorted with Mirchi at top
   const [allStations] = useState<RadioStation[]>(() => {
@@ -28,7 +30,7 @@ const Mobile = () => {
   });
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [currentStation, setCurrentStation] = useState<RadioStation | null>(null);
+  const [currentStation, setCurrentStation] = useState<RadioStation | null>(contextStation);
   const [displayedStations, setDisplayedStations] = useState<RadioStation[]>([]);
   const [filteredStations, setFilteredStations] = useState<RadioStation[]>([]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -36,14 +38,29 @@ const Mobile = () => {
   const INITIAL_LOAD = 200; // Load first 20 stations quickly
   const LOAD_MORE = 100; // Load 50 more on scroll
 
+  // Sync with context station when it changes (e.g., from favorites)
+  useEffect(() => {
+    if (contextStation) {
+      setCurrentStation(contextStation);
+    }
+  }, [contextStation]);
+
   // Initial load - load first station immediately for fast auto-play
   useEffect(() => {
-    if (allStations.length > 0 && !currentStation) {
+    if (allStations.length > 0 && !currentStation && !contextStation) {
       // Set first station immediately for auto-play
-      setCurrentStation(allStations[0]);
+      const defaultStation = allStations[0];
+      setCurrentStation(defaultStation);
+      setContextStation(defaultStation);
       // Load initial batch of stations
       setDisplayedStations(allStations.slice(0, INITIAL_LOAD));
       // Load rest after a short delay to prioritize first station
+      setTimeout(() => {
+        setDisplayedStations(allStations.slice(0, Math.min(1000, allStations.length)));
+      }, 1000);
+    } else if (allStations.length > 0) {
+      // Just load stations without changing current station
+      setDisplayedStations(allStations.slice(0, INITIAL_LOAD));
       setTimeout(() => {
         setDisplayedStations(allStations.slice(0, Math.min(1000, allStations.length)));
       }, 1000);
@@ -94,6 +111,7 @@ const Mobile = () => {
 
   const handleStationSelect = (station: RadioStation) => {
     setCurrentStation(station);
+    setContextStation(station);
   };
 
   const handleNext = () => {
