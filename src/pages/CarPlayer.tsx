@@ -53,15 +53,19 @@ export default function CarPlayer() {
 
     setPlaylistStations(baseStations);
 
-    // Set initial station if we don't have one yet
-    if (!currentStation && baseStations.length > 0) {
-      const defaultStation =
-        baseStations.find(
-          (s) => s.name.toLowerCase().includes("radio mirchi") && s.name.toLowerCase().includes("hindi"),
-        ) || baseStations[0];
-      setCurrentStation(defaultStation);
+    // Set initial station if we don't have one yet OR if current station is not in the new playlist
+    if (baseStations.length > 0) {
+      const currentStationInPlaylist = currentStation && baseStations.some(s => s.id === currentStation.id);
+      
+      if (!currentStation || !currentStationInPlaylist) {
+        const defaultStation =
+          baseStations.find(
+            (s) => s.name.toLowerCase().includes("radio mirchi") && s.name.toLowerCase().includes("hindi"),
+          ) || baseStations[0];
+        setCurrentStation(defaultStation);
+      }
     }
-  }, [contextFilteredStations, allStations]);
+  }, [contextFilteredStations, allStations, currentStation]);
 
   // Search results - search within the current playlist (respects tag/language filtering)
   const searchResults = useMemo(() => {
