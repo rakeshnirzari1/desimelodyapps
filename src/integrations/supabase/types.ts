@@ -14,7 +14,218 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      alarms: {
+        Row: {
+          alarm_time: string
+          created_at: string | null
+          days_of_week: number[]
+          id: string
+          is_enabled: boolean | null
+          label: string | null
+          station_data: Json
+          station_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          alarm_time: string
+          created_at?: string | null
+          days_of_week: number[]
+          id?: string
+          is_enabled?: boolean | null
+          label?: string | null
+          station_data: Json
+          station_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          alarm_time?: string
+          created_at?: string | null
+          days_of_week?: number[]
+          id?: string
+          is_enabled?: boolean | null
+          label?: string | null
+          station_data?: Json
+          station_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      custom_folders: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          icon: string | null
+          id: string
+          name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      favorites: {
+        Row: {
+          created_at: string | null
+          id: string
+          station_data: Json
+          station_id: string
+          station_name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          station_data: Json
+          station_id: string
+          station_name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          station_data?: Json
+          station_id?: string
+          station_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      folder_stations: {
+        Row: {
+          added_at: string | null
+          folder_id: string
+          id: string
+          station_data: Json
+          station_id: string
+        }
+        Insert: {
+          added_at?: string | null
+          folder_id: string
+          id?: string
+          station_data: Json
+          station_id: string
+        }
+        Update: {
+          added_at?: string | null
+          folder_id?: string
+          id?: string
+          station_data?: Json
+          station_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "folder_stations_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "custom_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listening_history: {
+        Row: {
+          id: string
+          played_at: string | null
+          station_data: Json
+          station_id: string
+          station_name: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          played_at?: string | null
+          station_data: Json
+          station_id: string
+          station_name: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          played_at?: string | null
+          station_data?: Json
+          station_id?: string
+          station_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          is_premium: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          is_premium?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          is_premium?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      sleep_timer_settings: {
+        Row: {
+          default_duration_minutes: number | null
+          id: string
+          last_station_data: Json | null
+          last_station_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          default_duration_minutes?: number | null
+          id?: string
+          last_station_data?: Json | null
+          last_station_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          default_duration_minutes?: number | null
+          id?: string
+          last_station_data?: Json | null
+          last_station_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
