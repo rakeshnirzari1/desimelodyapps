@@ -17,7 +17,7 @@ const Mobile = () => {
   const AuthButton = () => {
     if (user) {
       return (
-        <Link to="/premium/favorites">
+        <Link to="/m/premium/favorites">
           <Button size="sm" variant="ghost" className="h-8">
             <User className="w-4 h-4" />
           </Button>

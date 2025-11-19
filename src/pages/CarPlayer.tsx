@@ -11,9 +11,36 @@ import { getUserCountry } from "@/lib/geolocation";
 import { useAudio } from "@/contexts/AudioContext";
 import logo from "@/assets/desimelodylogo.png";
 import adBanner from "@/assets/advertisementbanner.gif";
+import { useAuth } from "@/contexts/AuthContext";
+import { Link } from "react-router-dom";
+import { FavoritesManager } from "@/components/premium/FavoritesManager";
+import { FolderManager } from "@/components/premium/FolderManager";
+import { User } from "lucide-react";
 
 export default function CarPlayer() {
   const { filteredStations: contextFilteredStations } = useAudio();
+  const { user } = useAuth();
+  
+  // Auth button component
+  const AuthButton = () => {
+    if (user) {
+      return (
+        <Link to="/m/premium/favorites">
+          <Button size="sm" variant="ghost" className="h-8">
+            <User className="w-4 h-4" />
+          </Button>
+        </Link>
+      );
+    }
+    return (
+      <Link to="/auth">
+        <Button size="sm" variant="default" className="h-8 text-xs">
+          Sign In
+        </Button>
+      </Link>
+    );
+  };
+  
   const [allStations, setAllStations] = useState<RadioStation[]>([]);
   const [playlistStations, setPlaylistStations] = useState<RadioStation[]>([]);
   const [currentStation, setCurrentStation] = useState<RadioStation | null>(null);
@@ -577,13 +604,17 @@ export default function CarPlayer() {
         />
 
         {/* Logo Header - Clickable */}
-        <div className="relative z-10 py-4 md:py-6 flex justify-center items-center">
+        <div className="relative z-10 py-4 md:py-6 flex justify-between items-center px-4">
+          <div className="flex-1" />
           <a href="https://desimelody.com/m" target="_self" rel="noopener" className="relative block">
             <div className="relative">
               <div className="absolute inset-0 blur-2xl bg-gradient-to-r from-purple-500 to-pink-500 opacity-30 animate-pulse" />
               <img src={logo} alt="DesiMelody.com" className="relative h-24 md:h-28 w-auto drop-shadow-2xl" />
             </div>
           </a>
+          <div className="flex-1 flex justify-end">
+            <AuthButton />
+          </div>
         </div>
 
         {/* Search Bar */}
@@ -849,29 +880,37 @@ export default function CarPlayer() {
               </div>
               <div className="overflow-y-auto flex-1">
                 {searchResults.map((station) => (
-                  <button
+                  <div
                     key={station.id}
-                    onClick={() => {
-                      handleStationSelect(station);
-                    }}
-                    className="w-full flex items-center gap-4 p-4 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 active:from-purple-100 active:to-pink-100 transition-all text-left border-b border-gray-100 last:border-0"
-                    style={{ cursor: "pointer", pointerEvents: "auto" }}
+                    className="w-full flex items-center gap-4 p-4 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 transition-all border-b border-gray-100 last:border-0"
                   >
-                    <img
-                      src={station.image}
-                      alt={station.name}
-                      className="w-14 h-14 rounded-xl object-cover shadow-lg ring-2 ring-purple-200"
-                      onError={(e) => {
-                        e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400";
+                    <button
+                      onClick={() => {
+                        handleStationSelect(station);
                       }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-bold text-gray-900 truncate text-base">{station.name}</div>
-                      <div className="text-sm text-gray-600 truncate">
-                        {station.language || "Hindi"} • {station.type}
+                      className="flex items-center gap-4 flex-1 min-w-0 text-left"
+                      style={{ cursor: "pointer", pointerEvents: "auto" }}
+                    >
+                      <img
+                        src={station.image}
+                        alt={station.name}
+                        className="w-14 h-14 rounded-xl object-cover shadow-lg ring-2 ring-purple-200"
+                        onError={(e) => {
+                          e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400";
+                        }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-gray-900 truncate text-base">{station.name}</div>
+                        <div className="text-sm text-gray-600 truncate">
+                          {station.language || "Hindi"} • {station.type}
+                        </div>
                       </div>
+                    </button>
+                    <div className="flex items-center gap-2">
+                      <FavoritesManager station={station} />
+                      <FolderManager station={station} />
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>
