@@ -112,22 +112,26 @@ export default function Alarms() {
   const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <PremiumLayout>
+        <div className="flex items-center justify-center py-12">Loading...</div>
+      </PremiumLayout>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
+    <PremiumLayout>
       <div className="max-w-4xl mx-auto">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
+        <Card className="border-2">
+          <CardHeader className="bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10">
+            <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-6 w-6" />
+                <CardTitle className="flex items-center gap-2 text-2xl">
+                  <Clock className="h-7 w-7" />
                   Radio Alarms
                 </CardTitle>
-                <CardDescription>
-                  Wake up to your favorite radio stations
+                <CardDescription className="text-base">
+                  Wake up to your favorite radio station
                 </CardDescription>
               </div>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -137,7 +141,54 @@ export default function Alarms() {
                     New Alarm
                   </Button>
                 </DialogTrigger>
-...
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create New Alarm</DialogTitle>
+                    <DialogDescription>
+                      Set an alarm to wake up with radio
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="alarm-label">Label</Label>
+                      <Input
+                        id="alarm-label"
+                        value={newAlarm.label}
+                        onChange={(e) => setNewAlarm({ ...newAlarm, label: e.target.value })}
+                        placeholder="Morning Alarm"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="alarm-time">Time</Label>
+                      <Input
+                        id="alarm-time"
+                        type="time"
+                        value={newAlarm.time}
+                        onChange={(e) => setNewAlarm({ ...newAlarm, time: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Repeat Days</Label>
+                      <div className="flex gap-2 mt-2 flex-wrap">
+                        {dayNames.map((day, index) => (
+                          <Button
+                            key={day}
+                            variant={newAlarm.days[index] ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => {
+                              const newDays = [...newAlarm.days];
+                              newDays[index] = !newDays[index];
+                              setNewAlarm({ ...newAlarm, days: newDays });
+                            }}
+                          >
+                            {day}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    <Button onClick={createAlarm} className="w-full">Create Alarm</Button>
+                  </div>
+                </DialogContent>
               </Dialog>
             </div>
           </CardHeader>
