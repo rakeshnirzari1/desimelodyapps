@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Helmet } from "react-helmet";
-import { Play, Pause, SkipForward, SkipBack, Search, Volume2 } from "lucide-react";
+import { Play, Pause, SkipForward, SkipBack, Search, Volume2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -11,9 +11,33 @@ import { getUserCountry } from "@/lib/geolocation";
 import { useAudio } from "@/contexts/AudioContext";
 import logo from "@/assets/desimelodylogo.png";
 import adBanner from "@/assets/advertisementbanner.gif";
+import { useAuth } from "@/contexts/AuthContext";
+import { Link } from "react-router-dom";
 
 export default function CarPlayer() {
   const { filteredStations: contextFilteredStations } = useAudio();
+  const { user } = useAuth();
+  
+  // Auth button component
+  const AuthButton = () => {
+    if (user) {
+      return (
+        <Link to="/premium/favorites">
+          <Button size="sm" variant="ghost" className="h-8">
+            <User className="w-4 h-4" />
+          </Button>
+        </Link>
+      );
+    }
+    return (
+      <Link to="/auth">
+        <Button size="sm" variant="default" className="h-8 text-xs">
+          Sign In
+        </Button>
+      </Link>
+    );
+  };
+  
   const [allStations, setAllStations] = useState<RadioStation[]>([]);
   const [playlistStations, setPlaylistStations] = useState<RadioStation[]>([]);
   const [currentStation, setCurrentStation] = useState<RadioStation | null>(null);
@@ -577,13 +601,14 @@ export default function CarPlayer() {
         />
 
         {/* Logo Header - Clickable */}
-        <div className="relative z-10 py-4 md:py-6 flex justify-center items-center">
+        <div className="relative z-10 py-4 md:py-6 flex justify-between items-center px-4">
           <a href="https://desimelody.com/m" target="_self" rel="noopener" className="relative block">
             <div className="relative">
               <div className="absolute inset-0 blur-2xl bg-gradient-to-r from-purple-500 to-pink-500 opacity-30 animate-pulse" />
-              <img src={logo} alt="DesiMelody.com" className="relative h-24 md:h-28 w-auto drop-shadow-2xl" />
+              <img src={logo} alt="DesiMelody.com" className="relative h-20 md:h-24 w-auto drop-shadow-2xl" />
             </div>
           </a>
+          <AuthButton />
         </div>
 
         {/* Search Bar */}

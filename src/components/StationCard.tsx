@@ -6,6 +6,8 @@ import { Play, ExternalLink, ThumbsUp, TrendingUp } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { generateSlug } from "@/lib/slug";
+import { FavoritesManager } from "@/components/premium/FavoritesManager";
+import { FolderManager } from "@/components/premium/FolderManager";
 
 interface StationCardProps {
   station: RadioStation;
@@ -50,11 +52,17 @@ export const StationCard = ({ station, onPlay }: StationCardProps) => {
 
       <div className="p-4 space-y-3">
         <div>
-          <Link to={`/${slug}`} onClick={(e) => { e.stopPropagation(); onPlay(station); }}>
-            <h3 className="font-semibold text-lg line-clamp-1 hover:text-primary transition-colors">
-              {station.name}
-            </h3>
-          </Link>
+          <div className="flex items-start justify-between gap-2">
+            <Link to={`/${slug}`} onClick={(e) => { e.stopPropagation(); onPlay(station); }} className="flex-1">
+              <h3 className="font-semibold text-lg line-clamp-1 hover:text-primary transition-colors">
+                {station.name}
+              </h3>
+            </Link>
+            <div className="flex items-center gap-1">
+              <FavoritesManager station={station} />
+              <FolderManager station={station} />
+            </div>
+          </div>
           <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
             <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
               {station.language || "Hindi"}
