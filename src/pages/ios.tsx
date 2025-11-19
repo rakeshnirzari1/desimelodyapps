@@ -16,8 +16,12 @@ import { FolderManager } from "@/components/premium/FolderManager";
 import { UserMenu } from "@/components/premium/UserMenu";
 
 export default function CarPlayer() {
-  const { filteredStations: contextFilteredStations, currentStation: contextStation, setCurrentStation: setContextStation } = useAudio();
-  
+  const {
+    filteredStations: contextFilteredStations,
+    currentStation: contextStation,
+    setCurrentStation: setContextStation,
+  } = useAudio();
+
   const [allStations, setAllStations] = useState<RadioStation[]>([]);
   const [playlistStations, setPlaylistStations] = useState<RadioStation[]>([]);
   const [currentStation, setCurrentStation] = useState<RadioStation | null>(contextStation);
@@ -589,14 +593,25 @@ export default function CarPlayer() {
           style={{ animationDuration: "5s", animationDelay: "1s" }}
         />
 
-        {/* Logo Header - Clickable */}
-        <div className="relative z-10 py-4 md:py-6 flex justify-between items-center px-4">
-          <a href="https://desimelody.com/m" target="_self" rel="noopener" className="relative block">
+        {/* Logo Header - Clickable, Centered Logo */}
+        <div className="relative z-10 py-4 md:py-6 flex justify-between items-center px-4 max-w-7xl mx-auto">
+          {/* Invisible spacer - takes the left side space */}
+          <div className="w-12 md:w-16" aria-hidden="true" />
+
+          {/* Centered Logo */}
+          <a
+            href="https://desimelody.com/m"
+            target="_self"
+            rel="noopener"
+            className="absolute left-1/2 -translate-x-1/2"
+          >
             <div className="relative">
               <div className="absolute inset-0 blur-2xl bg-gradient-to-r from-purple-500 to-pink-500 opacity-30 animate-pulse" />
               <img src={logo} alt="DesiMelody.com" className="relative h-20 md:h-24 w-auto drop-shadow-2xl" />
             </div>
           </a>
+
+          {/* UserMenu stays on the right */}
           <UserMenu />
         </div>
 
