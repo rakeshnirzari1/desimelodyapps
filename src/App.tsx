@@ -10,7 +10,6 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Favorites from "./pages/premium/Favorites";
 import History from "./pages/premium/History";
-import Alarms from "./pages/premium/Alarms";
 import Folders from "./pages/premium/Folders";
 import Browse from "./pages/Browse";
 import About from "./pages/About";
@@ -34,6 +33,12 @@ import MobileTagIndex from "./pages/mobile/MobileTagIndex";
 import MobileLanguageIndex from "./pages/mobile/MobileLanguageIndex";
 import MobileTagPlayer from "./pages/mobile/MobileTagPlayer";
 import MobileBrowse from "./pages/mobile/MobileBrowse";
+import MobileFavorites from "./pages/mobile/MobileFavorites";
+import MobileHistory from "./pages/mobile/MobileHistory";
+import MobileFolders from "./pages/mobile/MobileFolders";
+import IOSFavorites from "./pages/ios/IOSFavorites";
+import IOSHistory from "./pages/ios/IOSHistory";
+import IOSFolders from "./pages/ios/IOSFolders";
 
 const queryClient = new QueryClient();
 
@@ -83,18 +88,23 @@ const App = () => (
             <Route path="/ios/languages" element={<IOSLanguageIndex />} />
             <Route path="/ios/tag/:tag" element={<IOSTagPlayer />} />
             <Route path="/ios/browse" element={<IOSBrowse />} />
+            <Route path="/ios/premium/favorites" element={<IOSFavorites />} />
+            <Route path="/ios/premium/history" element={<IOSHistory />} />
+            <Route path="/ios/premium/folders" element={<IOSFolders />} />
             <Route path="/m" element={<CarPlayer />} />
             <Route path="/m/tags" element={<MobileTagIndex />} />
             <Route path="/m/languages" element={<MobileLanguageIndex />} />
             <Route path="/m/tag/:tag" element={<MobileTagPlayer />} />
             <Route path="/m/browse" element={<MobileBrowse />} />
+            <Route path="/m/premium/favorites" element={<MobileFavorites />} />
+            <Route path="/m/premium/history" element={<MobileHistory />} />
+            <Route path="/m/premium/folders" element={<MobileFolders />} />
             <Route path="/mobile" element={<Mobile />} />
             <Route path="/browse" element={<Browse />} />
             <Route path="/india" element={<India />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/premium/favorites" element={<Favorites />} />
             <Route path="/premium/history" element={<History />} />
-            <Route path="/premium/alarms" element={<Alarms />} />
             <Route path="/premium/folders" element={<Folders />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />

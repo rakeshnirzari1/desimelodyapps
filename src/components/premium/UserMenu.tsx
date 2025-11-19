@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,13 +10,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, Heart, History, Clock, FolderHeart } from "lucide-react";
+import { User, LogOut, Heart, History, FolderHeart } from "lucide-react";
 import { toast } from "sonner";
 
 export const UserMenu = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
+  const [basePath, setBasePath] = useState("");
+
+  useEffect(() => {
+    // Detect if we're on mobile or iOS routes
+    if (location.pathname.startsWith("/m")) {
+      setBasePath("/m");
+    } else if (location.pathname.startsWith("/ios")) {
+      setBasePath("/ios");
+    } else {
+      setBasePath("");
+    }
+  }, [location.pathname]);
 
   const handleSignOut = async () => {
     setIsLoading(true);
@@ -49,19 +62,15 @@ export const UserMenu = () => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => navigate("/premium/favorites")}>
+        <DropdownMenuItem onClick={() => navigate(`${basePath}/premium/favorites`)}>
           <Heart className="mr-2 h-4 w-4" />
           Favorites
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate("/premium/history")}>
+        <DropdownMenuItem onClick={() => navigate(`${basePath}/premium/history`)}>
           <History className="mr-2 h-4 w-4" />
           Listening History
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate("/premium/alarms")}>
-          <Clock className="mr-2 h-4 w-4" />
-          Alarms
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate("/premium/folders")}>
+        <DropdownMenuItem onClick={() => navigate(`${basePath}/premium/folders`)}>
           <FolderHeart className="mr-2 h-4 w-4" />
           My Folders
         </DropdownMenuItem>
