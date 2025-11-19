@@ -6,32 +6,9 @@ import { MobileStationList } from "@/components/mobile/MobileStationList";
 import { Input } from "@/components/ui/input";
 import { Search, Radio, User } from "lucide-react";
 import { Helmet } from "react-helmet";
-import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { UserMenu } from "@/components/premium/UserMenu";
 
 const Mobile = () => {
-  const { user } = useAuth();
-  
-  // Auth button component
-  const AuthButton = () => {
-    if (user) {
-      return (
-        <Link to="/m/premium/favorites">
-          <Button size="sm" variant="ghost" className="h-8">
-            <User className="w-4 h-4" />
-          </Button>
-        </Link>
-      );
-    }
-    return (
-      <Link to="/auth">
-        <Button size="sm" variant="default" className="h-8 text-xs">
-          Sign In
-        </Button>
-      </Link>
-    );
-  };
 
   // All stations sorted with Mirchi at top
   const [allStations] = useState<RadioStation[]>(() => {
@@ -160,7 +137,7 @@ const Mobile = () => {
                   Desi Melody
                 </h1>
               </div>
-              <AuthButton />
+              <UserMenu />
             </div>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
