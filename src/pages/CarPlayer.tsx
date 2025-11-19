@@ -8,12 +8,14 @@ import { RadioStation } from "@/types/station";
 import { getStationsWithSlugs } from "@/lib/station-utils";
 import { AudioVisualizer } from "@/components/AudioVisualizer";
 import { getUserCountry } from "@/lib/geolocation";
+import { useAudio } from "@/contexts/AudioContext";
 import logo from "@/assets/desimelodylogo.png";
 import adBanner from "@/assets/advertisementbanner.gif";
 
 export default function CarPlayer() {
+  const { filteredStations: contextFilteredStations } = useAudio();
   const [allStations, setAllStations] = useState<RadioStation[]>([]);
-  const [filteredStations, setFilteredStations] = useState<RadioStation[]>([]);
+  const [playlistStations, setPlaylistStations] = useState<RadioStation[]>([]);
   const [currentStation, setCurrentStation] = useState<RadioStation | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -39,24 +41,33 @@ export default function CarPlayer() {
   useEffect(() => {
     const stations = getStationsWithSlugs();
     setAllStations(stations);
-    setFilteredStations(stations);
-    if (stations.length > 0) {
-      // Try to find Radio Mirchi Hindi as default, fallback to first station
-      const defaultStation =
-        stations.find((s) => s.name.toLowerCase().includes("radio mirchi") && s.name.toLowerCase().includes("hindi")) ||
-        stations[0];
-      setCurrentStation(defaultStation);
-    }
-
+    
     // Detect user country for ads
     getUserCountry().then(setUserCountry);
   }, []);
 
-  // Search results - don't auto-select
+  // Update playlist stations based on context filtering or use all stations
+  useEffect(() => {
+    const baseStations = contextFilteredStations && contextFilteredStations.length > 0 
+      ? contextFilteredStations 
+      : allStations;
+    
+    setPlaylistStations(baseStations);
+    
+    // Set initial station if we don't have one yet
+    if (!currentStation && baseStations.length > 0) {
+      const defaultStation =
+        baseStations.find((s) => s.name.toLowerCase().includes("radio mirchi") && s.name.toLowerCase().includes("hindi")) ||
+        baseStations[0];
+      setCurrentStation(defaultStation);
+    }
+  }, [contextFilteredStations, allStations]);
+
+  // Search results - search within the current playlist (respects tag/language filtering)
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const query = searchQuery.toLowerCase();
-    return allStations
+    return playlistStations
       .filter(
         (station) =>
           station.name.toLowerCase().includes(query) ||
@@ -65,14 +76,7 @@ export default function CarPlayer() {
           station.type.toLowerCase().includes(query),
       )
       .slice(0, 10); // Limit to 10 results
-  }, [searchQuery, allStations]);
-
-  // Update filtered stations based on search
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredStations(allStations);
-    }
-  }, [searchQuery, allStations]);
+  }, [searchQuery, playlistStations]);
 
   // Load and play station with auto-skip on error
   useEffect(() => {
@@ -252,7 +256,7 @@ export default function CarPlayer() {
       navigator.mediaSession.setActionHandler("nexttrack", null);
       navigator.mediaSession.setActionHandler("previoustrack", null);
     };
-  }, [currentStation, isPlaying, filteredStations]);
+  }, [currentStation, isPlaying, playlistStations]);
 
   // Handle phone call interruptions
   useEffect(() => {
@@ -323,27 +327,27 @@ export default function CarPlayer() {
   };
 
   const handleNext = () => {
-    if (filteredStations.length === 0) return;
+    if (playlistStations.length === 0) return;
     if (errorTimeoutRef.current) {
       clearTimeout(errorTimeoutRef.current);
       errorTimeoutRef.current = null;
     }
     hasAutoSkippedRef.current = false; // Reset on manual skip
-    const currentIndex = filteredStations.findIndex((s) => s.id === currentStation?.id);
-    const nextIndex = (currentIndex + 1) % filteredStations.length;
-    setCurrentStation(filteredStations[nextIndex]);
+    const currentIndex = playlistStations.findIndex((s) => s.id === currentStation?.id);
+    const nextIndex = (currentIndex + 1) % playlistStations.length;
+    setCurrentStation(playlistStations[nextIndex]);
   };
 
   const handlePrevious = () => {
-    if (filteredStations.length === 0) return;
+    if (playlistStations.length === 0) return;
     if (errorTimeoutRef.current) {
       clearTimeout(errorTimeoutRef.current);
       errorTimeoutRef.current = null;
     }
     hasAutoSkippedRef.current = false; // Reset on manual skip
-    const currentIndex = filteredStations.findIndex((s) => s.id === currentStation?.id);
-    const prevIndex = currentIndex - 1 < 0 ? filteredStations.length - 1 : currentIndex - 1;
-    setCurrentStation(filteredStations[prevIndex]);
+    const currentIndex = playlistStations.findIndex((s) => s.id === currentStation?.id);
+    const prevIndex = currentIndex - 1 < 0 ? playlistStations.length - 1 : currentIndex - 1;
+    setCurrentStation(playlistStations[prevIndex]);
   };
 
   const handleStationSelect = (station: RadioStation) => {
@@ -355,7 +359,7 @@ export default function CarPlayer() {
     setCurrentStation(station);
     setSearchQuery(""); // Clear search
     setShowSearchResults(false);
-    setFilteredStations(allStations); // Reset to all stations for next/prev
+    // Playlist stays as current filtered list (tag/language specific)
     if (!isPlaying) {
       setIsPlaying(true);
     }
