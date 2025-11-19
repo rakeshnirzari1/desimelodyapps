@@ -4,8 +4,10 @@ import { RadioStation } from "@/types/station";
 import { MobilePlayer } from "@/components/mobile/MobilePlayer";
 import { MobileStationList } from "@/components/mobile/MobileStationList";
 import { Input } from "@/components/ui/input";
-import { Search, Radio } from "lucide-react";
+import { Search, Radio, Tag, Languages } from "lucide-react";
 import { Helmet } from "react-helmet";
+import { NavLink } from "@/components/NavLink";
+import adBanner from "@/assets/advertisementbanner.gif";
 
 const Mobile = () => {
   // All stations sorted with Mirchi at top
@@ -169,6 +171,60 @@ const Mobile = () => {
               <div className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
             </div>
           )}
+          
+          {/* Advertisement Banner */}
+          <div className="px-4 py-6">
+            <a
+              href="https://remitrates.com.au"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block transition-transform active:scale-95"
+            >
+              <img
+                src={adBanner}
+                alt="RemitRates - Best Exchange Rates"
+                className="w-full h-auto rounded-lg shadow-lg"
+              />
+            </a>
+          </div>
+
+          {/* Tags Section */}
+          <div className="px-4 py-6 space-y-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Tag className="w-5 h-5 text-primary" />
+              <h2 className="text-xl font-bold">Browse by Tags</h2>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {["MP3", "Bollywood", "Classical", "Devotional", "Pop", "Rock", "Folk", "News"].map((tag) => (
+                <NavLink
+                  key={tag}
+                  to={`/m/tag/${encodeURIComponent(tag.toLowerCase())}`}
+                  className="flex items-center justify-center gap-2 p-4 bg-card rounded-lg border border-border hover:bg-accent active:bg-accent/80 transition-colors shadow-sm"
+                >
+                  <span className="font-medium text-center">{tag}</span>
+                </NavLink>
+              ))}
+            </div>
+          </div>
+
+          {/* Languages Section */}
+          <div className="px-4 py-6 pb-24 space-y-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Languages className="w-5 h-5 text-primary" />
+              <h2 className="text-xl font-bold">Browse by Languages</h2>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {["Hindi", "Tamil", "Malayalam", "Kannada", "Telugu", "Punjabi", "Bengali", "Marathi", "Gujarati"].map((language) => (
+                <NavLink
+                  key={language}
+                  to={`/m/browse?language=${encodeURIComponent(language.toLowerCase())}`}
+                  className="flex items-center justify-center gap-2 p-4 bg-card rounded-lg border border-border hover:bg-accent active:bg-accent/80 transition-colors shadow-sm"
+                >
+                  <span className="font-medium text-center">{language}</span>
+                </NavLink>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </>
