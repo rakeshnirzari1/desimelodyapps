@@ -2,13 +2,13 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
-// Register service worker for cache management
+// Register service worker for PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/service-worker.js')
+      .register('/sw.js')
       .then((registration) => {
-        console.log('Service Worker registered:', registration);
+        console.log('PWA Service Worker registered:', registration);
         
         // Check for updates every hour
         setInterval(() => {
@@ -16,7 +16,7 @@ if ('serviceWorker' in navigator) {
         }, 60 * 60 * 1000);
       })
       .catch((error) => {
-        console.log('Service Worker registration failed:', error);
+        console.log('PWA Service Worker registration failed:', error);
       });
   });
 }
