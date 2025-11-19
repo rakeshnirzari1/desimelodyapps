@@ -10,6 +10,7 @@ export const getStationsWithSlugs = (): RadioStation[] => {
     .map((station) => ({
       ...station,
       slug: station.slug || generateSlug(station.name),
+      link: station.link.replace(/^http:\/\//i, 'https://'),
     }));
 };
 
