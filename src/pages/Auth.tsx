@@ -105,7 +105,7 @@ export default function Auth() {
         toast.error(error.message);
       }
     } else {
-      toast.success("Check your email for the confirmation link!");
+      toast.success("Account created successfully! You can now sign in.");
     }
   };
 

@@ -4,10 +4,35 @@ import { RadioStation } from "@/types/station";
 import { MobilePlayer } from "@/components/mobile/MobilePlayer";
 import { MobileStationList } from "@/components/mobile/MobileStationList";
 import { Input } from "@/components/ui/input";
-import { Search, Radio } from "lucide-react";
+import { Search, Radio, User } from "lucide-react";
 import { Helmet } from "react-helmet";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Mobile = () => {
+  const { user } = useAuth();
+  
+  // Auth button component
+  const AuthButton = () => {
+    if (user) {
+      return (
+        <Link to="/premium/favorites">
+          <Button size="sm" variant="ghost" className="h-8">
+            <User className="w-4 h-4" />
+          </Button>
+        </Link>
+      );
+    }
+    return (
+      <Link to="/auth">
+        <Button size="sm" variant="default" className="h-8 text-xs">
+          Sign In
+        </Button>
+      </Link>
+    );
+  };
+
   // All stations sorted with Mirchi at top
   const [allStations] = useState<RadioStation[]>(() => {
     const stations = getStationsWithSlugs();
@@ -126,13 +151,16 @@ const Mobile = () => {
         {/* Fixed Header with Search */}
         <header className="sticky top-0 z-50 bg-card border-b border-border shadow-sm">
           <div className="px-4 py-3">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary via-accent to-secondary flex items-center justify-center">
-                <Radio className="w-4 h-4 text-primary-foreground" />
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary via-accent to-secondary flex items-center justify-center">
+                  <Radio className="w-4 h-4 text-primary-foreground" />
+                </div>
+                <h1 className="text-lg font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+                  Desi Melody
+                </h1>
               </div>
-              <h1 className="text-lg font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
-                Desi Melody
-              </h1>
+              <AuthButton />
             </div>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

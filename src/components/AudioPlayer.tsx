@@ -9,6 +9,7 @@ import { getStationsWithSlugs } from "@/lib/station-utils";
 import { useAudio } from "@/contexts/AudioContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getUserCountry } from "@/lib/geolocation";
+import { HistoryTracker } from "@/components/premium/ListeningHistory";
 
 interface AudioPlayerProps {
   station: RadioStation | null;
@@ -499,6 +500,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           </div>
         </div>
       </div>
+      
+      <HistoryTracker station={isPlaying ? station : null} />
     </Card>
   );
 };

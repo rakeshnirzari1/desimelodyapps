@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getStationsWithSlugs } from "@/lib/station-utils";
+import { PremiumLayout } from "@/components/premium/PremiumLayout";
 
 export default function Alarms() {
   const { user } = useAuth();
@@ -133,78 +134,31 @@ export default function Alarms() {
                 <DialogTrigger asChild>
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Alarm
+                    New Alarm
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Create New Alarm</DialogTitle>
-                    <DialogDescription>
-                      Set up a new alarm to wake up with radio
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="alarm-label">Label</Label>
-                      <Input
-                        id="alarm-label"
-                        value={newAlarm.label}
-                        onChange={(e) => setNewAlarm({ ...newAlarm, label: e.target.value })}
-                        placeholder="Morning Alarm"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="alarm-time">Time</Label>
-                      <Input
-                        id="alarm-time"
-                        type="time"
-                        value={newAlarm.time}
-                        onChange={(e) => setNewAlarm({ ...newAlarm, time: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <Label>Repeat Days</Label>
-                      <div className="flex gap-2 mt-2">
-                        {dayNames.map((day, index) => (
-                          <Button
-                            key={day}
-                            variant={newAlarm.days[index] ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => {
-                              const newDays = [...newAlarm.days];
-                              newDays[index] = !newDays[index];
-                              setNewAlarm({ ...newAlarm, days: newDays });
-                            }}
-                          >
-                            {day}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                    <Button onClick={createAlarm} className="w-full">Create Alarm</Button>
-                  </div>
-                </DialogContent>
+...
               </Dialog>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             {alarms.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Clock className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                <p>No alarms set. Create one to wake up with radio!</p>
+              <div className="text-center py-12 text-muted-foreground">
+                <Clock className="h-16 w-16 mx-auto mb-4 opacity-20" />
+                <p className="text-lg">No alarms set. Create one to wake up with radio!</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {alarms.map((alarm) => (
                   <div
                     key={alarm.id}
-                    className="flex items-center justify-between p-4 rounded-lg border bg-card"
+                    className="flex items-center justify-between p-4 rounded-lg border-2 bg-card"
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
-                        <h3 className="text-2xl font-bold">{alarm.alarm_time}</h3>
+                        <h3 className="text-3xl font-bold">{alarm.alarm_time}</h3>
                         <div>
-                          <p className="font-semibold">{alarm.label}</p>
+                          <p className="font-semibold text-lg">{alarm.label}</p>
                           <p className="text-sm text-muted-foreground">
                             {alarm.days_of_week.map((dayIndex: number) => 
                               dayNames[dayIndex]
@@ -222,6 +176,7 @@ export default function Alarms() {
                         size="icon"
                         variant="ghost"
                         onClick={() => deleteAlarm(alarm.id)}
+                        className="h-10 w-10"
                       >
                         <Trash2 className="h-5 w-5 text-destructive" />
                       </Button>
@@ -233,6 +188,6 @@ export default function Alarms() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </PremiumLayout>
   );
 }
