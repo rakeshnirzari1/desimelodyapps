@@ -776,6 +776,43 @@ export default function CarPlayer() {
             </a>
           </div>
         </div>
+
+        {/* Tags and Languages Section */}
+        <div className="relative z-10 px-4 py-4 space-y-6">
+          <div className="max-w-2xl mx-auto">
+            {/* Tags Section */}
+            <div className="mb-6">
+              <h3 className="text-white font-bold text-lg mb-3 text-center">Browse by Tag</h3>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {["MP3", "Bollywood", "Classical", "Devotional", "Pop", "Rock", "Folk", "News"].map((tag) => (
+                  <a
+                    key={tag}
+                    href={`/m/tag/${tag.toLowerCase()}`}
+                    className="px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-full text-sm font-medium transition-all hover:scale-105 border border-white/20"
+                  >
+                    {tag}
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Languages Section */}
+            <div>
+              <h3 className="text-white font-bold text-lg mb-3 text-center">Browse by Language</h3>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {["Hindi", "Tamil", "Malayalam", "Kannada", "Telugu", "Punjabi", "Bengali", "Marathi", "Gujarati"].map((language) => (
+                  <a
+                    key={language}
+                    href={`/m/browse?language=${language.toLowerCase()}`}
+                    className="px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-full text-sm font-medium transition-all hover:scale-105 border border-white/20"
+                  >
+                    {language}
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
         {/* Bottom gradient overlay */}
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
 
