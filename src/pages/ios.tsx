@@ -11,34 +11,12 @@ import { getUserCountry } from "@/lib/geolocation";
 import { useAudio } from "@/contexts/AudioContext";
 import logo from "@/assets/desimelodylogo.png";
 import adBanner from "@/assets/advertisementbanner.gif";
-import { useAuth } from "@/contexts/AuthContext";
-import { Link } from "react-router-dom";
 import { FavoritesManager } from "@/components/premium/FavoritesManager";
 import { FolderManager } from "@/components/premium/FolderManager";
+import { UserMenu } from "@/components/premium/UserMenu";
 
 export default function CarPlayer() {
   const { filteredStations: contextFilteredStations } = useAudio();
-  const { user } = useAuth();
-  
-  // Auth button component
-  const AuthButton = () => {
-    if (user) {
-      return (
-        <Link to="/ios/premium/favorites">
-          <Button size="sm" variant="ghost" className="h-8">
-            <User className="w-4 h-4" />
-          </Button>
-        </Link>
-      );
-    }
-    return (
-      <Link to="/auth">
-        <Button size="sm" variant="default" className="h-8 text-xs">
-          Sign In
-        </Button>
-      </Link>
-    );
-  };
   
   const [allStations, setAllStations] = useState<RadioStation[]>([]);
   const [playlistStations, setPlaylistStations] = useState<RadioStation[]>([]);
@@ -610,7 +588,7 @@ export default function CarPlayer() {
               <img src={logo} alt="DesiMelody.com" className="relative h-20 md:h-24 w-auto drop-shadow-2xl" />
             </div>
           </a>
-          <AuthButton />
+          <UserMenu />
         </div>
 
         {/* Search Bar */}
