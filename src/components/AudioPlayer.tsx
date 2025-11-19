@@ -25,6 +25,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const silenceAudioRef = useRef<HTMLAudioElement>(null);
   const adAudioRef = useRef<HTMLAudioElement>(null);
   const adIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [isPlayingAd, setIsPlayingAd] = useState(false);
@@ -92,6 +93,11 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       setIsLoading(false);
       setLoadError(false);
 
+      // Stop silence audio when main station becomes ready
+      if (silenceAudioRef.current) {
+        silenceAudioRef.current.pause();
+      }
+
       try {
         await audio.play();
         setIsPlaying(true);
@@ -106,6 +112,11 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       console.error("❌ Station loading error");
       setIsLoading(false);
       setLoadError(true);
+
+      // Play silence to keep lock screen controls active
+      if (isPlaying && silenceAudioRef.current) {
+        silenceAudioRef.current.play().catch((e) => console.log("Silence play failed:", e));
+      }
     };
 
     audio.addEventListener("canplay", handleCanPlay);
@@ -128,6 +139,23 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
     return () => clearInterval(interval);
   }, [isPlaying]);
+
+  // Handle silence audio to keep lock screen controls active during loading
+  useEffect(() => {
+    if (!silenceAudioRef.current) return;
+
+    const silenceAudio = silenceAudioRef.current;
+    // Set volume to very low to prevent it from taking over media controls
+    silenceAudio.volume = 0.01;
+
+    // Play silence during loading to maintain lock screen controls
+    if (isLoading && isPlaying) {
+      silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
+    } else {
+      // Stop silence when station is actually playing
+      silenceAudio.pause();
+    }
+  }, [isLoading, isPlaying]);
 
   // Volume control
   useEffect(() => {
@@ -374,6 +402,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
   return (
     <Card className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 relative overflow-hidden">
       <audio ref={audioRef} crossOrigin="anonymous" preload="auto" playsInline />
+      <audio ref={silenceAudioRef} src="/silence.mp3" loop preload="auto" style={{ display: "none" }} />
       <audio ref={adAudioRef} preload="auto" style={{ display: "none" }} />
 
       <AudioVisualizer audioRef={audioRef} isPlaying={isPlaying} />
