@@ -19,6 +19,7 @@ import Contact from "./pages/Contact";
 import India from "./pages/India";
 import Mobile from "./pages/Mobile";
 import CarPlayer from "./pages/CarPlayer";
+import IOSPlayer from "./pages/ios";
 import MobileTagIndex from "./pages/mobile/MobileTagIndex";
 import MobileLanguageIndex from "./pages/mobile/MobileLanguageIndex";
 import MobileTagPlayer from "./pages/mobile/MobileTagPlayer";
@@ -26,9 +27,14 @@ import MobileBrowse from "./pages/mobile/MobileBrowse";
 
 const queryClient = new QueryClient();
 
-// Detect mobile device
+// Detect iOS device
+const isIOSDevice = () => {
+  return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+};
+
+// Detect mobile device (non-iOS)
 const isMobileDevice = () => {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  return /Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 };
 
 // Scroll to top on route change
@@ -42,6 +48,9 @@ const ScrollToTop = () => {
 
 // Mobile redirect component for home page
 const HomeWithMobileRedirect = () => {
+  if (isIOSDevice()) {
+    return <Navigate to="/ios" replace />;
+  }
   if (isMobileDevice()) {
     return <Navigate to="/m" replace />;
   }
@@ -58,6 +67,7 @@ const App = () => (
           <ScrollToTop />
           <Routes>
             <Route path="/" element={<HomeWithMobileRedirect />} />
+            <Route path="/ios" element={<IOSPlayer />} />
             <Route path="/m" element={<CarPlayer />} />
             <Route path="/m/tags" element={<MobileTagIndex />} />
             <Route path="/m/languages" element={<MobileLanguageIndex />} />
