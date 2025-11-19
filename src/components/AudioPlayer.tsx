@@ -251,7 +251,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       console.log("[AD] Playing:", adUrl);
 
       // Lower radio volume immediately (no animation for mobile lock screen)
-      setAudioVolume(radioAudio, 0.05);
+      setAudioVolume(radioAudio, 0.02);
       console.log("[AD] Radio volume lowered");
 
       // Set ad volume and play
