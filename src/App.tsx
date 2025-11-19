@@ -19,6 +19,10 @@ import Contact from "./pages/Contact";
 import India from "./pages/India";
 import Mobile from "./pages/Mobile";
 import CarPlayer from "./pages/CarPlayer";
+import MobileTagIndex from "./pages/mobile/MobileTagIndex";
+import MobileLanguageIndex from "./pages/mobile/MobileLanguageIndex";
+import MobileTagPlayer from "./pages/mobile/MobileTagPlayer";
+import MobileBrowse from "./pages/mobile/MobileBrowse";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +59,10 @@ const App = () => (
           <Routes>
             <Route path="/" element={<HomeWithMobileRedirect />} />
             <Route path="/m" element={<CarPlayer />} />
+            <Route path="/m/tags" element={<MobileTagIndex />} />
+            <Route path="/m/languages" element={<MobileLanguageIndex />} />
+            <Route path="/m/tag/:tag" element={<MobileTagPlayer />} />
+            <Route path="/m/browse" element={<MobileBrowse />} />
             <Route path="/mobile" element={<Mobile />} />
             <Route path="/browse" element={<Browse />} />
             <Route path="/india" element={<India />} />
