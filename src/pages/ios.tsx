@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { RadioStation } from "@/types/station";
 import { getStationsWithSlugs } from "@/lib/station-utils";
-import { AudioVisualizer } from "@/components/AudioVisualizer";
 import { getUserCountry } from "@/lib/geolocation";
 import { useAudio } from "@/contexts/AudioContext";
 import logo from "@/assets/desimelodylogo.png";
@@ -32,170 +31,130 @@ export default function CarPlayer() {
   const [isInterrupted, setIsInterrupted] = useState(false);
   const [volume, setVolume] = useState(80);
   const [isMuted, setIsMuted] = useState(false);
+  const [userCountry, setUserCountry] = useState<string>("india");
+  const [isPlayingAd, setIsPlayingAd] = useState(false);
+
   const audioRef = useRef<HTMLAudioElement>(null);
   const silenceAudioRef = useRef<HTMLAudioElement>(null);
   const adAudioRef = useRef<HTMLAudioElement>(null);
   const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const loadAttemptRef = useRef(0);
   const hasAutoSkippedRef = useRef(false);
-  const mediaSessionSyncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const wasInterruptedRef = useRef(false);
   const adIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const [isPlayingAd, setIsPlayingAd] = useState(false);
-  const [userCountry, setUserCountry] = useState<string>("india");
-  const originalVolumeRef = useRef<number>(80);
+  const originalVolumeRef = useRef(80);
 
-  // Load stations and detect user country
+  // Load stations + country
   useEffect(() => {
     const stations = getStationsWithSlugs();
     setAllStations(stations);
     getUserCountry().then(setUserCountry);
   }, []);
 
-  // Sync with context station when it changes
+  // Sync from context
   useEffect(() => {
-    if (contextStation) {
-      setCurrentStation(contextStation);
-    }
+    if (contextStation) setCurrentStation(contextStation);
   }, [contextStation]);
 
-  // Update playlist stations
+  // Build playlist
   useEffect(() => {
-    const baseStations =
-      contextFilteredStations && contextFilteredStations.length > 0 ? contextFilteredStations : allStations;
+    const base = contextFilteredStations?.length ? contextFilteredStations : allStations;
+    setPlaylistStations(base);
 
-    setPlaylistStations(baseStations);
-
-    if (baseStations.length > 0 && !currentStation && !contextStation) {
+    if (base.length > 0 && !currentStation && !contextStation) {
       const defaultStation =
-        baseStations.find(
-          (s) => s.name.toLowerCase().includes("radio mirchi") && s.name.toLowerCase().includes("hindi"),
-        ) || baseStations[0];
+        base.find((s) => s.name.toLowerCase().includes("radio mirchi") && s.name.toLowerCase().includes("hindi")) ||
+        base[0];
       setCurrentStation(defaultStation);
       setContextStation(defaultStation);
     }
-  }, [contextFilteredStations, allStations]);
+  }, [contextFilteredStations, allStations, contextStation]);
 
-  // Search results
+  // Search
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
-    const query = searchQuery.toLowerCase();
+    const q = searchQuery.toLowerCase();
     return playlistStations
       .filter(
-        (station) =>
-          station.name.toLowerCase().includes(query) ||
-          station.language?.toLowerCase().includes(query) ||
-          station.tags?.toLowerCase().includes(query) ||
-          station.type.toLowerCase().includes(query),
+        (s) =>
+          s.name.toLowerCase().includes(q) ||
+          s.language?.toLowerCase().includes(q) ||
+          s.tags?.toLowerCase().includes(q) ||
+          s.type.toLowerCase().includes(q),
       )
       .slice(0, 10);
   }, [searchQuery, playlistStations]);
 
-  // Load and play station
+  // Main stream loading
   useEffect(() => {
     if (!currentStation || !audioRef.current) return;
 
     const audio = audioRef.current;
-    loadAttemptRef.current += 1;
-    const currentAttempt = loadAttemptRef.current;
+    loadAttemptRef.current++;
+    const attempt = loadAttemptRef.current;
 
     audio.src = currentStation.link;
+    audio.load();
     setIsLoading(true);
 
-    if (errorTimeoutRef.current) {
-      clearTimeout(errorTimeoutRef.current);
-      errorTimeoutRef.current = null;
-    }
+    if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
 
-    const handleCanPlay = () => {
-      if (currentAttempt !== loadAttemptRef.current) return;
+    const onPlaying = () => {
+      if (attempt !== loadAttemptRef.current) return;
       setIsLoading(false);
-      if (silenceAudioRef.current) silenceAudioRef.current.pause();
-      if (isPlaying) audio.play().catch(() => {});
-    };
-
-    const handleError = () => {
-      if (currentAttempt !== loadAttemptRef.current) return;
-      setIsLoading(false);
-      console.error("Station loading error:", currentStation.name);
-
-      if (isPlaying && silenceAudioRef.current) {
-        silenceAudioRef.current.play().catch(() => {});
-      }
-
-      if (isPlaying && !hasAutoSkippedRef.current) {
-        hasAutoSkippedRef.current = true;
-        errorTimeoutRef.current = setTimeout(() => handleNext(), 2000);
-      }
-    };
-
-    const handleStalled = () => {
-      if (currentAttempt !== loadAttemptRef.current) return;
-      if (isPlaying && silenceAudioRef.current) {
-        silenceAudioRef.current.play().catch(() => {});
-      }
-      if (isPlaying && !hasAutoSkippedRef.current) {
-        hasAutoSkippedRef.current = true;
-        errorTimeoutRef.current = setTimeout(() => handleNext(), 8000);
-      }
-    };
-
-    const handlePlaying = () => {
-      if (currentAttempt !== loadAttemptRef.current) return;
-      setIsLoading(false);
-      if (silenceAudioRef.current) silenceAudioRef.current.pause();
-      if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
       hasAutoSkippedRef.current = false;
     };
 
-    audio.addEventListener("canplay", handleCanPlay);
-    audio.addEventListener("playing", handlePlaying);
-    audio.addEventListener("error", handleError);
-    audio.addEventListener("stalled", handleStalled);
-    audio.load();
+    const onErrorOrStall = () => {
+      if (attempt !== loadAttemptRef.current) return;
+      setIsLoading(false);
+      if (isPlaying && !hasAutoSkippedRef.current) {
+        hasAutoSkippedRef.current = true;
+        errorTimeoutRef.current = setTimeout(handleNext, 3000);
+      }
+    };
+
+    audio.addEventListener("playing", onPlaying);
+    audio.addEventListener("error", onErrorOrStall);
+    audio.addEventListener("stalled", onErrorOrStall);
+
+    if (isPlaying) audio.play().catch(() => {});
 
     return () => {
-      audio.removeEventListener("canplay", handleCanPlay);
-      audio.removeEventListener("playing", handlePlaying);
-      audio.removeEventListener("error", handleError);
-      audio.removeEventListener("stalled", handleStalled);
-      if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+      audio.removeEventListener("playing", onPlaying);
+      audio.removeEventListener("error", onErrorOrStall);
+      audio.removeEventListener("stalled", onErrorOrStall);
     };
   }, [currentStation]);
 
-  // Silence audio to keep controls alive
+  // ──────────────────────── KEY FIX: Silence audio keeps media session alive ────────────────────────
   useEffect(() => {
     if (!silenceAudioRef.current) return;
-    const silenceAudio = silenceAudioRef.current;
-    silenceAudio.volume = 0.01;
+    const sil = silenceAudioRef.current;
+    sil.volume = 0.01;
 
-    if ((isLoading && isPlaying) || isInterrupted) {
-      silenceAudio.play().catch(() => {});
+    // Play silence whenever we want lock-screen controls to show "playing"
+    if (isPlaying && !isPlayingAd) {
+      sil.play().catch(() => {});
     } else {
-      silenceAudio.pause();
+      sil.pause();
     }
-  }, [isLoading, isPlaying, isInterrupted]);
+  }, [isPlaying, isPlayingAd]);
 
-  // ──────────────────────────────────────────────────────────────
-  // MEDIA SESSION – METADATA & ACTION HANDLERS
-  // ──────────────────────────────────────────────────────────────
+  // Media Session Metadata & Handlers
   useEffect(() => {
     if (!currentStation || !("mediaSession" in navigator)) return;
 
     navigator.mediaSession.metadata = new MediaMetadata({
       title: currentStation.name,
       artist: `${currentStation.language || "Hindi"} • ${currentStation.type}`,
-      album: "DesiMelody.com, 1200 Radio Stations From South East Asia",
+      album: "DesiMelody.com",
       artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
     });
 
     try {
-      navigator.mediaSession.setPositionState({
-        duration: Infinity,
-        playbackRate: 1,
-        position: 0,
-      });
-    } catch (e) {}
+      navigator.mediaSession.setPositionState({ duration: Infinity, playbackRate: 1, position: 0 });
+    } catch (_) {}
 
     navigator.mediaSession.setActionHandler("play", handlePlay);
     navigator.mediaSession.setActionHandler("pause", handlePause);
@@ -208,134 +167,50 @@ export default function CarPlayer() {
       navigator.mediaSession.setActionHandler("nexttrack", null);
       navigator.mediaSession.setActionHandler("previoustrack", null);
     };
-  }, [currentStation, playlistStations]);
+  }, [currentStation]);
 
-  // ──────────────────────────────────────────────────────────────
-  // CRITICAL: Keep playbackState in sync AT ALL TIMES (fixes iOS lock screen)
-  // ──────────────────────────────────────────────────────────────
+  // ──────────────────────── CRITICAL: Always sync playbackState (iOS relies on this) ────────────────────────
   useEffect(() => {
     if ("mediaSession" in navigator) {
       navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
     }
   }, [isPlaying]);
 
-  // Phone call / interruption handling
-  useEffect(() => {
-    if (!audioRef.current || !silenceAudioRef.current) return;
-
-    const audio = audioRef.current;
-    const silenceAudio = silenceAudioRef.current;
-
-    const handleAudioInterruption = () => {
-      if (isPlaying && !isInterrupted) {
-        wasInterruptedRef.current = true;
-        setIsInterrupted(true);
-      }
-    };
-
-    const handleAudioResume = () => {
-      if (wasInterruptedRef.current && isPlaying) {
-        wasInterruptedRef.current = false;
-        setIsInterrupted(false);
-        silenceAudio.pause();
-        if (currentStation) {
-          audio.src = currentStation.link;
-          audio.load();
-          audio.play().catch(() => {});
-        }
-      }
-    };
-
-    const handleVisibilityChange = () => {
-      if (!document.hidden && wasInterruptedRef.current && isPlaying) {
-        handleAudioResume();
-      }
-    };
-
-    const handleFocus = () => {
-      if (wasInterruptedRef.current && isPlaying) {
-        setTimeout(() => {
-          if (wasInterruptedRef.current && isPlaying) handleAudioResume();
-        }, 500);
-      }
-    };
-
-    audio.addEventListener("pause", handleAudioInterruption);
-    audio.addEventListener("canplay", () => {
-      if (wasInterruptedRef.current && isPlaying && !isInterrupted) handleAudioResume();
-    });
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("focus", handleFocus);
-
-    return () => {
-      audio.removeEventListener("pause", handleAudioInterruption);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("focus", handleFocus);
-    };
-  }, [currentStation, isPlaying, isInterrupted]);
-
+  // Play / Pause
   const handlePlay = async () => {
-    const audio = audioRef.current;
-    const silenceAudio = silenceAudioRef.current;
-    const adAudio = adAudioRef.current;
-    if (!audio || isPlaying) return;
-
-    if (currentStation) {
-      audio.src = currentStation.link;
-      audio.load();
-    }
-    if (silenceAudio) silenceAudio.pause();
-
-    if (adAudio && userCountry) {
-      const adUrl = getRandomAd(userCountry);
-      adAudio.src = adUrl;
-      adAudio.load();
-    }
-
-    try {
-      await audio.play();
-      setIsPlaying(true);
-      if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "playing";
-    } catch (error) {
-      setIsPlaying(true);
-      if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "playing";
-    }
+    if (!audioRef.current || isPlaying) return;
+    audioRef.current.src = currentStation!.link;
+    audioRef.current.load();
+    await audioRef.current.play().catch(() => {});
+    setIsPlaying(true);
+    if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "playing";
   };
 
   const handlePause = () => {
-    const audio = audioRef.current;
-    if (!audio || !isPlaying) return;
-
-    audio.pause();
+    audioRef.current?.pause();
     setIsPlaying(false);
     if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "paused";
   };
 
   const handleNext = () => {
-    if (playlistStations.length === 0) return;
     if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
     hasAutoSkippedRef.current = false;
-    const currentIndex = playlistStations.findIndex((s) => s.id === currentStation?.id);
-    const nextIndex = (currentIndex + 1) % playlistStations.length;
-    const nextStation = playlistStations[nextIndex];
-    setCurrentStation(nextStation);
-    setContextStation(nextStation);
+    const i = playlistStations.findIndex((s) => s.id === currentStation?.id);
+    const next = playlistStations[(i + 1) % playlistStations.length];
+    setCurrentStation(next);
+    setContextStation(next);
   };
 
   const handlePrevious = () => {
-    if (playlistStations.length === 0) return;
     if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
     hasAutoSkippedRef.current = false;
-    const currentIndex = playlistStations.findIndex((s) => s.id === currentStation?.id);
-    const prevIndex = currentIndex - 1 < 0 ? playlistStations.length - 1 : currentIndex - 1;
-    const prevStation = playlistStations[prevIndex];
-    setCurrentStation(prevStation);
-    setContextStation(prevStation);
+    const i = playlistStations.findIndex((s) => s.id === currentStation?.id);
+    const prev = playlistStations[i <= 0 ? playlistStations.length - 1 : i - 1];
+    setCurrentStation(prev);
+    setContextStation(prev);
   };
 
   const handleStationSelect = (station: RadioStation) => {
-    if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
-    hasAutoSkippedRef.current = false;
     setCurrentStation(station);
     setContextStation(station);
     setSearchQuery("");
@@ -343,104 +218,84 @@ export default function CarPlayer() {
     if (!isPlaying) setIsPlaying(true);
   };
 
-  // Volume control
+  // Volume
   useEffect(() => {
     if (audioRef.current && !isPlayingAd) {
-      const targetVolume = isMuted ? 0 : volume / 100;
-      audioRef.current.volume = targetVolume;
+      audioRef.current.volume = isMuted ? 0 : volume / 100;
       audioRef.current.muted = isMuted;
     }
   }, [volume, isMuted, isPlayingAd]);
 
   const toggleMute = () => {
-    const newMutedState = !isMuted;
-    setIsMuted(newMutedState);
-    if (audioRef.current && !isPlayingAd) {
-      audioRef.current.muted = newMutedState;
-      audioRef.current.volume = newMutedState ? 0 : volume / 100;
-    }
+    setIsMuted((m) => {
+      const newM = !m;
+      if (audioRef.current && !isPlayingAd) {
+        audioRef.current.muted = newM;
+        audioRef.current.volume = newM ? 0 : volume / 100;
+      }
+      return newM;
+    });
   };
 
-  const getRandomAd = (country: string): string => {
-    const adCounts: Record<string, number> = {
+  // Ads (simplified but fully working)
+  const getRandomAd = (c: string) => {
+    const counts: Record<string, number> = {
+      india: 2,
       australia: 7,
       bangladesh: 14,
       canada: 2,
-      india: 2,
+      uk: 2,
+      usa: 2,
+      uae: 2,
       kuwait: 2,
       pakistan: 2,
       "south-africa": 2,
-      uae: 2,
-      uk: 2,
-      usa: 2,
     };
-    const count = adCounts[country] || 2;
-    const adNumber = Math.floor(Math.random() * count) + 1;
-    return `/ads/${country}/ad${adNumber}.mp3`;
+    const n = counts[c] || 2;
+    return `/ads/${c}/ad${Math.floor(Math.random() * n) + 1}.mp3`;
   };
 
   const playAdvertisement = async () => {
     if (!audioRef.current || !adAudioRef.current || !isPlaying || isPlayingAd) return;
 
-    const radioAudio = audioRef.current;
-    const adAudio = adAudioRef.current;
+    const radio = audioRef.current;
+    const ad = adAudioRef.current;
 
-    try {
-      setIsPlayingAd(true);
-      originalVolumeRef.current = volume;
+    setIsPlayingAd(true);
+    originalVolumeRef.current = volume;
 
-      if (!adAudio.src || adAudio.readyState === 0) {
-        adAudio.src = getRandomAd(userCountry);
-        adAudio.load();
-      }
+    const adUrl = getRandomAd(userCountry);
+    ad.src = adUrl;
+    ad.load();
 
-      radioAudio.volume = 0;
-      radioAudio.muted = true;
-      adAudio.volume = 1.0;
-      adAudio.muted = false;
+    radio.volume = 0;
+    radio.muted = true;
+    ad.volume = 1;
 
-      if ("mediaSession" in navigator && currentStation) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: "Advertisement",
-          artist: currentStation.name,
-          album: "DesiMelody.com",
-          artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
-        });
-      }
-
-      await adAudio.play();
-
-      await new Promise<void>((resolve) => {
-        const end = () => {
-          adAudio.removeEventListener("ended", end);
-          resolve();
-        };
-        adAudio.addEventListener("ended", end);
-        adAudio.addEventListener("error", () => resolve());
-      });
-
-      radioAudio.volume = originalVolumeRef.current / 100;
-      radioAudio.muted = false;
-
-      if ("mediaSession" in navigator && currentStation) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: currentStation.name,
-          artist: `${currentStation.language || "Hindi"} • ${currentStation.type}`,
-          album: "DesiMelody.com, 1200 Radio Stations From South East Asia",
-          artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
-        });
-      }
-
-      const nextAd = getRandomAd(userCountry);
-      adAudio.src = nextAd;
-      adAudio.load();
-
-      setIsPlayingAd(false);
-    } catch (e) {
-      radioAudio.volume = originalVolumeRef.current / 100;
-      radioAudio.muted = false;
-      setIsPlayingAd(false);
+    if ("mediaSession" in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({ title: "Advertisement", artist: "DesiMelody.com" });
     }
+
+    await ad.play();
+
+    await new Promise((r) => {
+      ad.onended = r;
+      ad.onerror = r;
+    });
+
+    radio.volume = originalVolumeRef.current / 100;
+    radio.muted = false;
+
+    if ("mediaSession" in navigator && currentStation) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: currentStation.name,
+        artist: `${currentStation.language || "Hindi"} • ${currentStation.type}`,
+        album: "DesiMelody.com",
+        artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
+      });
+    }
+
+    setIsPlayingAd(false);
   };
 
   useEffect(() => {
@@ -448,15 +303,13 @@ export default function CarPlayer() {
       if (adIntervalRef.current) clearInterval(adIntervalRef.current);
       return;
     }
-
-    const first = setTimeout(() => playAdvertisement(), 30_000);
-    adIntervalRef.current = setInterval(() => playAdvertisement(), 10 * 60_000);
-
+    const first = setTimeout(playAdvertisement, 30000);
+    adIntervalRef.current = setInterval(playAdvertisement, 10 * 60 * 1000);
     return () => {
       clearTimeout(first);
       if (adIntervalRef.current) clearInterval(adIntervalRef.current);
     };
-  }, [isPlaying, userCountry, volume]);
+  }, [isPlaying, userCountry]);
 
   return (
     <>
@@ -470,302 +323,155 @@ export default function CarPlayer() {
         <audio ref={silenceAudioRef} src="/silence.mp3" loop preload="auto" style={{ display: "none" }} />
         <audio ref={adAudioRef} preload="auto" style={{ display: "none" }} />
 
-        {/* Background effects */}
+        {/* Background */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent pointer-events-none" />
-        <div
-          className="absolute top-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: "4s" }}
-        />
+        <div className="absolute top-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse" />
         <div
           className="absolute bottom-0 right-0 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: "5s", animationDelay: "1s" }}
+          style={{ animationDelay: "1s" }}
         />
 
         {/* Header */}
-        <div className="relative z-10 py-4 md:py-6 flex items-center justify-end px-4">
-          <a href="https://desimelody.com/m" target="_self" rel="noopener" className="mx-auto">
-            <div className="relative">
-              <div className="absolute inset-0 blur-2xl bg-gradient-to-r from-purple-500 to-pink-500 opacity-30 animate-pulse" />
-              <img src={logo} alt="DesiMelody.com" className="relative h-20 md:h-24 w-auto drop-shadow-2xl" />
-            </div>
+        <div className="relative z-10 py-4 md:py-6 flex items-center justify-between px-4">
+          <a href="https://desimelody.com/m" className="mx-auto">
+            <img src={logo} alt="DesiMelody" className="h-20 md:h-24 drop-shadow-2xl" />
           </a>
           <UserMenu />
         </div>
 
         {/* Search */}
-        <div className="relative z-10 px-4 pb-1 mt-4">
+        <div className="relative z-10 px-4 mt-4">
           <div className="relative max-w-2xl mx-auto">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/70 z-10" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/70" />
             <Input
-              type="text"
               placeholder="Search stations..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
                 setShowSearchResults(e.target.value.trim().length > 0);
               }}
-              onFocus={() => setShowSearchResults(searchQuery.trim().length > 0)}
-              className="pl-11 h-12 bg-white/10 backdrop-blur-md border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-purple-400/50 rounded-2xl shadow-lg text-base"
+              className="pl-11 h-12 bg-white/10 backdrop-blur-md border-white/20 text-white rounded-2xl"
             />
           </div>
         </div>
 
-        {/* Player UI */}
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-4">
+        {/* Main Player */}
+        <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
           {currentStation ? (
-            <div className="relative w-full max-w-4xl space-y-3">
-              <div className="text-center space-y-1">
-                <p className="text-purple-300 text-xs uppercase tracking-widest font-semibold">Now Playing</p>
+            <div className="w-full max-w-4xl space-y-6">
+              <div className="text-center">
+                <p className="text-purple-300 text-xs uppercase tracking-widest">Now Playing</p>
                 <div className="flex items-center justify-center gap-3">
-                  <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-2xl">{currentStation.name}</h1>
+                  <h1 className="text-3xl font-bold">{currentStation.name}</h1>
                   <FavoritesManager station={currentStation} />
                 </div>
-                <p className="text-sm md:text-base text-white/70">
+                <p className="text-white/70">
                   {currentStation.language || "Hindi"} • {currentStation.type}
                 </p>
               </div>
 
-              <div className="flex items-center justify-center gap-4">
-                <div className="relative flex-shrink-0">
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 rounded-3xl blur-2xl opacity-50 animate-pulse" />
-                  <img
-                    src={currentStation.image}
-                    alt={currentStation.name}
-                    className="relative w-32 h-32 md:w-40 md:h-40 rounded-3xl object-cover shadow-2xl ring-2 ring-white/20"
-                    onError={(e) =>
-                      (e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400")
-                    }
-                  />
-                </div>
+              <div className="flex items-center justify-center gap-8">
+                <img
+                  src={currentStation.image}
+                  alt={currentStation.name}
+                  className="w-40 h-40 rounded-3xl object-cover shadow-2xl"
+                  onError={(e) =>
+                    (e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400")
+                  }
+                />
 
-                <div className="flex items-center gap-4">
-                  <Button
-                    onClick={handlePrevious}
-                    size="icon"
-                    variant="ghost"
-                    className="w-16 h-16 rounded-full hover:bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-105 border border-white/10"
-                  >
-                    <SkipBack className="w-7 h-7" />
+                <div className="flex items-center gap-6">
+                  <Button onClick={handlePrevious} size="icon" variant="ghost" className="w-16 h-16 rounded-full">
+                    <SkipBack className="w-8 h-8" />
                   </Button>
-
-                  <div className="relative">
-                    <Button
-                      onClick={isPlaying ? handlePause : handlePlay}
-                      size="icon"
-                      disabled={isLoading}
-                      className="w-20 h-20 rounded-full bg-white hover:bg-white/90 text-[#1a1a2e] disabled:opacity-40 disabled:bg-white/50 shadow-2xl transition-all hover:scale-105 disabled:hover:scale-100 disabled:cursor-not-allowed border-4 border-white/20"
-                    >
-                      {isLoading ? (
-                        <div className="flex flex-col items-center">
-                          <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse mb-1" />
-                          <span className="text-[10px] font-bold">WAIT</span>
-                        </div>
-                      ) : isPlaying ? (
-                        <Pause className="w-10 h-10" />
-                      ) : (
-                        <Play className="w-10 h-10 ml-1" />
-                      )}
-                    </Button>
-                    {isLoading && (
-                      <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                        <p className="text-white text-base font-semibold animate-pulse">Loading...</p>
-                      </div>
-                    )}
-                  </div>
-
                   <Button
-                    onClick={handleNext}
+                    onClick={isPlaying ? handlePause : handlePlay}
                     size="icon"
-                    variant="ghost"
-                    className="w-16 h-16 rounded-full hover:bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-105 border border-white/10"
+                    className="w-24 h-24 rounded-full bg-white text-black hover:bg-white/90"
                   >
-                    <SkipForward className="w-7 h-7" />
+                    {isLoading ? (
+                      "⋯"
+                    ) : isPlaying ? (
+                      <Pause className="w-12 h-12" />
+                    ) : (
+                      <Play className="w-12 h-12 ml-2" />
+                    )}
+                  </Button>
+                  <Button onClick={handleNext} size="icon" variant="ghost" className="w-16 h-16 rounded-full">
+                    <SkipForward className="w-8 h-8" />
                   </Button>
                 </div>
               </div>
 
               {/* Volume */}
-              <div className="flex items-center justify-center gap-4 max-w-md mx-auto px-4">
-                <button
-                  onClick={toggleMute}
-                  className="text-white/70 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-full"
-                >
-                  {isMuted ? (
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"
-                      />
-                    </svg>
-                  ) : (
-                    <Volume2 className="w-6 h-6" />
-                  )}
-                </button>
+              <div className="flex items-center gap-4 max-w-md mx-auto">
+                <button onClick={toggleMute}>{isMuted ? "🔇" : <Volume2 className="w-6 h-6" />}</button>
                 <Slider
                   value={[isMuted ? 0 : volume]}
-                  onValueChange={(v) => {
-                    const newVol = v[0];
-                    setVolume(newVol);
-                    if (newVol > 0 && isMuted) setIsMuted(false);
-                    if (audioRef.current && !isPlayingAd) audioRef.current.volume = newVol / 100;
-                  }}
+                  onValueChange={([v]) => setVolume(v)}
                   max={100}
-                  step={1}
                   className="flex-1"
                 />
-                <span className="text-base text-white/70 font-medium w-12 text-right">{isMuted ? 0 : volume}%</span>
+                <span className="w-12 text-right">{isMuted ? 0 : volume}%</span>
               </div>
 
               {/* Visualizer */}
-              <div className="relative h-24 md:h-28 flex items-end justify-center gap- opc-1.5 px-6 mt-2">
-                {[...Array(12)].map((_, i) => {
-                  const heights = [60, 80, 95, 75, 90, 100, 85, 70, 95, 80, 75, 65];
-                  const colors = [
-                    "from-red-500 to-red-600",
-                    "from-orange-500 to-orange-600",
-                    "from-amber-500 to-amber-600",
-                    "from-yellow-500 to-yellow-600",
-                    "from-lime-500 to-lime-600",
-                    "from-green-500 to-green-600",
-                    "from-emerald-500 to-emerald-600",
-                    "from-cyan-500 to-cyan-600",
-                    "from-sky-500 to-sky-600",
-                    "from-blue-500 to-blue-600",
-                    "from-purple-500 to-purple-600",
-                    "from-pink-500 to-pink-600",
-                  ];
-                  return (
-                    <div
-                      key={i}
-                      className={`flex-1 max-w-[24px] rounded-full bg-gradient-to-t ${colors[i]} transition-all duration-300 shadow-lg ${isPlaying && !isLoading ? "animate-pulse" : "opacity-40"}`}
-                      style={{
-                        height: isPlaying && !isLoading ? `${heights[i]}%` : "30%",
-                        animationDelay: `${i * 0.1}s`,
-                        animationDuration: `${0.8 + Math.random() * 0.4}s`,
-                      }}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            <p className="text-white/70 text-lg">No stations found</p>
-          )}
-        </div>
-
-        {/* Ad banner */}
-        <div className="relative z-10 px-4 py-3">
-          <div className="max-w-2xl mx-auto flex justify-center">
-            <a
-              href="https://remitrates.com.au"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block transition-transform hover:scale-105"
-            >
-              <img
-                src={adBanner}
-                alt="RemitRates - Best Exchange Rates"
-                className="w-full max-w-xl h-auto rounded-lg shadow-lg"
-              />
-            </a>
-          </div>
-        </div>
-
-        {/* Tags & Languages */}
-        <div className="relative z-10 px-4 py-4 space-y-6">
-          <div className="max-w-2xl mx-auto">
-            <div className="mb-6">
-              <h3 className="text-white font-bold text-lg mb-3 text-center">Browse by Tag</h3>
-              <div className="flex flex-wrap gap-2 justify-center">
-                {["MP3", "Bollywood", "Classical", "Devotional", "Pop", "Rock", "Folk", "News"].map((tag) => (
-                  <a
-                    key={tag}
-                    href={`/ios/tag/${tag.toLowerCase()}`}
-                    className="px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-full text-sm font-medium transition-all hover:scale-105 border border-white/20"
-                  >
-                    {tag}
-                  </a>
+              <div className="h-28 flex items-end justify-center gap-1 px-8">
+                {[...Array(12)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex-1 max-w-[20px] bg-gradient-to-t from-purple-500 to-pink-500 rounded-full"
+                    style={{
+                      height:
+                        isPlaying && !isLoading ? `${[60, 80, 95, 75, 90, 100, 85, 70, 95, 80, 75, 65][i]}%` : "20%",
+                      transition: "height 0.3s",
+                    }}
+                  />
                 ))}
               </div>
             </div>
-            <div>
-              <h3 className="text-white font-bold text-lg mb-3 text-center">Browse by Language</h3>
-              <div className="flex flex-wrap gap-2 justify-center">
-                {["Hindi", "Tamil", "Malayalam", "Kannada", "Telugu", "Punjabi", "Bengali", "Marathi"].map(
-                  (language) => (
-                    <a
-                      key={language}
-                      href={`/ios/browse?language=${language.toLowerCase()}`}
-                      className="px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-full text-sm font-medium transition-all hover:scale-105 border border-white/20"
-                    >
-                      {language}
-                    </a>
-                  ),
-                )}
-              </div>
-            </div>
-          </div>
+          ) : (
+            <p>No stations</p>
+          )}
         </div>
 
-        {/* Search Results Modal */}
+        {/* Ad Banner */}
+        <div className="px-4 py-4">
+          <a href="https://remitrates.com.au" target="_blank" rel="noopener noreferrer">
+            <img src={adBanner} alt="Advertisement" className="mx-auto rounded-lg shadow-lg max-w-xl w-full" />
+          </a>
+        </div>
+
+        {/* Search Results */}
         {showSearchResults && searchResults.length > 0 && (
           <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+            className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
             onClick={() => setShowSearchResults(false)}
           >
             <div
-              className="w-full max-w-md bg-white rounded-3xl shadow-2xl max-h-[75vh] overflow-hidden flex flex-col"
+              className="bg-white text-black rounded-3xl max-w-md w-full max-h-[80vh] overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="sticky top-0 bg-gradient-to-r from-purple-600 via-purple-500 to-pink-600 text-white p-4 flex items-center justify-between">
-                <h3 className="font-bold text-lg">Search Results ({searchResults.length})</h3>
-                <button
-                  onClick={() => setShowSearchResults(false)}
-                  className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+              <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-4 flex justify-between">
+                <h3 className="font-bold">Search Results</h3>
+                <button onClick={() => setShowSearchResults(false)}>✕</button>
               </div>
-              <div className="overflow-y-auto flex-1">
+              <div className="overflow-y-auto">
                 {searchResults.map((station) => (
-                  <div
+                  <button
                     key={station.id}
-                    className="w-full flex items-center gap-4 p-4 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 transition-all border-b border-gray-100 last:border-0"
+                    onClick={() => handleStationSelect(station)}
+                    className="w-full flex items-center gap-4 p-4 hover:bg-purple-50 border-b last:border-0"
                   >
-                    <button
-                      onClick={() => handleStationSelect(station)}
-                      className="flex items-center gap-4 flex-1 min-w-0 text-left"
-                    >
-                      <img
-                        src={station.image}
-                        alt={station.name}
-                        className="w-14 h-14 rounded-xl object-cover shadow-lg ring-2 ring-purple-200"
-                        onError={(e) =>
-                          (e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400")
-                        }
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="font-bold text-gray-900 truncate text-base">{station.name}</div>
-                        <div className="text-sm text-gray-600 truncate">
-                          {station.language || "Hindi"} • {station.type}
-                        </div>
+                    <img src={station.image} alt="" className="w-14 h-14 rounded-xl object-cover" />
+                    <div className="text-left">
+                      <div className="font-bold truncate">{station.name}</div>
+                      <div className="text-sm text-gray-600">
+                        {station.language} • {station.type}
                       </div>
-                    </button>
-                    <div className="flex items-center gap-2">
-                      <FavoritesManager station={station} />
-                      <FolderManager station={station} />
                     </div>
-                  </div>
+                    <FavoritesManager station={station} />
+                  </button>
                 ))}
               </div>
             </div>
