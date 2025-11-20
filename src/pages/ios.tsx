@@ -522,11 +522,11 @@ export default function CarPlayer() {
       }
 
       // Lower radio volume immediately (no animation for mobile lock screen)
-      setAudioVolume(radioAudio, 0.05);
+      setAudioVolume(radioAudio, 0.01);
       console.log("[AD] Radio volume lowered");
 
-      // Set ad volume and play
-      setAudioVolume(adAudio, volume / 100);
+      // Set ad volume to maximum for clear playback
+      setAudioVolume(adAudio, 1.0);
 
       // Update Media Session for lock screen
       if ("mediaSession" in navigator && currentStation) {
