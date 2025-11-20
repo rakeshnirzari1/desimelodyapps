@@ -648,6 +648,14 @@ export default function CarPlayer() {
       radioAudio.muted = false;
       console.log("[AD] Radio unmuted and volume restored to", originalVolumeRef.current);
 
+      // CRITICAL: Stop silence audio to prevent Media Session conflicts
+      const silenceAudio = silenceAudioRef.current;
+      if (silenceAudio) {
+        silenceAudio.pause();
+        silenceAudio.currentTime = 0;
+        console.log("[AD] Silence audio stopped to prevent conflicts");
+      }
+
       // Restore Media Session
       if ("mediaSession" in navigator && currentStation) {
         navigator.mediaSession.metadata = new MediaMetadata({
@@ -664,6 +672,9 @@ export default function CarPlayer() {
         }
       }
 
+      // Small delay to ensure iOS processes the state change
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       // Pre-load next ad immediately for iOS autoplay acceptance
       const nextAdUrl = getRandomAd(userCountry);
       adAudio.src = nextAdUrl;
@@ -678,6 +689,15 @@ export default function CarPlayer() {
         radioAudio.volume = originalVolumeRef.current / 100;
         radioAudio.muted = false;
       }
+
+      // CRITICAL: Stop silence audio to prevent Media Session conflicts
+      const silenceAudio = silenceAudioRef.current;
+      if (silenceAudio) {
+        silenceAudio.pause();
+        silenceAudio.currentTime = 0;
+        console.log("[AD] Silence audio stopped on error to prevent conflicts");
+      }
+
       // Restore Media Session on error
       if ("mediaSession" in navigator && currentStation) {
         navigator.mediaSession.metadata = new MediaMetadata({
