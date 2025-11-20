@@ -18,8 +18,12 @@ import { FolderManager } from "@/components/premium/FolderManager";
 import { UserMenu } from "@/components/premium/UserMenu";
 
 export default function CarPlayer() {
-  const { filteredStations: contextFilteredStations, currentStation: contextStation, setCurrentStation: setContextStation } = useAudio();
-  
+  const {
+    filteredStations: contextFilteredStations,
+    currentStation: contextStation,
+    setCurrentStation: setContextStation,
+  } = useAudio();
+
   const [allStations, setAllStations] = useState<RadioStation[]>([]);
   const [playlistStations, setPlaylistStations] = useState<RadioStation[]>([]);
   const [currentStation, setCurrentStation] = useState<RadioStation | null>(contextStation);
@@ -254,19 +258,17 @@ export default function CarPlayer() {
       console.log("Position state not supported");
     }
 
-    // Explicitly disable play and pause handlers to hide those buttons
-    try {
-      navigator.mediaSession.setActionHandler("play", null);
-      navigator.mediaSession.setActionHandler("pause", null);
-    } catch (e) {
-      console.log("Could not disable play/pause handlers");
-    }
+    // Enable play and pause handlers for lock screen controls
+    navigator.mediaSession.setActionHandler("play", handlePlay);
+    navigator.mediaSession.setActionHandler("pause", handlePause);
 
-    // Only next and previous handlers
+    // Next and previous handlers
     navigator.mediaSession.setActionHandler("nexttrack", handleNext);
     navigator.mediaSession.setActionHandler("previoustrack", handlePrevious);
 
     return () => {
+      navigator.mediaSession.setActionHandler("play", null);
+      navigator.mediaSession.setActionHandler("pause", null);
       navigator.mediaSession.setActionHandler("nexttrack", null);
       navigator.mediaSession.setActionHandler("previoustrack", null);
     };
@@ -338,6 +340,14 @@ export default function CarPlayer() {
       console.log("Play failed:", error);
       setIsPlaying(true); // Keep state true to maintain controls
     }
+  };
+
+  const handlePause = () => {
+    const audio = audioRef.current;
+    if (!audio || !isPlaying) return; // Do nothing if not playing
+
+    audio.pause();
+    setIsPlaying(false);
   };
 
   const handleNext = () => {
@@ -663,16 +673,18 @@ export default function CarPlayer() {
 
                   <div className="relative">
                     <Button
-                      onClick={handlePlay}
+                      onClick={isPlaying ? handlePause : handlePlay}
                       size="icon"
-                      disabled={isLoading || isPlaying}
+                      disabled={isLoading}
                       className="w-20 h-20 rounded-full bg-white hover:bg-white/90 text-[#1a1a2e] disabled:opacity-40 disabled:bg-white/50 shadow-2xl transition-all hover:scale-105 disabled:hover:scale-100 disabled:cursor-not-allowed border-4 border-white/20"
                     >
-                      {isPlaying ? (
+                      {isLoading ? (
                         <div className="flex flex-col items-center">
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mb-1" />
-                          <span className="text-[10px] font-bold">LIVE</span>
+                          <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse mb-1" />
+                          <span className="text-[10px] font-bold">WAIT</span>
                         </div>
+                      ) : isPlaying ? (
+                        <Pause className="w-10 h-10" />
                       ) : (
                         <Play className="w-10 h-10 ml-1" />
                       )}
