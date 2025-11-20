@@ -571,6 +571,12 @@ export default function CarPlayer() {
         });
       }
 
+      // Pre-load next ad immediately for iOS autoplay acceptance
+      const nextAdUrl = getRandomAd(userCountry);
+      adAudio.src = nextAdUrl;
+      adAudio.load();
+      console.log("[AD] Pre-loaded next ad:", nextAdUrl);
+
       setIsPlayingAd(false);
     } catch (error) {
       console.error("[AD] Error playing advertisement:", error);
@@ -587,6 +593,15 @@ export default function CarPlayer() {
           artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
         });
       }
+
+      // Pre-load next ad even on error to prepare for next interval
+      if (adAudio) {
+        const nextAdUrl = getRandomAd(userCountry);
+        adAudio.src = nextAdUrl;
+        adAudio.load();
+        console.log("[AD] Pre-loaded next ad after error:", nextAdUrl);
+      }
+
       setIsPlayingAd(false);
     }
   };
