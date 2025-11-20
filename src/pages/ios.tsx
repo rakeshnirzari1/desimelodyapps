@@ -643,12 +643,7 @@ export default function CarPlayer() {
         adAudio.addEventListener("error", handleAdError);
       });
 
-      // Restore radio volume and unmute
-      radioAudio.volume = originalVolumeRef.current / 100;
-      radioAudio.muted = false;
-      console.log("[AD] Radio unmuted and volume restored to", originalVolumeRef.current);
-
-      // CRITICAL: Stop silence audio to prevent Media Session conflicts
+      // CRITICAL: Stop silence audio FIRST to prevent Media Session conflicts
       const silenceAudio = silenceAudioRef.current;
       if (silenceAudio) {
         silenceAudio.pause();
@@ -656,7 +651,23 @@ export default function CarPlayer() {
         console.log("[AD] Silence audio stopped to prevent conflicts");
       }
 
-      // Restore Media Session
+      // Restore radio volume and unmute
+      radioAudio.volume = originalVolumeRef.current / 100;
+      radioAudio.muted = false;
+      console.log("[AD] Radio unmuted and volume restored to", originalVolumeRef.current);
+
+      // CRITICAL: Explicitly play the radio to trigger iOS audio state
+      try {
+        await radioAudio.play();
+        console.log("[AD] Radio explicitly started after ad");
+      } catch (e) {
+        console.log("[AD] Radio play failed, but continuing:", e);
+      }
+
+      // Small delay to let iOS detect the audio is actually playing
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      // Restore Media Session AFTER radio is actually playing
       if ("mediaSession" in navigator && currentStation) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: currentStation.name,
@@ -665,15 +676,12 @@ export default function CarPlayer() {
           artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
         });
 
-        // CRITICAL: Sync playback state to "playing" since radio is still playing
+        // CRITICAL: Sync playback state to "playing" AFTER radio is actually playing
         if ("setPlaybackState" in navigator.mediaSession) {
           navigator.mediaSession.playbackState = "playing";
           console.log("[AD] Media Session playback state restored to: playing");
         }
       }
-
-      // Small delay to ensure iOS processes the state change
-      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Pre-load next ad immediately for iOS autoplay acceptance
       const nextAdUrl = getRandomAd(userCountry);
