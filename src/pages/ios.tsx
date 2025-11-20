@@ -518,15 +518,10 @@ export default function CarPlayer() {
         console.log("[AD] Using pre-loaded ad:", adAudio.src);
       }
 
-      // Pause radio completely to prevent mixing with ad audio
-      radioAudio.pause();
-      console.log("[AD] Radio paused to prevent audio mixing");
-
-      // Play silence audio to keep Media Session alive during ad
-      if (silenceAudioRef.current) {
-        silenceAudioRef.current.play().catch((e) => console.log("[AD] Silence play failed:", e));
-        console.log("[AD] Silent audio playing to maintain Media Session");
-      }
+      // Mute radio completely but keep it playing to maintain Media Session
+      radioAudio.volume = 0;
+      radioAudio.muted = true;
+      console.log("[AD] Radio muted (volume=0, muted=true) but still playing");
 
       // Set ad volume to maximum for clear playback
       adAudio.volume = 1.0;
@@ -561,21 +556,22 @@ export default function CarPlayer() {
         adAudio.addEventListener("error", handleAdError);
       });
 
+      // Reload radio stream fresh to jump back to live (not buffered position)
+      if (currentStation) {
+        radioAudio.src = currentStation.link;
+        radioAudio.load();
+        console.log("[AD] Radio stream reloaded fresh for live playback");
+      }
+
       // Restore radio volume and unmute
       radioAudio.volume = originalVolumeRef.current / 100;
       radioAudio.muted = false;
 
-      // Stop silence audio before resuming radio
-      if (silenceAudioRef.current) {
-        silenceAudioRef.current.pause();
-        console.log("[AD] Silent audio stopped");
-      }
-
-      // Resume radio playback
+      // Resume radio playback from live position
       radioAudio.play().catch((e) => console.log("[AD] Radio resume failed:", e));
       console.log("[AD] Radio resumed at volume", originalVolumeRef.current);
 
-      // Restore Media Session
+      // Restore Media Session with aggressive sync
       if ("mediaSession" in navigator && currentStation) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: currentStation.name,
@@ -584,8 +580,20 @@ export default function CarPlayer() {
           artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
         });
 
-        // CRITICAL: Force sync playback state to 'playing' since radio is still playing
+        // CRITICAL: Force sync playback state multiple times to ensure iOS gets it
         navigator.mediaSession.playbackState = "playing";
+        setTimeout(() => {
+          if (navigator.mediaSession) {
+            navigator.mediaSession.playbackState = "playing";
+            console.log("[AD] Media Session re-synced to 'playing' after 100ms delay");
+          }
+        }, 100);
+        setTimeout(() => {
+          if (navigator.mediaSession) {
+            navigator.mediaSession.playbackState = "playing";
+            console.log("[AD] Media Session re-synced to 'playing' after 300ms delay");
+          }
+        }, 300);
         console.log("[AD] Media Session playback state forcibly set to 'playing' after ad");
       }
 
@@ -598,15 +606,17 @@ export default function CarPlayer() {
       setIsPlayingAd(false);
     } catch (error) {
       console.error("[AD] Error playing advertisement:", error);
-      // Restore radio volume and unmute on error
-      if (radioAudio) {
+      // Reload and restore radio on error
+      if (radioAudio && currentStation) {
+        // Reload fresh stream
+        radioAudio.src = currentStation.link;
+        radioAudio.load();
+
+        // Restore volume
         radioAudio.volume = originalVolumeRef.current / 100;
         radioAudio.muted = false;
 
-        // Stop silence and resume radio on error
-        if (silenceAudioRef.current) {
-          silenceAudioRef.current.pause();
-        }
+        // Resume playback
         radioAudio.play().catch((e) => console.log("[AD] Radio resume after error failed:", e));
       }
       // Restore Media Session on error
