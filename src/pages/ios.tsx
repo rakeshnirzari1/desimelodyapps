@@ -442,7 +442,8 @@ export default function CarPlayer() {
 
   // Volume control
   useEffect(() => {
-    if (audioRef.current) {
+    // Don't adjust radio volume when ad is playing (ad controls volume manually)
+    if (audioRef.current && !isPlayingAd) {
       const targetVolume = isMuted ? 0 : volume / 100;
       audioRef.current.volume = targetVolume;
       audioRef.current.muted = isMuted;
@@ -457,7 +458,7 @@ export default function CarPlayer() {
         audioRef.current.muted,
       );
     }
-  }, [volume, isMuted]);
+  }, [volume, isMuted, isPlayingAd]);
 
   const toggleMute = () => {
     const newMutedState = !isMuted;
