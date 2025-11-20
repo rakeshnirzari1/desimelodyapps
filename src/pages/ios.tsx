@@ -272,7 +272,7 @@ export default function CarPlayer() {
     };
   }, [currentStation, isPlaying, playlistStations]);
 
-  // Handle phone call interruptions
+  // Handle phone call interruptions - Enhanced for locked screen
   useEffect(() => {
     if (!audioRef.current || !silenceAudioRef.current) return;
 
@@ -289,13 +289,13 @@ export default function CarPlayer() {
       }
     };
 
-    // Handle when interruption ends and we can resume
-    const handleVisibilityChange = () => {
-      if (!document.hidden && wasInterruptedRef.current && isPlaying) {
-        console.log("App visible again after interruption - resuming");
+    // Handle when audio can play again after interruption
+    const handleAudioResume = () => {
+      if (wasInterruptedRef.current && isPlaying) {
+        console.log("Audio can play again - resuming after interruption");
         wasInterruptedRef.current = false;
         setIsInterrupted(false);
-        // Stop silent audio and reload/resume main station
+        // Stop silent audio and resume main station
         silenceAudio.pause();
         if (currentStation) {
           audio.src = currentStation.link;
@@ -305,17 +305,49 @@ export default function CarPlayer() {
       }
     };
 
+    // Handle when interruption ends and we can resume
+    const handleVisibilityChange = () => {
+      if (!document.hidden && wasInterruptedRef.current && isPlaying) {
+        console.log("App visible again after interruption - resuming");
+        handleAudioResume();
+      }
+    };
+
     // Listen for audio pause events (could be phone call)
     audio.addEventListener("pause", handleAudioInterruption);
+
+    // Listen for when audio element can resume (after interruption ends)
+    // These events help detect when call ends even with locked screen
+    audio.addEventListener("canplay", () => {
+      if (wasInterruptedRef.current && isPlaying && !isInterrupted) {
+        console.log("Audio ready after interruption");
+        handleAudioResume();
+      }
+    });
 
     // Listen for visibility changes (when call ends and user returns)
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
+    // Listen for page focus events (helps detect when call ends on locked screen)
+    const handleFocus = () => {
+      if (wasInterruptedRef.current && isPlaying) {
+        console.log("Page focused after interruption - attempting resume");
+        // Small delay to let iOS finish cleaning up the call
+        setTimeout(() => {
+          if (wasInterruptedRef.current && isPlaying) {
+            handleAudioResume();
+          }
+        }, 500);
+      }
+    };
+    window.addEventListener("focus", handleFocus);
+
     return () => {
       audio.removeEventListener("pause", handleAudioInterruption);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
     };
-  }, [currentStation, isPlaying]);
+  }, [currentStation, isPlaying, isInterrupted]);
 
   const handlePlay = async () => {
     const audio = audioRef.current;
