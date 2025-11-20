@@ -44,6 +44,7 @@ export default function CarPlayer() {
   const [isPlayingAd, setIsPlayingAd] = useState(false);
   const [userCountry, setUserCountry] = useState<string>("india");
   const originalVolumeRef = useRef<number>(80);
+  const silenceInitializedRef = useRef(false);
 
   // Load stations and detect user country
   useEffect(() => {
@@ -213,6 +214,15 @@ export default function CarPlayer() {
     if (!silenceAudioRef.current) return;
 
     const silenceAudio = silenceAudioRef.current;
+
+    // Initialize silent audio src only after first play (after user interaction)
+    if (isPlaying && !silenceInitializedRef.current) {
+      silenceAudio.src = "/silence.mp3";
+      silenceAudio.load();
+      silenceInitializedRef.current = true;
+      console.log("Silent audio initialized after first play");
+    }
+
     // Set volume to very low to prevent it from taking over media controls
     silenceAudio.volume = 0.01;
 
@@ -222,8 +232,8 @@ export default function CarPlayer() {
       mediaSessionSyncTimeoutRef.current = null;
     }
 
-    // Play silence during loading OR when interrupted (phone call) to maintain lock screen controls
-    if ((isLoading && isPlaying) || isInterrupted) {
+    // Only play silence if it's been initialized AND we need it during loading OR interruption
+    if (silenceInitializedRef.current && ((isLoading && isPlaying) || isInterrupted)) {
       silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
     } else {
       // Stop silence when station is actually playing
@@ -671,7 +681,7 @@ export default function CarPlayer() {
 
       <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f1624] text-white flex flex-col relative overflow-hidden">
         <audio ref={audioRef} preload="auto" />
-        <audio ref={silenceAudioRef} src="/silence.mp3" loop preload="auto" style={{ display: "none" }} />
+        <audio ref={silenceAudioRef} loop preload="none" style={{ display: "none" }} />
         <audio ref={adAudioRef} preload="auto" style={{ display: "none" }} />
 
         {/* Animated background effects */}
