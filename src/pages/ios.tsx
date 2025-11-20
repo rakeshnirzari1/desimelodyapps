@@ -518,10 +518,11 @@ export default function CarPlayer() {
         console.log("[AD] Using pre-loaded ad:", adAudio.src);
       }
 
-      // Aggressively mute radio for iOS (set both volume and muted property)
-      radioAudio.volume = 0;
-      radioAudio.muted = true;
-      console.log("[AD] Radio aggressively muted (volume=0, muted=true)");
+      // CRITICAL: Keep radio playing at very low volume instead of muting completely
+      // This prevents iOS from thinking the radio stopped during long ads
+      radioAudio.volume = 0.001; // Nearly silent but still "playing"
+      radioAudio.muted = false; // Don't mute - iOS needs to see it's still active
+      console.log("[AD] Radio volume reduced to 0.001 (keeps iOS Media Session active)");
 
       // Set ad volume to maximum for clear playback
       adAudio.volume = 1.0;
