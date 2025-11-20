@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Helmet } from "react-helmet";
 import { Play, Pause, SkipForward, SkipBack, Search, Volume2, User, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,24 @@ export default function CarPlayer() {
   const [userCountry, setUserCountry] = useState<string>("india");
   const originalVolumeRef = useRef<number>(80);
 
+  // Centralized Media Session playback state updater
+  const updateMediaSessionPlaybackState = () => {
+    if (!("mediaSession" in navigator)) return;
+    const radio = audioRef.current;
+    const ad = adAudioRef.current;
+    let effectivePlaying = false;
+    if (isPlayingAd && ad && !ad.paused) {
+      effectivePlaying = true;
+    } else if (radio && !radio.paused && !radio.ended) {
+      effectivePlaying = true;
+    }
+    // Only set if different to reduce churn
+    if (navigator.mediaSession.playbackState !== (effectivePlaying ? "playing" : "paused")) {
+      navigator.mediaSession.playbackState = effectivePlaying ? "playing" : "paused";
+      console.log("[SYNC] MediaSession playbackState ->", navigator.mediaSession.playbackState);
+    }
+  };
+
   // Load stations and detect user country
   useEffect(() => {
     const stations = getStationsWithSlugs();
@@ -72,7 +90,7 @@ export default function CarPlayer() {
     if (baseStations.length > 0 && !currentStation && !contextStation) {
       const defaultStation =
         baseStations.find(
-          (s) => s.name.toLowerCase().includes("radio mirchi") && s.name.toLowerCase().includes("hindi"),
+          (s: RadioStation) => s.name.toLowerCase().includes("radio mirchi") && s.name.toLowerCase().includes("hindi"),
         ) || baseStations[0];
       setCurrentStation(defaultStation);
       setContextStation(defaultStation);
@@ -85,7 +103,7 @@ export default function CarPlayer() {
     const query = searchQuery.toLowerCase();
     return playlistStations
       .filter(
-        (station) =>
+        (station: RadioStation) =>
           station.name.toLowerCase().includes(query) ||
           station.language?.toLowerCase().includes(query) ||
           station.tags?.toLowerCase().includes(query) ||
@@ -120,6 +138,51 @@ export default function CarPlayer() {
       audio.removeEventListener("pause", handlePauseEvent);
     };
   }, []);
+
+  // Attach listeners to ad audio as well for state reconciliation
+  useEffect(() => {
+    const ad = adAudioRef.current;
+    if (!ad) return;
+    const onPlay = () => {
+      console.log("[AD SYNC] Ad play event");
+      updateMediaSessionPlaybackState();
+    };
+    const onPause = () => {
+      console.log("[AD SYNC] Ad pause event");
+      updateMediaSessionPlaybackState();
+    };
+    const onEnded = () => {
+      console.log("[AD SYNC] Ad ended");
+      updateMediaSessionPlaybackState();
+    };
+    ad.addEventListener("play", onPlay);
+    ad.addEventListener("pause", onPause);
+    ad.addEventListener("ended", onEnded);
+
+    return () => {
+      ad.removeEventListener("play", onPlay);
+      ad.removeEventListener("pause", onPause);
+      ad.removeEventListener("ended", onEnded);
+    };
+  }, [isPlayingAd]);
+
+  // Periodic reconciliation to heal mismatches after ads / interruptions
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const radio = audioRef.current;
+      const ad = adAudioRef.current;
+      if (!radio) return;
+      const actualRadioPlaying = !radio.paused && radio.readyState >= 2;
+      const effectiveAdPlaying = isPlayingAd && ad && !ad.paused;
+      const effectivePlaying = effectiveAdPlaying || actualRadioPlaying;
+      if (isPlaying !== effectivePlaying) {
+        console.log("[RECONCILE] UI isPlaying", isPlaying, "->", effectivePlaying);
+        setIsPlaying(effectivePlaying);
+      }
+      updateMediaSessionPlaybackState();
+    }, 4000); // every 4s
+    return () => clearInterval(interval);
+  }, [isPlaying, isPlayingAd]);
 
   // Load and play station with auto-skip on error
   useEffect(() => {
@@ -162,7 +225,7 @@ export default function CarPlayer() {
 
       // Play silence to keep lock screen controls active
       if (isPlaying && silenceAudioRef.current) {
-        silenceAudioRef.current.play().catch((e) => console.log("Silence play failed:", e));
+        silenceAudioRef.current.play().catch((e: unknown) => console.log("Silence play failed:", e));
       }
 
       // Keep playing state true to maintain lock screen controls
@@ -188,7 +251,7 @@ export default function CarPlayer() {
 
       // Play silence to keep lock screen controls active
       if (isPlaying && silenceAudioRef.current) {
-        silenceAudioRef.current.play().catch((e) => console.log("Silence play failed:", e));
+        silenceAudioRef.current.play().catch((e: unknown) => console.log("Silence play failed:", e));
       }
 
       // Only auto-skip once until a station successfully loads
@@ -247,7 +310,7 @@ export default function CarPlayer() {
 
     // Play silence during loading OR when interrupted (phone call) to maintain lock screen controls
     if ((isLoading && isPlaying) || isInterrupted) {
-      silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
+      silenceAudio.play().catch((e: unknown) => console.log("Silence play failed:", e));
     } else {
       // Stop silence when station is actually playing
       silenceAudio.pause();
@@ -284,15 +347,24 @@ export default function CarPlayer() {
     }
 
     // Sync playback state with lock screen
-    if ("setPlaybackState" in navigator.mediaSession) {
-      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
-      console.log("Media Session playback state:", isPlaying ? "playing" : "paused");
-    }
+    updateMediaSessionPlaybackState();
 
     // Enable play, pause, and stop handlers for lock screen controls
-    navigator.mediaSession.setActionHandler("play", handlePlay);
-    navigator.mediaSession.setActionHandler("pause", handlePause);
-    navigator.mediaSession.setActionHandler("stop", handleStop);
+    navigator.mediaSession.setActionHandler("play", async () => {
+      console.log("[LOCKSCREEN] Play action received");
+      await handlePlay();
+      updateMediaSessionPlaybackState();
+    });
+    navigator.mediaSession.setActionHandler("pause", () => {
+      console.log("[LOCKSCREEN] Pause action received");
+      handlePause();
+      updateMediaSessionPlaybackState();
+    });
+    navigator.mediaSession.setActionHandler("stop", () => {
+      console.log("[LOCKSCREEN] Stop action received");
+      handleStop();
+      updateMediaSessionPlaybackState();
+    });
 
     // Next and previous handlers
     navigator.mediaSession.setActionHandler("nexttrack", handleNext);
@@ -335,7 +407,7 @@ export default function CarPlayer() {
         if (currentStation) {
           audio.src = currentStation.link;
           audio.load();
-          audio.play().catch((e) => console.log("Resume failed:", e));
+          audio.play().catch((e: unknown) => console.log("Resume failed:", e));
         }
       }
     };
@@ -423,7 +495,10 @@ export default function CarPlayer() {
       console.log("[PLAY] Audio started successfully");
     } catch (error) {
       console.log("Play failed:", error);
-      setIsPlaying(true); // Keep state true to maintain controls
+      // Keep isPlaying in sync with actual element
+      setIsPlaying(!audio.paused);
+    } finally {
+      updateMediaSessionPlaybackState();
     }
   };
 
@@ -443,6 +518,7 @@ export default function CarPlayer() {
     audio.pause();
     setIsPlaying(false);
     console.log("[PAUSE] Audio paused successfully");
+    updateMediaSessionPlaybackState();
   };
 
   const handleStop = () => {
@@ -454,10 +530,11 @@ export default function CarPlayer() {
 
     // Pause the audio
     audio.pause();
-
-    // Clear the source to fully stop streaming
-    audio.src = "";
-    audio.load();
+    // Clear source only if not in ad mode
+    if (!isPlayingAd) {
+      audio.src = "";
+      audio.load();
+    }
 
     // Stop silence audio
     if (silenceAudio) {
@@ -470,11 +547,10 @@ export default function CarPlayer() {
 
     // Update Media Session to stopped state
     if ("mediaSession" in navigator) {
-      if ("setPlaybackState" in navigator.mediaSession) {
-        navigator.mediaSession.playbackState = "none";
-        console.log("[STOP] Media Session playback state set to: none");
-      }
+      navigator.mediaSession.playbackState = "paused"; // treat stop as paused for consistency
+      console.log("[STOP] Media Session playback state set to: paused");
     }
+    updateMediaSessionPlaybackState();
 
     console.log("[STOP] Playback completely stopped");
   };
@@ -486,7 +562,7 @@ export default function CarPlayer() {
       errorTimeoutRef.current = null;
     }
     hasAutoSkippedRef.current = false; // Reset on manual skip
-    const currentIndex = playlistStations.findIndex((s) => s.id === currentStation?.id);
+    const currentIndex = playlistStations.findIndex((s: RadioStation) => s.id === currentStation?.id);
     const nextIndex = (currentIndex + 1) % playlistStations.length;
     const nextStation = playlistStations[nextIndex];
     setCurrentStation(nextStation);
@@ -500,7 +576,7 @@ export default function CarPlayer() {
       errorTimeoutRef.current = null;
     }
     hasAutoSkippedRef.current = false; // Reset on manual skip
-    const currentIndex = playlistStations.findIndex((s) => s.id === currentStation?.id);
+    const currentIndex = playlistStations.findIndex((s: RadioStation) => s.id === currentStation?.id);
     const prevIndex = currentIndex - 1 < 0 ? playlistStations.length - 1 : currentIndex - 1;
     const prevStation = playlistStations[prevIndex];
     setCurrentStation(prevStation);
@@ -656,16 +732,18 @@ export default function CarPlayer() {
       radioAudio.muted = false;
       console.log("[AD] Radio unmuted and volume restored to", originalVolumeRef.current);
 
-      // CRITICAL: Explicitly play the radio to trigger iOS audio state
-      try {
-        await radioAudio.play();
-        console.log("[AD] Radio explicitly started after ad");
-      } catch (e) {
-        console.log("[AD] Radio play failed, but continuing:", e);
+      // Attempt resume of radio only if still marked playing
+      if (isPlaying) {
+        try {
+          await radioAudio.play();
+          console.log("[AD] Radio resumed after ad");
+        } catch (e: unknown) {
+          console.log("[AD] Radio resume failed:", e);
+        }
       }
-
-      // Small delay to let iOS detect the audio is actually playing
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      // Brief delay then reconcile
+      await new Promise((r) => setTimeout(r, 150));
+      updateMediaSessionPlaybackState();
 
       // Restore Media Session AFTER radio is actually playing
       if ("mediaSession" in navigator && currentStation) {
@@ -675,12 +753,6 @@ export default function CarPlayer() {
           album: "DesiMelody.com, 1200 Radio Stations From South East Asia",
           artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
         });
-
-        // CRITICAL: Sync playback state to "playing" AFTER radio is actually playing
-        if ("setPlaybackState" in navigator.mediaSession) {
-          navigator.mediaSession.playbackState = "playing";
-          console.log("[AD] Media Session playback state restored to: playing");
-        }
       }
 
       // Pre-load next ad immediately for iOS autoplay acceptance
@@ -714,13 +786,8 @@ export default function CarPlayer() {
           album: "DesiMelody.com, 1200 Radio Stations From South East Asia",
           artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
         });
-
-        // CRITICAL: Sync playback state to "playing" on error too
-        if ("setPlaybackState" in navigator.mediaSession) {
-          navigator.mediaSession.playbackState = "playing";
-          console.log("[AD] Media Session playback state restored to: playing (after error)");
-        }
       }
+      updateMediaSessionPlaybackState();
 
       // Pre-load next ad even on error to prepare for next interval
       if (adAudio) {
@@ -1081,7 +1148,7 @@ export default function CarPlayer() {
                 </button>
               </div>
               <div className="overflow-y-auto flex-1">
-                {searchResults.map((station) => (
+                {searchResults.map((station: RadioStation) => (
                   <div
                     key={station.id}
                     className="w-full flex items-center gap-4 p-4 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 transition-all border-b border-gray-100 last:border-0"
