@@ -518,10 +518,10 @@ export default function CarPlayer() {
         console.log("[AD] Using pre-loaded ad:", adAudio.src);
       }
 
-      // Mute radio completely but keep it playing to maintain Media Session
+      // Aggressively mute radio for iOS (set both volume and muted property)
       radioAudio.volume = 0;
       radioAudio.muted = true;
-      console.log("[AD] Radio muted (volume=0, muted=true) but still playing");
+      console.log("[AD] Radio aggressively muted (volume=0, muted=true)");
 
       // Set ad volume to maximum for clear playback
       adAudio.volume = 1.0;
@@ -556,34 +556,13 @@ export default function CarPlayer() {
         adAudio.addEventListener("error", handleAdError);
       });
 
-      // Restore radio volume FIRST before reloading to ensure it's the active audio
+      // Restore radio volume and unmute
       radioAudio.volume = originalVolumeRef.current / 100;
       radioAudio.muted = false;
-      console.log("[AD] Radio volume restored to", originalVolumeRef.current);
+      console.log("[AD] Radio unmuted and volume restored to", originalVolumeRef.current);
 
-      // Reload radio stream fresh to jump back to live (not buffered position)
-      if (currentStation) {
-        radioAudio.src = currentStation.link;
-        radioAudio.load();
-        console.log("[AD] Radio stream reloaded fresh for live playback");
-      }
-
-      // Resume radio playback from live position IMMEDIATELY
-      const playPromise = radioAudio.play().catch((e) => console.log("[AD] Radio resume failed:", e));
-      console.log("[AD] Radio playback started at volume", originalVolumeRef.current);
-
-      // Wait for radio to actually start playing before stopping silence
-      await playPromise;
-
-      // Stop silence audio immediately once radio starts
-      if (silenceAudioRef.current && !silenceAudioRef.current.paused) {
-        silenceAudioRef.current.pause();
-        console.log("[AD] Silent audio stopped as radio took over");
-      }
-
-      // Restore Media Session AFTER radio is playing with aggressive sync
+      // Restore Media Session
       if ("mediaSession" in navigator && currentStation) {
-        // Update metadata first
         navigator.mediaSession.metadata = new MediaMetadata({
           title: currentStation.name,
           artist: `${currentStation.language || "Hindi"} • ${currentStation.type}`,
@@ -591,36 +570,9 @@ export default function CarPlayer() {
           artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
         });
 
-        // CRITICAL: Force sync playback state multiple times with longer delays
-        // iOS needs time to recognize the new audio source
-        setTimeout(() => {
-          if (navigator.mediaSession && audioRef.current && !audioRef.current.paused) {
-            navigator.mediaSession.playbackState = "playing";
-            console.log(
-              "[AD] Media Session synced to 'playing' after 200ms - radio playing:",
-              !audioRef.current.paused,
-            );
-          }
-        }, 200);
-        setTimeout(() => {
-          if (navigator.mediaSession && audioRef.current && !audioRef.current.paused) {
-            navigator.mediaSession.playbackState = "playing";
-            console.log(
-              "[AD] Media Session synced to 'playing' after 500ms - radio playing:",
-              !audioRef.current.paused,
-            );
-          }
-        }, 500);
-        setTimeout(() => {
-          if (navigator.mediaSession && audioRef.current && !audioRef.current.paused) {
-            navigator.mediaSession.playbackState = "playing";
-            console.log(
-              "[AD] Media Session synced to 'playing' after 1000ms - radio playing:",
-              !audioRef.current.paused,
-            );
-          }
-        }, 1000);
-        console.log("[AD] Media Session sync scheduled after radio playback started");
+        // CRITICAL: Force sync playback state to 'playing' since radio is still playing
+        navigator.mediaSession.playbackState = "playing";
+        console.log("[AD] Media Session playback state forcibly set to 'playing' after ad");
       }
 
       // Pre-load next ad immediately for iOS autoplay acceptance
@@ -632,28 +584,12 @@ export default function CarPlayer() {
       setIsPlayingAd(false);
     } catch (error) {
       console.error("[AD] Error playing advertisement:", error);
-      // Reload and restore radio on error
-      if (radioAudio && currentStation) {
-        // Restore volume FIRST
+      // Restore radio volume and unmute on error
+      if (radioAudio) {
         radioAudio.volume = originalVolumeRef.current / 100;
         radioAudio.muted = false;
-
-        // Reload fresh stream
-        radioAudio.src = currentStation.link;
-        radioAudio.load();
-
-        // Resume playback immediately
-        radioAudio
-          .play()
-          .then(() => {
-            // Stop silence once radio plays
-            if (silenceAudioRef.current && !silenceAudioRef.current.paused) {
-              silenceAudioRef.current.pause();
-            }
-          })
-          .catch((e) => console.log("[AD] Radio resume after error failed:", e));
       }
-      // Restore Media Session on error with delayed sync
+      // Restore Media Session on error
       if ("mediaSession" in navigator && currentStation) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: currentStation.name,
@@ -662,19 +598,9 @@ export default function CarPlayer() {
           artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
         });
 
-        // CRITICAL: Force sync playback state with delays even on error
-        setTimeout(() => {
-          if (navigator.mediaSession && audioRef.current && !audioRef.current.paused) {
-            navigator.mediaSession.playbackState = "playing";
-            console.log("[AD] Media Session synced after error (200ms)");
-          }
-        }, 200);
-        setTimeout(() => {
-          if (navigator.mediaSession && audioRef.current && !audioRef.current.paused) {
-            navigator.mediaSession.playbackState = "playing";
-            console.log("[AD] Media Session synced after error (500ms)");
-          }
-        }, 500);
+        // CRITICAL: Force sync playback state even on error
+        navigator.mediaSession.playbackState = "playing";
+        console.log("[AD] Media Session playback state forcibly set to 'playing' after ad error");
       }
 
       // Pre-load next ad even on error to prepare for next interval
