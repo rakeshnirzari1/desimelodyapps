@@ -256,19 +256,22 @@ export default function CarPlayer() {
       console.log("Position state not supported");
     }
 
-    // Explicitly disable play and pause handlers to hide those buttons
-    try {
-      navigator.mediaSession.setActionHandler("play", null);
-      navigator.mediaSession.setActionHandler("pause", null);
-    } catch (e) {
-      console.log("Could not disable play/pause handlers");
-    }
+    // Enable play and pause handlers for lock screen controls
+    navigator.mediaSession.setActionHandler("play", handlePlay);
+    navigator.mediaSession.setActionHandler("pause", () => {
+      if (audioRef.current && isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      }
+    });
 
-    // Only next and previous handlers
+    // Next and previous handlers
     navigator.mediaSession.setActionHandler("nexttrack", handleNext);
     navigator.mediaSession.setActionHandler("previoustrack", handlePrevious);
 
     return () => {
+      navigator.mediaSession.setActionHandler("play", null);
+      navigator.mediaSession.setActionHandler("pause", null);
       navigator.mediaSession.setActionHandler("nexttrack", null);
       navigator.mediaSession.setActionHandler("previoustrack", null);
     };
