@@ -33,7 +33,6 @@ export default function CarPlayer() {
   const [volume, setVolume] = useState(80);
   const [isMuted, setIsMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
-  const silenceAudioRef = useRef<HTMLAudioElement>(null);
   const adAudioRef = useRef<HTMLAudioElement>(null);
   const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const loadAttemptRef = useRef(0);
@@ -114,10 +113,6 @@ export default function CarPlayer() {
     const handleCanPlay = async () => {
       if (currentAttempt !== loadAttemptRef.current) return;
       setIsLoading(false);
-      // Stop silence audio when main station becomes ready
-      if (silenceAudioRef.current) {
-        silenceAudioRef.current.pause();
-      }
       if (isPlaying) {
         try {
           await audio.play();
@@ -132,11 +127,6 @@ export default function CarPlayer() {
       if (currentAttempt !== loadAttemptRef.current) return;
       setIsLoading(false);
       console.error("Station loading error:", currentStation.name);
-
-      // Play silence to keep lock screen controls active
-      if (isPlaying && silenceAudioRef.current) {
-        silenceAudioRef.current.play().catch((e) => console.log("Silence play failed:", e));
-      }
 
       // Keep playing state true to maintain lock screen controls
       // Only auto-skip once until a station successfully loads
@@ -159,11 +149,6 @@ export default function CarPlayer() {
         return;
       }
 
-      // Play silence to keep lock screen controls active
-      if (isPlaying && silenceAudioRef.current) {
-        silenceAudioRef.current.play().catch((e) => console.log("Silence play failed:", e));
-      }
-
       // Only auto-skip once until a station successfully loads
       if (isPlaying && !hasAutoSkippedRef.current) {
         hasAutoSkippedRef.current = true;
@@ -176,9 +161,6 @@ export default function CarPlayer() {
     const handlePlaying = () => {
       if (currentAttempt !== loadAttemptRef.current) return;
       setIsLoading(false);
-      if (silenceAudioRef.current) {
-        silenceAudioRef.current.pause();
-      }
       if (errorTimeoutRef.current) {
         clearTimeout(errorTimeoutRef.current);
         errorTimeoutRef.current = null;
@@ -204,35 +186,14 @@ export default function CarPlayer() {
     };
   }, [currentStation]);
 
-  // Handle silence audio to keep lock screen controls active during loading and interruptions
+  // Sync Media Session playback state with actual playing state
   useEffect(() => {
-    if (!silenceAudioRef.current) return;
+    if (!("mediaSession" in navigator)) return;
 
-    const silenceAudio = silenceAudioRef.current;
-    // Set volume to very low to prevent it from taking over media controls
-    silenceAudio.volume = 0.01;
-
-    // Clear any pending media session sync
-    if (mediaSessionSyncTimeoutRef.current) {
-      clearTimeout(mediaSessionSyncTimeoutRef.current);
-      mediaSessionSyncTimeoutRef.current = null;
-    }
-
-    // Play silence during loading OR when interrupted (phone call) to maintain lock screen controls
-    if ((isLoading && isPlaying) || isInterrupted) {
-      silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
-    } else {
-      // Stop silence when station is actually playing
-      silenceAudio.pause();
-    }
-
-    return () => {
-      if (mediaSessionSyncTimeoutRef.current) {
-        clearTimeout(mediaSessionSyncTimeoutRef.current);
-        mediaSessionSyncTimeoutRef.current = null;
-      }
-    };
-  }, [isLoading, isPlaying, isInterrupted]);
+    // Sync playback state immediately
+    navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+    console.log("[MediaSession] Playback state updated:", isPlaying ? "playing" : "paused");
+  }, [isPlaying]);
 
   // Media Session API for car controls
   useEffect(() => {
@@ -256,12 +217,6 @@ export default function CarPlayer() {
       console.log("Position state not supported");
     }
 
-    // Sync playback state with lock screen
-    if ("setPlaybackState" in navigator.mediaSession) {
-      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
-      console.log("Media Session playback state:", isPlaying ? "playing" : "paused");
-    }
-
     // Enable play and pause handlers for lock screen controls
     navigator.mediaSession.setActionHandler("play", handlePlay);
     navigator.mediaSession.setActionHandler("pause", handlePause);
@@ -280,10 +235,9 @@ export default function CarPlayer() {
 
   // Handle phone call interruptions - Enhanced for locked screen
   useEffect(() => {
-    if (!audioRef.current || !silenceAudioRef.current) return;
+    if (!audioRef.current) return;
 
     const audio = audioRef.current;
-    const silenceAudio = silenceAudioRef.current;
 
     // Handle when main audio is interrupted (e.g., phone call)
     const handleAudioInterruption = () => {
@@ -291,7 +245,6 @@ export default function CarPlayer() {
         console.log("Audio interrupted - likely phone call");
         wasInterruptedRef.current = true;
         setIsInterrupted(true);
-        // Silent audio will start playing via the effect above
       }
     };
 
@@ -301,8 +254,7 @@ export default function CarPlayer() {
         console.log("Audio can play again - resuming after interruption");
         wasInterruptedRef.current = false;
         setIsInterrupted(false);
-        // Stop silent audio and resume main station
-        silenceAudio.pause();
+        // Resume main station
         if (currentStation) {
           audio.src = currentStation.link;
           audio.load();
@@ -357,7 +309,6 @@ export default function CarPlayer() {
 
   const handlePlay = async () => {
     const audio = audioRef.current;
-    const silenceAudio = silenceAudioRef.current;
     const adAudio = adAudioRef.current;
     if (!audio || isPlaying) return; // Do nothing if already playing
 
@@ -365,10 +316,6 @@ export default function CarPlayer() {
     if (currentStation) {
       audio.src = currentStation.link;
       audio.load();
-    }
-    // Stop silent audio immediately when playing
-    if (silenceAudio) {
-      silenceAudio.pause();
     }
 
     // Pre-load ad audio early to help iOS accept it
@@ -655,7 +602,6 @@ export default function CarPlayer() {
 
       <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f1624] text-white flex flex-col relative overflow-hidden">
         <audio ref={audioRef} preload="auto" />
-        <audio ref={silenceAudioRef} src="/silence.mp3" loop preload="auto" style={{ display: "none" }} />
         <audio ref={adAudioRef} preload="auto" style={{ display: "none" }} />
 
         {/* Animated background effects */}
