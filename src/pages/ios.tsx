@@ -94,6 +94,33 @@ export default function CarPlayer() {
       .slice(0, 10); // Limit to 10 results
   }, [searchQuery, playlistStations]);
 
+  // Keep isPlaying state synced with actual audio element state
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handlePlayEvent = () => {
+      console.log("[SYNC] Audio 'play' event fired");
+      setIsPlaying(true);
+    };
+
+    const handlePauseEvent = () => {
+      console.log("[SYNC] Audio 'pause' event fired");
+      // Only update state if not interrupted (phone call)
+      if (!wasInterruptedRef.current) {
+        setIsPlaying(false);
+      }
+    };
+
+    audio.addEventListener("play", handlePlayEvent);
+    audio.addEventListener("pause", handlePauseEvent);
+
+    return () => {
+      audio.removeEventListener("play", handlePlayEvent);
+      audio.removeEventListener("pause", handlePauseEvent);
+    };
+  }, []);
+
   // Load and play station with auto-skip on error
   useEffect(() => {
     if (!currentStation || !audioRef.current) return;
@@ -359,7 +386,16 @@ export default function CarPlayer() {
     const audio = audioRef.current;
     const silenceAudio = silenceAudioRef.current;
     const adAudio = adAudioRef.current;
-    if (!audio || isPlaying) return; // Do nothing if already playing
+    if (!audio) return;
+
+    console.log("[PLAY] handlePlay called, current audio.paused:", audio.paused, "isPlaying:", isPlaying);
+
+    // If audio is already playing, just sync state
+    if (!audio.paused) {
+      console.log("[PLAY] Audio already playing, syncing state");
+      setIsPlaying(true);
+      return;
+    }
 
     // Always reload source for fresh live stream
     if (currentStation) {
@@ -382,6 +418,7 @@ export default function CarPlayer() {
     try {
       await audio.play();
       setIsPlaying(true);
+      console.log("[PLAY] Audio started successfully");
     } catch (error) {
       console.log("Play failed:", error);
       setIsPlaying(true); // Keep state true to maintain controls
@@ -390,10 +427,20 @@ export default function CarPlayer() {
 
   const handlePause = () => {
     const audio = audioRef.current;
-    if (!audio || !isPlaying) return; // Do nothing if not playing
+    if (!audio) return;
+
+    console.log("[PAUSE] handlePause called, current audio.paused:", audio.paused, "isPlaying:", isPlaying);
+
+    // If audio is already paused, just sync state
+    if (audio.paused) {
+      console.log("[PAUSE] Audio already paused, syncing state");
+      setIsPlaying(false);
+      return;
+    }
 
     audio.pause();
     setIsPlaying(false);
+    console.log("[PAUSE] Audio paused successfully");
   };
 
   const handleNext = () => {
