@@ -563,6 +563,20 @@ export default function CarPlayer() {
         console.log("[AD] Radio stream reloaded fresh for live playback");
       }
 
+      // CRITICAL: Play silent audio during transition to keep Media Session alive
+      if (silenceAudioRef.current) {
+        silenceAudioRef.current.play().catch((e) => console.log("[AD] Silence bridge play failed:", e));
+        console.log("[AD] Silent audio playing to bridge transition and maintain Media Session");
+
+        // Stop silent audio after 2 seconds once radio is stable
+        setTimeout(() => {
+          if (silenceAudioRef.current) {
+            silenceAudioRef.current.pause();
+            console.log("[AD] Silent audio stopped after 2-second bridge");
+          }
+        }, 2000);
+      }
+
       // Restore radio volume and unmute
       radioAudio.volume = originalVolumeRef.current / 100;
       radioAudio.muted = false;
@@ -611,6 +625,16 @@ export default function CarPlayer() {
         // Reload fresh stream
         radioAudio.src = currentStation.link;
         radioAudio.load();
+
+        // Play silent audio bridge on error too
+        if (silenceAudioRef.current) {
+          silenceAudioRef.current.play().catch((e) => console.log("[AD] Silence bridge on error failed:", e));
+          setTimeout(() => {
+            if (silenceAudioRef.current) {
+              silenceAudioRef.current.pause();
+            }
+          }, 2000);
+        }
 
         // Restore volume
         radioAudio.volume = originalVolumeRef.current / 100;
