@@ -518,11 +518,15 @@ export default function CarPlayer() {
         console.log("[AD] Using pre-loaded ad:", adAudio.src);
       }
 
-      // CRITICAL: Keep radio playing at very low volume instead of muting completely
-      // This prevents iOS from thinking the radio stopped during long ads
-      radioAudio.volume = 0.001; // Nearly silent but still "playing"
-      radioAudio.muted = false; // Don't mute - iOS needs to see it's still active
-      console.log("[AD] Radio volume reduced to 0.001 (keeps iOS Media Session active)");
+      // Pause radio completely to prevent mixing with ad audio
+      radioAudio.pause();
+      console.log("[AD] Radio paused to prevent audio mixing");
+
+      // Play silence audio to keep Media Session alive during ad
+      if (silenceAudioRef.current) {
+        silenceAudioRef.current.play().catch((e) => console.log("[AD] Silence play failed:", e));
+        console.log("[AD] Silent audio playing to maintain Media Session");
+      }
 
       // Set ad volume to maximum for clear playback
       adAudio.volume = 1.0;
@@ -560,7 +564,16 @@ export default function CarPlayer() {
       // Restore radio volume and unmute
       radioAudio.volume = originalVolumeRef.current / 100;
       radioAudio.muted = false;
-      console.log("[AD] Radio unmuted and volume restored to", originalVolumeRef.current);
+
+      // Stop silence audio before resuming radio
+      if (silenceAudioRef.current) {
+        silenceAudioRef.current.pause();
+        console.log("[AD] Silent audio stopped");
+      }
+
+      // Resume radio playback
+      radioAudio.play().catch((e) => console.log("[AD] Radio resume failed:", e));
+      console.log("[AD] Radio resumed at volume", originalVolumeRef.current);
 
       // Restore Media Session
       if ("mediaSession" in navigator && currentStation) {
@@ -589,6 +602,12 @@ export default function CarPlayer() {
       if (radioAudio) {
         radioAudio.volume = originalVolumeRef.current / 100;
         radioAudio.muted = false;
+
+        // Stop silence and resume radio on error
+        if (silenceAudioRef.current) {
+          silenceAudioRef.current.pause();
+        }
+        radioAudio.play().catch((e) => console.log("[AD] Radio resume after error failed:", e));
       }
       // Restore Media Session on error
       if ("mediaSession" in navigator && currentStation) {
