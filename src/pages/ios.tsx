@@ -587,11 +587,11 @@ export default function CarPlayer() {
       return;
     }
 
-    // Play first ad after 30 seconds
+    // Play first ad after 5 seconds
     const firstAdTimeout = setTimeout(() => {
       console.log("[AD] Triggering first advertisement");
       playAdvertisement();
-    }, 30 * 1000); // 30 seconds
+    }, 5 * 1000); // 5 seconds
 
     // Then continue with 10-minute interval
     adIntervalRef.current = setInterval(
