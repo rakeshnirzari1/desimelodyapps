@@ -522,12 +522,14 @@ export default function CarPlayer() {
         console.log("[AD] Using pre-loaded ad:", adAudio.src);
       }
 
-      // Lower radio volume immediately (no animation for mobile lock screen)
-      setAudioVolume(radioAudio, 0);
-      console.log("[AD] Radio volume lowered to 0");
+      // Aggressively mute radio for iOS (set both volume and muted property)
+      radioAudio.volume = 0;
+      radioAudio.muted = true;
+      console.log("[AD] Radio aggressively muted (volume=0, muted=true)");
 
       // Set ad volume to maximum for clear playback
-      setAudioVolume(adAudio, 1.0);
+      adAudio.volume = 1.0;
+      adAudio.muted = false;
 
       // Update Media Session for lock screen
       if ("mediaSession" in navigator && currentStation) {
@@ -558,9 +560,10 @@ export default function CarPlayer() {
         adAudio.addEventListener("error", handleAdError);
       });
 
-      // Restore radio volume immediately
-      setAudioVolume(radioAudio, originalVolumeRef.current / 100);
-      console.log("[AD] Radio volume restored");
+      // Restore radio volume and unmute
+      radioAudio.volume = originalVolumeRef.current / 100;
+      radioAudio.muted = false;
+      console.log("[AD] Radio unmuted and volume restored to", originalVolumeRef.current);
 
       // Restore Media Session
       if ("mediaSession" in navigator && currentStation) {
@@ -581,9 +584,10 @@ export default function CarPlayer() {
       setIsPlayingAd(false);
     } catch (error) {
       console.error("[AD] Error playing advertisement:", error);
-      // Restore radio volume on error
+      // Restore radio volume and unmute on error
       if (radioAudio) {
-        setAudioVolume(radioAudio, originalVolumeRef.current / 100);
+        radioAudio.volume = originalVolumeRef.current / 100;
+        radioAudio.muted = false;
       }
       // Restore Media Session on error
       if ("mediaSession" in navigator && currentStation) {
