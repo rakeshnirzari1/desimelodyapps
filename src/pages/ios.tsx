@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Helmet } from "react-helmet";
-import { Play, Pause, SkipForward, SkipBack, Search, Volume2, User } from "lucide-react";
+import { Play, Pause, SkipForward, SkipBack, Search, Volume2, User, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -289,9 +289,10 @@ export default function CarPlayer() {
       console.log("Media Session playback state:", isPlaying ? "playing" : "paused");
     }
 
-    // Enable play and pause handlers for lock screen controls
+    // Enable play, pause, and stop handlers for lock screen controls
     navigator.mediaSession.setActionHandler("play", handlePlay);
     navigator.mediaSession.setActionHandler("pause", handlePause);
+    navigator.mediaSession.setActionHandler("stop", handleStop);
 
     // Next and previous handlers
     navigator.mediaSession.setActionHandler("nexttrack", handleNext);
@@ -300,6 +301,7 @@ export default function CarPlayer() {
     return () => {
       navigator.mediaSession.setActionHandler("play", null);
       navigator.mediaSession.setActionHandler("pause", null);
+      navigator.mediaSession.setActionHandler("stop", null);
       navigator.mediaSession.setActionHandler("nexttrack", null);
       navigator.mediaSession.setActionHandler("previoustrack", null);
     };
@@ -441,6 +443,40 @@ export default function CarPlayer() {
     audio.pause();
     setIsPlaying(false);
     console.log("[PAUSE] Audio paused successfully");
+  };
+
+  const handleStop = () => {
+    const audio = audioRef.current;
+    const silenceAudio = silenceAudioRef.current;
+    if (!audio) return;
+
+    console.log("[STOP] handleStop called - completely stopping playback");
+
+    // Pause the audio
+    audio.pause();
+
+    // Clear the source to fully stop streaming
+    audio.src = "";
+    audio.load();
+
+    // Stop silence audio
+    if (silenceAudio) {
+      silenceAudio.pause();
+    }
+
+    // Update state
+    setIsPlaying(false);
+    setIsLoading(false);
+
+    // Update Media Session to stopped state
+    if ("mediaSession" in navigator) {
+      if ("setPlaybackState" in navigator.mediaSession) {
+        navigator.mediaSession.playbackState = "none";
+        console.log("[STOP] Media Session playback state set to: none");
+      }
+    }
+
+    console.log("[STOP] Playback completely stopped");
   };
 
   const handleNext = () => {
@@ -787,14 +823,14 @@ export default function CarPlayer() {
                 </div>
 
                 {/* Controls */}
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                   <Button
                     onClick={handlePrevious}
                     size="icon"
                     variant="ghost"
-                    className="w-16 h-16 rounded-full hover:bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-105 border border-white/10"
+                    className="w-14 h-14 rounded-full hover:bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-105 border border-white/10"
                   >
-                    <SkipBack className="w-7 h-7" />
+                    <SkipBack className="w-6 h-6" />
                   </Button>
 
                   <div className="relative">
@@ -822,13 +858,25 @@ export default function CarPlayer() {
                     )}
                   </div>
 
+                  {/* Stop Button - iOS audio pattern */}
+                  <Button
+                    onClick={handleStop}
+                    size="icon"
+                    variant="ghost"
+                    disabled={!isPlaying}
+                    className="w-14 h-14 rounded-full hover:bg-red-500/20 text-white backdrop-blur-sm transition-all hover:scale-105 border border-white/10 disabled:opacity-30 disabled:hover:scale-100"
+                    title="Stop"
+                  >
+                    <Square className="w-6 h-6" />
+                  </Button>
+
                   <Button
                     onClick={handleNext}
                     size="icon"
                     variant="ghost"
-                    className="w-16 h-16 rounded-full hover:bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-105 border border-white/10"
+                    className="w-14 h-14 rounded-full hover:bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-105 border border-white/10"
                   >
-                    <SkipForward className="w-7 h-7" />
+                    <SkipForward className="w-6 h-6" />
                   </Button>
                 </div>
               </div>
