@@ -465,8 +465,8 @@ export default function CarPlayer() {
     setIsMuted(newMutedState);
     console.log("Mute toggled:", newMutedState);
 
-    // Force volume change immediately for iOS
-    if (audioRef.current) {
+    // Force volume change immediately for iOS (but not during ads)
+    if (audioRef.current && !isPlayingAd) {
       const targetVolume = newMutedState ? 0 : volume / 100;
       audioRef.current.volume = targetVolume;
       audioRef.current.muted = newMutedState;
@@ -523,8 +523,8 @@ export default function CarPlayer() {
       }
 
       // Lower radio volume immediately (no animation for mobile lock screen)
-      setAudioVolume(radioAudio, 0.05);
-      console.log("[AD] Radio volume lowered");
+      setAudioVolume(radioAudio, 0);
+      console.log("[AD] Radio volume lowered to 0");
 
       // Set ad volume to maximum for clear playback
       setAudioVolume(adAudio, 1.0);
@@ -804,12 +804,12 @@ export default function CarPlayer() {
                     setVolume(newVolume);
                     if (newVolume > 0 && isMuted) {
                       setIsMuted(false);
-                      if (audioRef.current) {
+                      if (audioRef.current && !isPlayingAd) {
                         audioRef.current.muted = false;
                       }
                     }
-                    // Directly update audio element
-                    if (audioRef.current) {
+                    // Directly update audio element (but not during ads)
+                    if (audioRef.current && !isPlayingAd) {
                       audioRef.current.volume = newVolume / 100;
                       console.log("Audio volume directly set to:", audioRef.current.volume);
                     }
