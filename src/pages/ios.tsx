@@ -358,6 +358,7 @@ export default function CarPlayer() {
   const handlePlay = async () => {
     const audio = audioRef.current;
     const silenceAudio = silenceAudioRef.current;
+    const adAudio = adAudioRef.current;
     if (!audio || isPlaying) return; // Do nothing if already playing
 
     // Always reload source for fresh live stream
@@ -369,6 +370,15 @@ export default function CarPlayer() {
     if (silenceAudio) {
       silenceAudio.pause();
     }
+
+    // Pre-load ad audio early to help iOS accept it
+    if (adAudio && userCountry) {
+      const adUrl = getRandomAd(userCountry);
+      adAudio.src = adUrl;
+      adAudio.load();
+      console.log("[AD] Pre-loaded ad audio:", adUrl);
+    }
+
     try {
       await audio.play();
       setIsPlaying(true);
@@ -501,10 +511,15 @@ export default function CarPlayer() {
       setIsPlayingAd(true);
       originalVolumeRef.current = volume;
 
-      // Get random ad for user's country
-      const adUrl = getRandomAd(userCountry);
-      adAudio.src = adUrl;
-      console.log("[AD] Playing:", adUrl);
+      // Ad should already be pre-loaded from handlePlay, but reload if needed
+      if (!adAudio.src || adAudio.readyState === 0) {
+        const adUrl = getRandomAd(userCountry);
+        adAudio.src = adUrl;
+        adAudio.load();
+        console.log("[AD] Loading ad:", adUrl);
+      } else {
+        console.log("[AD] Using pre-loaded ad:", adAudio.src);
+      }
 
       // Lower radio volume immediately (no animation for mobile lock screen)
       setAudioVolume(radioAudio, 0.05);
@@ -587,11 +602,11 @@ export default function CarPlayer() {
       return;
     }
 
-    // Play first ad after 5 seconds
+    // Play first ad after 30 seconds
     const firstAdTimeout = setTimeout(() => {
       console.log("[AD] Triggering first advertisement");
       playAdvertisement();
-    }, 5 * 1000); // 5 seconds
+    }, 30 * 1000); // 30 seconds
 
     // Then continue with 10-minute interval
     adIntervalRef.current = setInterval(
