@@ -569,6 +569,10 @@ export default function CarPlayer() {
           album: "DesiMelody.com, 1200 Radio Stations From South East Asia",
           artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
         });
+
+        // CRITICAL: Force sync playback state to 'playing' since radio is still playing
+        navigator.mediaSession.playbackState = "playing";
+        console.log("[AD] Media Session playback state forcibly set to 'playing' after ad");
       }
 
       // Pre-load next ad immediately for iOS autoplay acceptance
@@ -593,6 +597,10 @@ export default function CarPlayer() {
           album: "DesiMelody.com, 1200 Radio Stations From South East Asia",
           artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
         });
+
+        // CRITICAL: Force sync playback state even on error
+        navigator.mediaSession.playbackState = "playing";
+        console.log("[AD] Media Session playback state forcibly set to 'playing' after ad error");
       }
 
       // Pre-load next ad even on error to prepare for next interval
