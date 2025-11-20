@@ -184,6 +184,10 @@ export default function CarPlayer() {
         errorTimeoutRef.current = null;
       }
       hasAutoSkippedRef.current = false;
+      // Update Media Session state when audio actually starts playing
+      if (isPlaying && "mediaSession" in navigator && "setPlaybackState" in navigator.mediaSession) {
+        navigator.mediaSession.playbackState = "playing";
+      }
     };
 
     audio.addEventListener("canplay", handleCanPlay);
@@ -382,9 +386,17 @@ export default function CarPlayer() {
     try {
       await audio.play();
       setIsPlaying(true);
+      // Immediately update Media Session state for lock screen
+      if ("mediaSession" in navigator && "setPlaybackState" in navigator.mediaSession) {
+        navigator.mediaSession.playbackState = "playing";
+      }
     } catch (error) {
       console.log("Play failed:", error);
       setIsPlaying(true); // Keep state true to maintain controls
+      // Update Media Session state even on error
+      if ("mediaSession" in navigator && "setPlaybackState" in navigator.mediaSession) {
+        navigator.mediaSession.playbackState = "playing";
+      }
     }
   };
 
@@ -394,6 +406,10 @@ export default function CarPlayer() {
 
     audio.pause();
     setIsPlaying(false);
+    // Immediately update Media Session state for lock screen
+    if ("mediaSession" in navigator && "setPlaybackState" in navigator.mediaSession) {
+      navigator.mediaSession.playbackState = "paused";
+    }
   };
 
   const handleNext = () => {
