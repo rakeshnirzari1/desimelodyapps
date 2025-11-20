@@ -576,7 +576,7 @@ export default function CarPlayer() {
     }
   };
 
-  // Set up 2-minute advertisement interval
+  // Set up advertisement intervals
   useEffect(() => {
     if (!isPlaying) {
       // Clear interval when not playing
