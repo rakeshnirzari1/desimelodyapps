@@ -133,7 +133,7 @@ export default function CarPlayer() {
       setIsLoading(false);
       console.error("Station loading error:", currentStation.name);
 
-      // Play silence to keep lock screen controls active
+      // Play silence to keep Media Session alive (but won't affect play/pause icon)
       if (isPlaying && silenceAudioRef.current) {
         silenceAudioRef.current.play().catch((e) => console.log("Silence play failed:", e));
       }
@@ -159,7 +159,7 @@ export default function CarPlayer() {
         return;
       }
 
-      // Play silence to keep lock screen controls active
+      // Play silence to keep Media Session alive during stall
       if (isPlaying && silenceAudioRef.current) {
         silenceAudioRef.current.play().catch((e) => console.log("Silence play failed:", e));
       }
@@ -204,35 +204,34 @@ export default function CarPlayer() {
     };
   }, [currentStation]);
 
-  // Handle silence audio to keep lock screen controls active during loading and interruptions
+  // Manage silence audio to keep Media Session alive during loading/errors
   useEffect(() => {
     if (!silenceAudioRef.current) return;
 
     const silenceAudio = silenceAudioRef.current;
-    // Set volume to very low to prevent it from taking over media controls
-    silenceAudio.volume = 0.01;
+    // Set volume to nearly zero so it doesn't interfere with main audio
+    silenceAudio.volume = 0.001;
+    // Mute it completely to prevent ANY audio output
+    silenceAudio.muted = true;
 
-    // Clear any pending media session sync
-    if (mediaSessionSyncTimeoutRef.current) {
-      clearTimeout(mediaSessionSyncTimeoutRef.current);
-      mediaSessionSyncTimeoutRef.current = null;
-    }
-
-    // Play silence during loading OR when interrupted (phone call) to maintain lock screen controls
-    if ((isLoading && isPlaying) || isInterrupted) {
+    // Play silence during loading to keep Media Session alive
+    if (isLoading && isPlaying) {
       silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
     } else {
       // Stop silence when station is actually playing
       silenceAudio.pause();
     }
+  }, [isLoading, isPlaying]);
 
-    return () => {
-      if (mediaSessionSyncTimeoutRef.current) {
-        clearTimeout(mediaSessionSyncTimeoutRef.current);
-        mediaSessionSyncTimeoutRef.current = null;
-      }
-    };
-  }, [isLoading, isPlaying, isInterrupted]);
+  // Sync Media Session playback state with actual playing state
+  // This runs AFTER silence audio effect, ensuring main radio always controls the icon
+  useEffect(() => {
+    if (!("mediaSession" in navigator)) return;
+
+    // Force sync playback state to main radio state (overrides any silence audio state)
+    navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+    console.log("[MediaSession] Playback state synced to main radio:", isPlaying ? "playing" : "paused");
+  }, [isPlaying, isLoading]); // Re-sync whenever isPlaying OR isLoading changes
 
   // Media Session API for car controls
   useEffect(() => {
@@ -254,12 +253,6 @@ export default function CarPlayer() {
       });
     } catch (e) {
       console.log("Position state not supported");
-    }
-
-    // Sync playback state with lock screen
-    if ("setPlaybackState" in navigator.mediaSession) {
-      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
-      console.log("Media Session playback state:", isPlaying ? "playing" : "paused");
     }
 
     // Enable play and pause handlers for lock screen controls
@@ -291,7 +284,10 @@ export default function CarPlayer() {
         console.log("Audio interrupted - likely phone call");
         wasInterruptedRef.current = true;
         setIsInterrupted(true);
-        // Silent audio will start playing via the effect above
+        // Play silence to keep Media Session alive during call
+        if (silenceAudio) {
+          silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
+        }
       }
     };
 
@@ -301,7 +297,7 @@ export default function CarPlayer() {
         console.log("Audio can play again - resuming after interruption");
         wasInterruptedRef.current = false;
         setIsInterrupted(false);
-        // Stop silent audio and resume main station
+        // Stop silence and resume main station
         silenceAudio.pause();
         if (currentStation) {
           audio.src = currentStation.link;
@@ -366,7 +362,7 @@ export default function CarPlayer() {
       audio.src = currentStation.link;
       audio.load();
     }
-    // Stop silent audio immediately when playing
+    // Stop silent audio immediately when playing main radio
     if (silenceAudio) {
       silenceAudio.pause();
     }
@@ -522,10 +518,10 @@ export default function CarPlayer() {
         console.log("[AD] Using pre-loaded ad:", adAudio.src);
       }
 
-      // Aggressively mute radio for iOS (set both volume and muted property)
+      // Mute radio completely but keep it playing to maintain Media Session
       radioAudio.volume = 0;
       radioAudio.muted = true;
-      console.log("[AD] Radio aggressively muted (volume=0, muted=true)");
+      console.log("[AD] Radio muted (volume=0, muted=true) but still playing");
 
       // Set ad volume to maximum for clear playback
       adAudio.volume = 1.0;
@@ -560,19 +556,71 @@ export default function CarPlayer() {
         adAudio.addEventListener("error", handleAdError);
       });
 
-      // Restore radio volume and unmute
+      // Restore radio volume FIRST before reloading to ensure it's the active audio
       radioAudio.volume = originalVolumeRef.current / 100;
       radioAudio.muted = false;
-      console.log("[AD] Radio unmuted and volume restored to", originalVolumeRef.current);
+      console.log("[AD] Radio volume restored to", originalVolumeRef.current);
 
-      // Restore Media Session
+      // Reload radio stream fresh to jump back to live (not buffered position)
+      if (currentStation) {
+        radioAudio.src = currentStation.link;
+        radioAudio.load();
+        console.log("[AD] Radio stream reloaded fresh for live playback");
+      }
+
+      // Resume radio playback from live position IMMEDIATELY
+      const playPromise = radioAudio.play().catch((e) => console.log("[AD] Radio resume failed:", e));
+      console.log("[AD] Radio playback started at volume", originalVolumeRef.current);
+
+      // Wait for radio to actually start playing before stopping silence
+      await playPromise;
+
+      // Stop silence audio immediately once radio starts
+      if (silenceAudioRef.current && !silenceAudioRef.current.paused) {
+        silenceAudioRef.current.pause();
+        console.log("[AD] Silent audio stopped as radio took over");
+      }
+
+      // Restore Media Session AFTER radio is playing with aggressive sync
       if ("mediaSession" in navigator && currentStation) {
+        // Update metadata first
         navigator.mediaSession.metadata = new MediaMetadata({
           title: currentStation.name,
           artist: `${currentStation.language || "Hindi"} • ${currentStation.type}`,
           album: "DesiMelody.com, 1200 Radio Stations From South East Asia",
           artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
         });
+
+        // CRITICAL: Force sync playback state multiple times with longer delays
+        // iOS needs time to recognize the new audio source
+        setTimeout(() => {
+          if (navigator.mediaSession && audioRef.current && !audioRef.current.paused) {
+            navigator.mediaSession.playbackState = "playing";
+            console.log(
+              "[AD] Media Session synced to 'playing' after 200ms - radio playing:",
+              !audioRef.current.paused,
+            );
+          }
+        }, 200);
+        setTimeout(() => {
+          if (navigator.mediaSession && audioRef.current && !audioRef.current.paused) {
+            navigator.mediaSession.playbackState = "playing";
+            console.log(
+              "[AD] Media Session synced to 'playing' after 500ms - radio playing:",
+              !audioRef.current.paused,
+            );
+          }
+        }, 500);
+        setTimeout(() => {
+          if (navigator.mediaSession && audioRef.current && !audioRef.current.paused) {
+            navigator.mediaSession.playbackState = "playing";
+            console.log(
+              "[AD] Media Session synced to 'playing' after 1000ms - radio playing:",
+              !audioRef.current.paused,
+            );
+          }
+        }, 1000);
+        console.log("[AD] Media Session sync scheduled after radio playback started");
       }
 
       // Pre-load next ad immediately for iOS autoplay acceptance
@@ -584,12 +632,28 @@ export default function CarPlayer() {
       setIsPlayingAd(false);
     } catch (error) {
       console.error("[AD] Error playing advertisement:", error);
-      // Restore radio volume and unmute on error
-      if (radioAudio) {
+      // Reload and restore radio on error
+      if (radioAudio && currentStation) {
+        // Restore volume FIRST
         radioAudio.volume = originalVolumeRef.current / 100;
         radioAudio.muted = false;
+
+        // Reload fresh stream
+        radioAudio.src = currentStation.link;
+        radioAudio.load();
+
+        // Resume playback immediately
+        radioAudio
+          .play()
+          .then(() => {
+            // Stop silence once radio plays
+            if (silenceAudioRef.current && !silenceAudioRef.current.paused) {
+              silenceAudioRef.current.pause();
+            }
+          })
+          .catch((e) => console.log("[AD] Radio resume after error failed:", e));
       }
-      // Restore Media Session on error
+      // Restore Media Session on error with delayed sync
       if ("mediaSession" in navigator && currentStation) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: currentStation.name,
@@ -597,6 +661,20 @@ export default function CarPlayer() {
           album: "DesiMelody.com, 1200 Radio Stations From South East Asia",
           artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
         });
+
+        // CRITICAL: Force sync playback state with delays even on error
+        setTimeout(() => {
+          if (navigator.mediaSession && audioRef.current && !audioRef.current.paused) {
+            navigator.mediaSession.playbackState = "playing";
+            console.log("[AD] Media Session synced after error (200ms)");
+          }
+        }, 200);
+        setTimeout(() => {
+          if (navigator.mediaSession && audioRef.current && !audioRef.current.paused) {
+            navigator.mediaSession.playbackState = "playing";
+            console.log("[AD] Media Session synced after error (500ms)");
+          }
+        }, 500);
       }
 
       // Pre-load next ad even on error to prepare for next interval
@@ -655,7 +733,8 @@ export default function CarPlayer() {
 
       <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f1624] text-white flex flex-col relative overflow-hidden">
         <audio ref={audioRef} preload="auto" />
-        <audio ref={silenceAudioRef} src="/silence.mp3" loop preload="auto" style={{ display: "none" }} />
+        {/* Silent audio keeps Media Session alive during loading/errors - muted to prevent interference */}
+        <audio ref={silenceAudioRef} src="/silence.mp3" loop preload="auto" muted style={{ display: "none" }} />
         <audio ref={adAudioRef} preload="auto" style={{ display: "none" }} />
 
         {/* Animated background effects */}
