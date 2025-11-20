@@ -44,32 +44,28 @@ export default function CarPlayer() {
   const [isPlayingAd, setIsPlayingAd] = useState(false);
   const [userCountry, setUserCountry] = useState<string>("india");
   const originalVolumeRef = useRef<number>(80);
-  const silenceInitializedRef = useRef(false);
 
   // Load stations and detect user country
   useEffect(() => {
     const stations = getStationsWithSlugs();
     setAllStations(stations);
-
-    // Detect user country for ads
     getUserCountry().then(setUserCountry);
   }, []);
 
-  // Sync with context station when it changes (e.g., from favorites)
+  // Sync with context station when it changes
   useEffect(() => {
     if (contextStation) {
       setCurrentStation(contextStation);
     }
   }, [contextStation]);
 
-  // Update playlist stations based on context filtering or use all stations
+  // Update playlist stations
   useEffect(() => {
     const baseStations =
       contextFilteredStations && contextFilteredStations.length > 0 ? contextFilteredStations : allStations;
 
     setPlaylistStations(baseStations);
 
-    // Set initial station only if we don't have one from context
     if (baseStations.length > 0 && !currentStation && !contextStation) {
       const defaultStation =
         baseStations.find(
@@ -80,7 +76,7 @@ export default function CarPlayer() {
     }
   }, [contextFilteredStations, allStations]);
 
-  // Search results - search within the current playlist (respects tag/language filtering)
+  // Search results
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const query = searchQuery.toLowerCase();
@@ -92,10 +88,10 @@ export default function CarPlayer() {
           station.tags?.toLowerCase().includes(query) ||
           station.type.toLowerCase().includes(query),
       )
-      .slice(0, 10); // Limit to 10 results
+      .slice(0, 10);
   }, [searchQuery, playlistStations]);
 
-  // Load and play station with auto-skip on error
+  // Load and play station
   useEffect(() => {
     if (!currentStation || !audioRef.current) return;
 
@@ -106,27 +102,16 @@ export default function CarPlayer() {
     audio.src = currentStation.link;
     setIsLoading(true);
 
-    // Clear any existing error timeout
     if (errorTimeoutRef.current) {
       clearTimeout(errorTimeoutRef.current);
       errorTimeoutRef.current = null;
     }
 
-    const handleCanPlay = async () => {
+    const handleCanPlay = () => {
       if (currentAttempt !== loadAttemptRef.current) return;
       setIsLoading(false);
-      // Stop silence audio when main station becomes ready
-      if (silenceAudioRef.current) {
-        silenceAudioRef.current.pause();
-      }
-      if (isPlaying) {
-        try {
-          await audio.play();
-        } catch (error) {
-          console.log("Auto-play failed:", error);
-          // Keep isPlaying true to maintain controls
-        }
-      }
+      if (silenceAudioRef.current) silenceAudioRef.current.pause();
+      if (isPlaying) audio.play().catch(() => {});
     };
 
     const handleError = () => {
@@ -134,61 +119,33 @@ export default function CarPlayer() {
       setIsLoading(false);
       console.error("Station loading error:", currentStation.name);
 
-      // Play silence to keep lock screen controls active
       if (isPlaying && silenceAudioRef.current) {
-        silenceAudioRef.current.play().catch((e) => console.log("Silence play failed:", e));
+        silenceAudioRef.current.play().catch(() => {});
       }
 
-      // Keep playing state true to maintain lock screen controls
-      // Only auto-skip once until a station successfully loads
       if (isPlaying && !hasAutoSkippedRef.current) {
         hasAutoSkippedRef.current = true;
-        errorTimeoutRef.current = setTimeout(() => {
-          console.log("Auto-skipping to next station...");
-          handleNext();
-        }, 2000);
+        errorTimeoutRef.current = setTimeout(() => handleNext(), 2000);
       }
     };
 
     const handleStalled = () => {
       if (currentAttempt !== loadAttemptRef.current) return;
-      console.warn("Station stalled:", currentStation.name);
-
-      const audioEl = audioRef.current;
-      if (audioEl && !audioEl.paused && audioEl.readyState >= 3) {
-        // If audio is actually playing, ignore transient stalled events
-        return;
-      }
-
-      // Play silence to keep lock screen controls active
       if (isPlaying && silenceAudioRef.current) {
-        silenceAudioRef.current.play().catch((e) => console.log("Silence play failed:", e));
+        silenceAudioRef.current.play().catch(() => {});
       }
-
-      // Only auto-skip once until a station successfully loads
       if (isPlaying && !hasAutoSkippedRef.current) {
         hasAutoSkippedRef.current = true;
-        errorTimeoutRef.current = setTimeout(() => {
-          console.log("Stream stalled, skipping to next...");
-          handleNext();
-        }, 8000);
+        errorTimeoutRef.current = setTimeout(() => handleNext(), 8000);
       }
     };
+
     const handlePlaying = () => {
       if (currentAttempt !== loadAttemptRef.current) return;
       setIsLoading(false);
-      if (silenceAudioRef.current) {
-        silenceAudioRef.current.pause();
-      }
-      if (errorTimeoutRef.current) {
-        clearTimeout(errorTimeoutRef.current);
-        errorTimeoutRef.current = null;
-      }
+      if (silenceAudioRef.current) silenceAudioRef.current.pause();
+      if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
       hasAutoSkippedRef.current = false;
-      // Update Media Session state when audio actually starts playing
-      if (isPlaying && "mediaSession" in navigator && "setPlaybackState" in navigator.mediaSession) {
-        navigator.mediaSession.playbackState = "playing";
-      }
     };
 
     audio.addEventListener("canplay", handleCanPlay);
@@ -202,53 +159,26 @@ export default function CarPlayer() {
       audio.removeEventListener("playing", handlePlaying);
       audio.removeEventListener("error", handleError);
       audio.removeEventListener("stalled", handleStalled);
-      if (errorTimeoutRef.current) {
-        clearTimeout(errorTimeoutRef.current);
-        errorTimeoutRef.current = null;
-      }
+      if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
     };
   }, [currentStation]);
 
-  // Handle silence audio to keep lock screen controls active during loading and interruptions
+  // Silence audio to keep controls alive
   useEffect(() => {
     if (!silenceAudioRef.current) return;
-
     const silenceAudio = silenceAudioRef.current;
-
-    // Initialize silent audio src only after first play (after user interaction)
-    if (isPlaying && !silenceInitializedRef.current) {
-      silenceAudio.src = "/silence.mp3";
-      silenceAudio.load();
-      silenceInitializedRef.current = true;
-      console.log("Silent audio initialized after first play");
-    }
-
-    // Set volume to very low to prevent it from taking over media controls
     silenceAudio.volume = 0.01;
 
-    // Clear any pending media session sync
-    if (mediaSessionSyncTimeoutRef.current) {
-      clearTimeout(mediaSessionSyncTimeoutRef.current);
-      mediaSessionSyncTimeoutRef.current = null;
-    }
-
-    // Only play silence if it's been initialized AND we need it during loading OR interruption
-    if (silenceInitializedRef.current && ((isLoading && isPlaying) || isInterrupted)) {
-      silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
+    if ((isLoading && isPlaying) || isInterrupted) {
+      silenceAudio.play().catch(() => {});
     } else {
-      // Stop silence when station is actually playing
       silenceAudio.pause();
     }
-
-    return () => {
-      if (mediaSessionSyncTimeoutRef.current) {
-        clearTimeout(mediaSessionSyncTimeoutRef.current);
-        mediaSessionSyncTimeoutRef.current = null;
-      }
-    };
   }, [isLoading, isPlaying, isInterrupted]);
 
-  // Media Session API for car controls
+  // ──────────────────────────────────────────────────────────────
+  // MEDIA SESSION – METADATA & ACTION HANDLERS
+  // ──────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!currentStation || !("mediaSession" in navigator)) return;
 
@@ -259,28 +189,16 @@ export default function CarPlayer() {
       artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
     });
 
-    // Set position state for live streaming (helps maintain lock screen presence)
     try {
       navigator.mediaSession.setPositionState({
-        duration: Infinity, // Live stream has no duration
+        duration: Infinity,
         playbackRate: 1,
         position: 0,
       });
-    } catch (e) {
-      console.log("Position state not supported");
-    }
+    } catch (e) {}
 
-    // Sync playback state with lock screen
-    if ("setPlaybackState" in navigator.mediaSession) {
-      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
-      console.log("Media Session playback state:", isPlaying ? "playing" : "paused");
-    }
-
-    // Enable play and pause handlers for lock screen controls
     navigator.mediaSession.setActionHandler("play", handlePlay);
     navigator.mediaSession.setActionHandler("pause", handlePause);
-
-    // Next and previous handlers
     navigator.mediaSession.setActionHandler("nexttrack", handleNext);
     navigator.mediaSession.setActionHandler("previoustrack", handlePrevious);
 
@@ -290,76 +208,63 @@ export default function CarPlayer() {
       navigator.mediaSession.setActionHandler("nexttrack", null);
       navigator.mediaSession.setActionHandler("previoustrack", null);
     };
-  }, [currentStation, isPlaying, playlistStations]);
+  }, [currentStation, playlistStations]);
 
-  // Handle phone call interruptions - Enhanced for locked screen
+  // ──────────────────────────────────────────────────────────────
+  // CRITICAL: Keep playbackState in sync AT ALL TIMES (fixes iOS lock screen)
+  // ──────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if ("mediaSession" in navigator) {
+      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+    }
+  }, [isPlaying]);
+
+  // Phone call / interruption handling
   useEffect(() => {
     if (!audioRef.current || !silenceAudioRef.current) return;
 
     const audio = audioRef.current;
     const silenceAudio = silenceAudioRef.current;
 
-    // Handle when main audio is interrupted (e.g., phone call)
     const handleAudioInterruption = () => {
       if (isPlaying && !isInterrupted) {
-        console.log("Audio interrupted - likely phone call");
         wasInterruptedRef.current = true;
         setIsInterrupted(true);
-        // Silent audio will start playing via the effect above
       }
     };
 
-    // Handle when audio can play again after interruption
     const handleAudioResume = () => {
       if (wasInterruptedRef.current && isPlaying) {
-        console.log("Audio can play again - resuming after interruption");
         wasInterruptedRef.current = false;
         setIsInterrupted(false);
-        // Stop silent audio and resume main station
         silenceAudio.pause();
         if (currentStation) {
           audio.src = currentStation.link;
           audio.load();
-          audio.play().catch((e) => console.log("Resume failed:", e));
+          audio.play().catch(() => {});
         }
       }
     };
 
-    // Handle when interruption ends and we can resume
     const handleVisibilityChange = () => {
       if (!document.hidden && wasInterruptedRef.current && isPlaying) {
-        console.log("App visible again after interruption - resuming");
         handleAudioResume();
       }
     };
 
-    // Listen for audio pause events (could be phone call)
-    audio.addEventListener("pause", handleAudioInterruption);
-
-    // Listen for when audio element can resume (after interruption ends)
-    // These events help detect when call ends even with locked screen
-    audio.addEventListener("canplay", () => {
-      if (wasInterruptedRef.current && isPlaying && !isInterrupted) {
-        console.log("Audio ready after interruption");
-        handleAudioResume();
-      }
-    });
-
-    // Listen for visibility changes (when call ends and user returns)
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    // Listen for page focus events (helps detect when call ends on locked screen)
     const handleFocus = () => {
       if (wasInterruptedRef.current && isPlaying) {
-        console.log("Page focused after interruption - attempting resume");
-        // Small delay to let iOS finish cleaning up the call
         setTimeout(() => {
-          if (wasInterruptedRef.current && isPlaying) {
-            handleAudioResume();
-          }
+          if (wasInterruptedRef.current && isPlaying) handleAudioResume();
         }, 500);
       }
     };
+
+    audio.addEventListener("pause", handleAudioInterruption);
+    audio.addEventListener("canplay", () => {
+      if (wasInterruptedRef.current && isPlaying && !isInterrupted) handleAudioResume();
+    });
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("focus", handleFocus);
 
     return () => {
@@ -373,62 +278,43 @@ export default function CarPlayer() {
     const audio = audioRef.current;
     const silenceAudio = silenceAudioRef.current;
     const adAudio = adAudioRef.current;
-    if (!audio || isPlaying) return; // Do nothing if already playing
+    if (!audio || isPlaying) return;
 
-    // Always reload source for fresh live stream
     if (currentStation) {
       audio.src = currentStation.link;
       audio.load();
     }
-    // Stop silent audio immediately when playing
-    if (silenceAudio) {
-      silenceAudio.pause();
-    }
+    if (silenceAudio) silenceAudio.pause();
 
-    // Pre-load ad audio early to help iOS accept it
     if (adAudio && userCountry) {
       const adUrl = getRandomAd(userCountry);
       adAudio.src = adUrl;
       adAudio.load();
-      console.log("[AD] Pre-loaded ad audio:", adUrl);
     }
 
     try {
       await audio.play();
       setIsPlaying(true);
-      // Immediately update Media Session state for lock screen
-      if ("mediaSession" in navigator && "setPlaybackState" in navigator.mediaSession) {
-        navigator.mediaSession.playbackState = "playing";
-      }
+      if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "playing";
     } catch (error) {
-      console.log("Play failed:", error);
-      setIsPlaying(true); // Keep state true to maintain controls
-      // Update Media Session state even on error
-      if ("mediaSession" in navigator && "setPlaybackState" in navigator.mediaSession) {
-        navigator.mediaSession.playbackState = "playing";
-      }
+      setIsPlaying(true);
+      if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "playing";
     }
   };
 
   const handlePause = () => {
     const audio = audioRef.current;
-    if (!audio || !isPlaying) return; // Do nothing if not playing
+    if (!audio || !isPlaying) return;
 
     audio.pause();
     setIsPlaying(false);
-    // Immediately update Media Session state for lock screen
-    if ("mediaSession" in navigator && "setPlaybackState" in navigator.mediaSession) {
-      navigator.mediaSession.playbackState = "paused";
-    }
+    if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "paused";
   };
 
   const handleNext = () => {
     if (playlistStations.length === 0) return;
-    if (errorTimeoutRef.current) {
-      clearTimeout(errorTimeoutRef.current);
-      errorTimeoutRef.current = null;
-    }
-    hasAutoSkippedRef.current = false; // Reset on manual skip
+    if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+    hasAutoSkippedRef.current = false;
     const currentIndex = playlistStations.findIndex((s) => s.id === currentStation?.id);
     const nextIndex = (currentIndex + 1) % playlistStations.length;
     const nextStation = playlistStations[nextIndex];
@@ -438,11 +324,8 @@ export default function CarPlayer() {
 
   const handlePrevious = () => {
     if (playlistStations.length === 0) return;
-    if (errorTimeoutRef.current) {
-      clearTimeout(errorTimeoutRef.current);
-      errorTimeoutRef.current = null;
-    }
-    hasAutoSkippedRef.current = false; // Reset on manual skip
+    if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+    hasAutoSkippedRef.current = false;
     const currentIndex = playlistStations.findIndex((s) => s.id === currentStation?.id);
     const prevIndex = currentIndex - 1 < 0 ? playlistStations.length - 1 : currentIndex - 1;
     const prevStation = playlistStations[prevIndex];
@@ -451,58 +334,34 @@ export default function CarPlayer() {
   };
 
   const handleStationSelect = (station: RadioStation) => {
-    if (errorTimeoutRef.current) {
-      clearTimeout(errorTimeoutRef.current);
-      errorTimeoutRef.current = null;
-    }
-    hasAutoSkippedRef.current = false; // Reset on manual selection
+    if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+    hasAutoSkippedRef.current = false;
     setCurrentStation(station);
     setContextStation(station);
-    setSearchQuery(""); // Clear search
+    setSearchQuery("");
     setShowSearchResults(false);
-    // Playlist stays as current filtered list (tag/language specific)
-    if (!isPlaying) {
-      setIsPlaying(true);
-    }
+    if (!isPlaying) setIsPlaying(true);
   };
 
   // Volume control
   useEffect(() => {
-    // Don't adjust radio volume when ad is playing (ad controls volume manually)
     if (audioRef.current && !isPlayingAd) {
       const targetVolume = isMuted ? 0 : volume / 100;
       audioRef.current.volume = targetVolume;
       audioRef.current.muted = isMuted;
-      console.log(
-        "Volume effect - Volume:",
-        targetVolume,
-        "Muted:",
-        isMuted,
-        "Actual volume:",
-        audioRef.current.volume,
-        "Actual muted:",
-        audioRef.current.muted,
-      );
     }
   }, [volume, isMuted, isPlayingAd]);
 
   const toggleMute = () => {
     const newMutedState = !isMuted;
     setIsMuted(newMutedState);
-    console.log("Mute toggled:", newMutedState);
-
-    // Force volume change immediately for iOS (but not during ads)
     if (audioRef.current && !isPlayingAd) {
-      const targetVolume = newMutedState ? 0 : volume / 100;
-      audioRef.current.volume = targetVolume;
       audioRef.current.muted = newMutedState;
-      console.log("Audio muted property:", audioRef.current.muted, "Volume:", audioRef.current.volume);
+      audioRef.current.volume = newMutedState ? 0 : volume / 100;
     }
   };
 
-  // Helper function to get random ad from country folder
   const getRandomAd = (country: string): string => {
-    // Define number of ads per country
     const adCounts: Record<string, number> = {
       australia: 7,
       bangladesh: 14,
@@ -515,18 +374,11 @@ export default function CarPlayer() {
       uk: 2,
       usa: 2,
     };
-
     const count = adCounts[country] || 2;
     const adNumber = Math.floor(Math.random() * count) + 1;
     return `/ads/${country}/ad${adNumber}.mp3`;
   };
 
-  // Simple volume control for mobile lock screen compatibility
-  const setAudioVolume = (element: HTMLAudioElement, volumeLevel: number) => {
-    element.volume = Math.max(0, Math.min(1, volumeLevel));
-  };
-
-  // Play advertisement - optimized for mobile lock screen
   const playAdvertisement = async () => {
     if (!audioRef.current || !adAudioRef.current || !isPlaying || isPlayingAd) return;
 
@@ -534,30 +386,19 @@ export default function CarPlayer() {
     const adAudio = adAudioRef.current;
 
     try {
-      console.log("[AD] Starting advertisement playback");
       setIsPlayingAd(true);
       originalVolumeRef.current = volume;
 
-      // Ad should already be pre-loaded from handlePlay, but reload if needed
       if (!adAudio.src || adAudio.readyState === 0) {
-        const adUrl = getRandomAd(userCountry);
-        adAudio.src = adUrl;
+        adAudio.src = getRandomAd(userCountry);
         adAudio.load();
-        console.log("[AD] Loading ad:", adUrl);
-      } else {
-        console.log("[AD] Using pre-loaded ad:", adAudio.src);
       }
 
-      // Aggressively mute radio for iOS (set both volume and muted property)
       radioAudio.volume = 0;
       radioAudio.muted = true;
-      console.log("[AD] Radio aggressively muted (volume=0, muted=true)");
-
-      // Set ad volume to maximum for clear playback
       adAudio.volume = 1.0;
       adAudio.muted = false;
 
-      // Update Media Session for lock screen
       if ("mediaSession" in navigator && currentStation) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: "Advertisement",
@@ -568,30 +409,19 @@ export default function CarPlayer() {
       }
 
       await adAudio.play();
-      console.log("[AD] Ad playback started");
 
-      // Wait for ad to finish
       await new Promise<void>((resolve) => {
-        const handleAdEnd = () => {
-          console.log("[AD] Ad finished");
-          adAudio.removeEventListener("ended", handleAdEnd);
+        const end = () => {
+          adAudio.removeEventListener("ended", end);
           resolve();
         };
-        const handleAdError = () => {
-          console.error("[AD] Ad playback error");
-          adAudio.removeEventListener("error", handleAdError);
-          resolve();
-        };
-        adAudio.addEventListener("ended", handleAdEnd);
-        adAudio.addEventListener("error", handleAdError);
+        adAudio.addEventListener("ended", end);
+        adAudio.addEventListener("error", () => resolve());
       });
 
-      // Restore radio volume and unmute
       radioAudio.volume = originalVolumeRef.current / 100;
       radioAudio.muted = false;
-      console.log("[AD] Radio unmuted and volume restored to", originalVolumeRef.current);
 
-      // Restore Media Session
       if ("mediaSession" in navigator && currentStation) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: currentStation.name,
@@ -601,74 +431,30 @@ export default function CarPlayer() {
         });
       }
 
-      // Pre-load next ad immediately for iOS autoplay acceptance
-      const nextAdUrl = getRandomAd(userCountry);
-      adAudio.src = nextAdUrl;
+      const nextAd = getRandomAd(userCountry);
+      adAudio.src = nextAd;
       adAudio.load();
-      console.log("[AD] Pre-loaded next ad:", nextAdUrl);
 
       setIsPlayingAd(false);
-    } catch (error) {
-      console.error("[AD] Error playing advertisement:", error);
-      // Restore radio volume and unmute on error
-      if (radioAudio) {
-        radioAudio.volume = originalVolumeRef.current / 100;
-        radioAudio.muted = false;
-      }
-      // Restore Media Session on error
-      if ("mediaSession" in navigator && currentStation) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: currentStation.name,
-          artist: `${currentStation.language || "Hindi"} • ${currentStation.type}`,
-          album: "DesiMelody.com, 1200 Radio Stations From South East Asia",
-          artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
-        });
-      }
-
-      // Pre-load next ad even on error to prepare for next interval
-      if (adAudio) {
-        const nextAdUrl = getRandomAd(userCountry);
-        adAudio.src = nextAdUrl;
-        adAudio.load();
-        console.log("[AD] Pre-loaded next ad after error:", nextAdUrl);
-      }
-
+    } catch (e) {
+      radioAudio.volume = originalVolumeRef.current / 100;
+      radioAudio.muted = false;
       setIsPlayingAd(false);
     }
   };
 
-  // Set up advertisement intervals
   useEffect(() => {
     if (!isPlaying) {
-      // Clear interval when not playing
-      if (adIntervalRef.current) {
-        clearInterval(adIntervalRef.current);
-        adIntervalRef.current = null;
-      }
+      if (adIntervalRef.current) clearInterval(adIntervalRef.current);
       return;
     }
 
-    // Play first ad after 30 seconds
-    const firstAdTimeout = setTimeout(() => {
-      console.log("[AD] Triggering first advertisement");
-      playAdvertisement();
-    }, 30 * 1000); // 30 seconds
-
-    // Then continue with 10-minute interval
-    adIntervalRef.current = setInterval(
-      () => {
-        console.log("[AD] Triggering scheduled advertisement");
-        playAdvertisement();
-      },
-      10 * 60 * 1000,
-    ); // 10 minutes
+    const first = setTimeout(() => playAdvertisement(), 30_000);
+    adIntervalRef.current = setInterval(() => playAdvertisement(), 10 * 60_000);
 
     return () => {
-      clearTimeout(firstAdTimeout);
-      if (adIntervalRef.current) {
-        clearInterval(adIntervalRef.current);
-        adIntervalRef.current = null;
-      }
+      clearTimeout(first);
+      if (adIntervalRef.current) clearInterval(adIntervalRef.current);
     };
   }, [isPlaying, userCountry, volume]);
 
@@ -681,10 +467,10 @@ export default function CarPlayer() {
 
       <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f1624] text-white flex flex-col relative overflow-hidden">
         <audio ref={audioRef} preload="auto" />
-        <audio ref={silenceAudioRef} loop preload="none" style={{ display: "none" }} />
+        <audio ref={silenceAudioRef} src="/silence.mp3" loop preload="auto" style={{ display: "none" }} />
         <audio ref={adAudioRef} preload="auto" style={{ display: "none" }} />
 
-        {/* Animated background effects */}
+        {/* Background effects */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent pointer-events-none" />
         <div
           className="absolute top-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"
@@ -695,6 +481,7 @@ export default function CarPlayer() {
           style={{ animationDuration: "5s", animationDelay: "1s" }}
         />
 
+        {/* Header */}
         <div className="relative z-10 py-4 md:py-6 flex items-center justify-end px-4">
           <a href="https://desimelody.com/m" target="_self" rel="noopener" className="mx-auto">
             <div className="relative">
@@ -705,7 +492,7 @@ export default function CarPlayer() {
           <UserMenu />
         </div>
 
-        {/* Search Bar */}
+        {/* Search */}
         <div className="relative z-10 px-4 pb-1 mt-4">
           <div className="relative max-w-2xl mx-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/70 z-10" />
@@ -722,11 +509,11 @@ export default function CarPlayer() {
             />
           </div>
         </div>
-        {/* Player */}
+
+        {/* Player UI */}
         <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-4">
           {currentStation ? (
             <div className="relative w-full max-w-4xl space-y-3">
-              {/* Station Info - Compact */}
               <div className="text-center space-y-1">
                 <p className="text-purple-300 text-xs uppercase tracking-widest font-semibold">Now Playing</p>
                 <div className="flex items-center justify-center gap-3">
@@ -738,22 +525,19 @@ export default function CarPlayer() {
                 </p>
               </div>
 
-              {/* Station Image + Controls in Row */}
               <div className="flex items-center justify-center gap-4">
-                {/* Station Image */}
                 <div className="relative flex-shrink-0">
                   <div className="absolute inset-0 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 rounded-3xl blur-2xl opacity-50 animate-pulse" />
                   <img
                     src={currentStation.image}
                     alt={currentStation.name}
                     className="relative w-32 h-32 md:w-40 md:h-40 rounded-3xl object-cover shadow-2xl ring-2 ring-white/20"
-                    onError={(e) => {
-                      e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400";
-                    }}
+                    onError={(e) =>
+                      (e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400")
+                    }
                   />
                 </div>
 
-                {/* Controls */}
                 <div className="flex items-center gap-4">
                   <Button
                     onClick={handlePrevious}
@@ -800,12 +584,11 @@ export default function CarPlayer() {
                 </div>
               </div>
 
-              {/* Volume Control */}
+              {/* Volume */}
               <div className="flex items-center justify-center gap-4 max-w-md mx-auto px-4">
                 <button
                   onClick={toggleMute}
                   className="text-white/70 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-full"
-                  title={isMuted ? "Unmute" : "Mute"}
                 >
                   {isMuted ? (
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -828,21 +611,11 @@ export default function CarPlayer() {
                 </button>
                 <Slider
                   value={[isMuted ? 0 : volume]}
-                  onValueChange={(value) => {
-                    console.log("Slider changed to:", value[0]);
-                    const newVolume = value[0];
-                    setVolume(newVolume);
-                    if (newVolume > 0 && isMuted) {
-                      setIsMuted(false);
-                      if (audioRef.current && !isPlayingAd) {
-                        audioRef.current.muted = false;
-                      }
-                    }
-                    // Directly update audio element (but not during ads)
-                    if (audioRef.current && !isPlayingAd) {
-                      audioRef.current.volume = newVolume / 100;
-                      console.log("Audio volume directly set to:", audioRef.current.volume);
-                    }
+                  onValueChange={(v) => {
+                    const newVol = v[0];
+                    setVolume(newVol);
+                    if (newVol > 0 && isMuted) setIsMuted(false);
+                    if (audioRef.current && !isPlayingAd) audioRef.current.volume = newVol / 100;
                   }}
                   max={100}
                   step={1}
@@ -851,8 +624,8 @@ export default function CarPlayer() {
                 <span className="text-base text-white/70 font-medium w-12 text-right">{isMuted ? 0 : volume}%</span>
               </div>
 
-              {/* Audio Visualizer - Equalizer Bars */}
-              <div className="relative h-24 md:h-28 flex items-end justify-center gap-1.5 px-6 mt-2">
+              {/* Visualizer */}
+              <div className="relative h-24 md:h-28 flex items-end justify-center gap- opc-1.5 px-6 mt-2">
                 {[...Array(12)].map((_, i) => {
                   const heights = [60, 80, 95, 75, 90, 100, 85, 70, 95, 80, 75, 65];
                   const colors = [
@@ -872,9 +645,7 @@ export default function CarPlayer() {
                   return (
                     <div
                       key={i}
-                      className={`flex-1 max-w-[24px] rounded-full bg-gradient-to-t ${colors[i]} transition-all duration-300 shadow-lg ${
-                        isPlaying && !isLoading ? "animate-pulse" : "opacity-40"
-                      }`}
+                      className={`flex-1 max-w-[24px] rounded-full bg-gradient-to-t ${colors[i]} transition-all duration-300 shadow-lg ${isPlaying && !isLoading ? "animate-pulse" : "opacity-40"}`}
                       style={{
                         height: isPlaying && !isLoading ? `${heights[i]}%` : "30%",
                         animationDelay: `${i * 0.1}s`,
@@ -889,7 +660,8 @@ export default function CarPlayer() {
             <p className="text-white/70 text-lg">No stations found</p>
           )}
         </div>
-        {/* Advertisement Banner */}
+
+        {/* Ad banner */}
         <div className="relative z-10 px-4 py-3">
           <div className="max-w-2xl mx-auto flex justify-center">
             <a
@@ -907,10 +679,9 @@ export default function CarPlayer() {
           </div>
         </div>
 
-        {/* Tags and Languages Section */}
+        {/* Tags & Languages */}
         <div className="relative z-10 px-4 py-4 space-y-6">
           <div className="max-w-2xl mx-auto">
-            {/* Tags Section */}
             <div className="mb-6">
               <h3 className="text-white font-bold text-lg mb-3 text-center">Browse by Tag</h3>
               <div className="flex flex-wrap gap-2 justify-center">
@@ -925,8 +696,6 @@ export default function CarPlayer() {
                 ))}
               </div>
             </div>
-
-            {/* Languages Section */}
             <div>
               <h3 className="text-white font-bold text-lg mb-3 text-center">Browse by Language</h3>
               <div className="flex flex-wrap gap-2 justify-center">
@@ -945,20 +714,16 @@ export default function CarPlayer() {
             </div>
           </div>
         </div>
-        {/* Bottom gradient overlay */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
 
-        {/* Search Results Modal - Rendered outside all containers */}
+        {/* Search Results Modal */}
         {showSearchResults && searchResults.length > 0 && (
           <div
             className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
-            style={{ pointerEvents: "auto" }}
             onClick={() => setShowSearchResults(false)}
           >
             <div
               className="w-full max-w-md bg-white rounded-3xl shadow-2xl max-h-[75vh] overflow-hidden flex flex-col"
               onClick={(e) => e.stopPropagation()}
-              style={{ pointerEvents: "auto" }}
             >
               <div className="sticky top-0 bg-gradient-to-r from-purple-600 via-purple-500 to-pink-600 text-white p-4 flex items-center justify-between">
                 <h3 className="font-bold text-lg">Search Results ({searchResults.length})</h3>
@@ -978,19 +743,16 @@ export default function CarPlayer() {
                     className="w-full flex items-center gap-4 p-4 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 transition-all border-b border-gray-100 last:border-0"
                   >
                     <button
-                      onClick={() => {
-                        handleStationSelect(station);
-                      }}
+                      onClick={() => handleStationSelect(station)}
                       className="flex items-center gap-4 flex-1 min-w-0 text-left"
-                      style={{ cursor: "pointer", pointerEvents: "auto" }}
                     >
                       <img
                         src={station.image}
                         alt={station.name}
                         className="w-14 h-14 rounded-xl object-cover shadow-lg ring-2 ring-purple-200"
-                        onError={(e) => {
-                          e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400";
-                        }}
+                        onError={(e) =>
+                          (e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400")
+                        }
                       />
                       <div className="flex-1 min-w-0">
                         <div className="font-bold text-gray-900 truncate text-base">{station.name}</div>
