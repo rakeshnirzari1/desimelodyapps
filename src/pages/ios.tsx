@@ -256,6 +256,12 @@ export default function CarPlayer() {
       console.log("Position state not supported");
     }
 
+    // Sync playback state with lock screen
+    if ("setPlaybackState" in navigator.mediaSession) {
+      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+      console.log("Media Session playback state:", isPlaying ? "playing" : "paused");
+    }
+
     // Enable play and pause handlers for lock screen controls
     navigator.mediaSession.setActionHandler("play", handlePlay);
     navigator.mediaSession.setActionHandler("pause", handlePause);
