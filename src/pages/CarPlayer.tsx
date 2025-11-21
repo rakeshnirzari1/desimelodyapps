@@ -286,15 +286,15 @@ export default function CarPlayer() {
       }
     };
 
-    audio.addEventListener('play', updateIsPlaying);
-    audio.addEventListener('pause', updateIsPlaying);
+    audio.addEventListener("play", updateIsPlaying);
+    audio.addEventListener("pause", updateIsPlaying);
 
     // Initial sync
     updateIsPlaying();
 
     return () => {
-      audio.removeEventListener('play', updateIsPlaying);
-      audio.removeEventListener('pause', updateIsPlaying);
+      audio.removeEventListener("play", updateIsPlaying);
+      audio.removeEventListener("pause", updateIsPlaying);
     };
   }, [isInterrupted]);
 
@@ -677,7 +677,10 @@ export default function CarPlayer() {
               {/* Station Info - Compact */}
               <div className="text-center space-y-1">
                 <p className="text-purple-300 text-xs uppercase tracking-widest font-semibold">Now Playing</p>
-                <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-2xl">{currentStation.name}</h1>
+                <div className="flex items-center justify-center gap-3">
+                  <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-2xl">{currentStation.name}</h1>
+                  <FavoritesManager station={currentStation} />
+                </div>
                 <p className="text-sm md:text-base text-white/70">
                   {currentStation.language || "Hindi"} • {currentStation.type}
                 </p>
