@@ -371,14 +371,14 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       return;
     }
 
-    // Play first ad after 2 minutes
+    // Play first ad after 5 minutes
     const firstAdTimeout = setTimeout(
       () => {
         console.log("[AD] Triggering first advertisement");
         playAdvertisement();
       },
-      2 * 60 * 1000,
-    ); // 2 minutes
+      5 * 60 * 1000,
+    ); // 5 minutes
 
     // Then continue with 10-minute interval
     adIntervalRef.current = setInterval(
@@ -500,7 +500,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           </div>
         </div>
       </div>
-      
+
       <HistoryTracker station={isPlaying ? station : null} />
     </Card>
   );
