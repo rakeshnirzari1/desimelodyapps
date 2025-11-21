@@ -116,10 +116,7 @@ export default function CarPlayer() {
     const handleCanPlay = async () => {
       if (currentAttempt !== loadAttemptRef.current) return;
       setIsLoading(false);
-      // Stop silence audio when main station becomes ready
-      if (silenceAudioRef.current) {
-        silenceAudioRef.current.pause();
-      }
+      // Note: Silence audio continues playing to maintain lock screen session
       if (isPlaying) {
         try {
           await audio.play();
@@ -178,9 +175,7 @@ export default function CarPlayer() {
     const handlePlaying = () => {
       if (currentAttempt !== loadAttemptRef.current) return;
       setIsLoading(false);
-      if (silenceAudioRef.current) {
-        silenceAudioRef.current.pause();
-      }
+      // Note: Silence audio continues playing to maintain lock screen session
       if (errorTimeoutRef.current) {
         clearTimeout(errorTimeoutRef.current);
         errorTimeoutRef.current = null;
@@ -220,11 +215,11 @@ export default function CarPlayer() {
       mediaSessionSyncTimeoutRef.current = null;
     }
 
-    // Play silence during loading OR when interrupted (phone call) to maintain lock screen controls
-    if ((isLoading && isPlaying) || isInterrupted) {
+    // Play silence whenever playing and not playing ad to maintain lock screen controls
+    if (isPlaying && !isPlayingAd) {
       silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
     } else {
-      // Stop silence when station is actually playing
+      // Stop silence when not playing or during ads
       silenceAudio.pause();
     }
 
@@ -234,7 +229,7 @@ export default function CarPlayer() {
         mediaSessionSyncTimeoutRef.current = null;
       }
     };
-  }, [isLoading, isPlaying, isInterrupted]);
+  }, [isLoading, isPlaying, isInterrupted, isPlayingAd]);
 
   // Media Session API for car controls
   useEffect(() => {
@@ -258,6 +253,12 @@ export default function CarPlayer() {
       console.log("Position state not supported");
     }
 
+    // Sync playback state with lock screen
+    if ("setPlaybackState" in navigator.mediaSession) {
+      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+      console.log("Media Session playback state:", isPlaying ? "playing" : "paused");
+    }
+
     // Enable play and pause handlers for lock screen controls
     navigator.mediaSession.setActionHandler("play", handlePlay);
     navigator.mediaSession.setActionHandler("pause", handlePause);
@@ -273,6 +274,29 @@ export default function CarPlayer() {
       navigator.mediaSession.setActionHandler("previoustrack", null);
     };
   }, [currentStation, isPlaying, playlistStations]);
+
+  // Sync isPlaying state with actual audio element state
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const updateIsPlaying = () => {
+      if (!isInterrupted) {
+        setIsPlaying(!audio.paused);
+      }
+    };
+
+    audio.addEventListener('play', updateIsPlaying);
+    audio.addEventListener('pause', updateIsPlaying);
+
+    // Initial sync
+    updateIsPlaying();
+
+    return () => {
+      audio.removeEventListener('play', updateIsPlaying);
+      audio.removeEventListener('pause', updateIsPlaying);
+    };
+  }, [isInterrupted]);
 
   // Handle phone call interruptions
   useEffect(() => {
@@ -336,9 +360,17 @@ export default function CarPlayer() {
     try {
       await audio.play();
       setIsPlaying(true);
+      // Immediately play silence to maintain lock screen session
+      if (silenceAudio) {
+        silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
+      }
     } catch (error) {
       console.log("Play failed:", error);
       setIsPlaying(true); // Keep state true to maintain controls
+      // Play silence even on error to maintain controls
+      if (silenceAudio) {
+        silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
+      }
     }
   };
 
@@ -485,6 +517,9 @@ export default function CarPlayer() {
           album: "DesiMelody.com",
           artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
         });
+        if ("setPlaybackState" in navigator.mediaSession) {
+          navigator.mediaSession.playbackState = "playing";
+        }
       }
 
       await adAudio.play();
@@ -518,6 +553,9 @@ export default function CarPlayer() {
           album: "DesiMelody.com, 1200 Radio Stations From South East Asia",
           artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
         });
+        if ("setPlaybackState" in navigator.mediaSession) {
+          navigator.mediaSession.playbackState = "playing";
+        }
       }
 
       setIsPlayingAd(false);
