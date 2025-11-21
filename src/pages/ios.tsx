@@ -204,7 +204,7 @@ export default function CarPlayer() {
     };
   }, [currentStation]);
 
-  // Handle silence audio to keep lock screen controls active during loading and interruptions
+  // Handle silence audio to keep lock screen controls active when playing
   useEffect(() => {
     if (!silenceAudioRef.current) return;
 
@@ -218,11 +218,11 @@ export default function CarPlayer() {
       mediaSessionSyncTimeoutRef.current = null;
     }
 
-    // Play silence during loading OR when interrupted (phone call) to maintain lock screen controls
-    if ((isLoading && isPlaying) || isInterrupted) {
+    // Play silence whenever playing to maintain lock screen controls
+    if (isPlaying) {
       silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
     } else {
-      // Stop silence when station is actually playing
+      // Stop silence when not playing
       silenceAudio.pause();
     }
 
@@ -277,6 +277,29 @@ export default function CarPlayer() {
       navigator.mediaSession.setActionHandler("previoustrack", null);
     };
   }, [currentStation, isPlaying, playlistStations]);
+
+  // Sync isPlaying state with actual audio element state
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const updateIsPlaying = () => {
+      if (!isInterrupted) {
+        setIsPlaying(!audio.paused);
+      }
+    };
+
+    audio.addEventListener("play", updateIsPlaying);
+    audio.addEventListener("pause", updateIsPlaying);
+
+    // Initial sync
+    updateIsPlaying();
+
+    return () => {
+      audio.removeEventListener("play", updateIsPlaying);
+      audio.removeEventListener("pause", updateIsPlaying);
+    };
+  }, [isInterrupted]);
 
   // Handle phone call interruptions - Enhanced for locked screen
   useEffect(() => {
