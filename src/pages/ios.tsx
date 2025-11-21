@@ -213,11 +213,11 @@ export default function CarPlayer() {
       mediaSessionSyncTimeoutRef.current = null;
     }
 
-    // Play silence whenever playing to maintain lock screen controls
-    if (isPlaying) {
+    // Play silence whenever playing and not playing ad to maintain lock screen controls
+    if (isPlaying && !isPlayingAd) {
       silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
     } else {
-      // Stop silence when not playing
+      // Stop silence when not playing or during ads
       silenceAudio.pause();
     }
 
@@ -227,7 +227,7 @@ export default function CarPlayer() {
         mediaSessionSyncTimeoutRef.current = null;
       }
     };
-  }, [isLoading, isPlaying, isInterrupted]);
+  }, [isLoading, isPlaying, isInterrupted, isPlayingAd]);
 
   // Media Session API for car controls
   useEffect(() => {
