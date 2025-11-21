@@ -114,10 +114,7 @@ export default function CarPlayer() {
     const handleCanPlay = async () => {
       if (currentAttempt !== loadAttemptRef.current) return;
       setIsLoading(false);
-      // Stop silence audio when main station becomes ready
-      if (silenceAudioRef.current) {
-        silenceAudioRef.current.pause();
-      }
+      // Note: Silence audio continues playing to maintain lock screen session
       if (isPlaying) {
         try {
           await audio.play();
@@ -176,9 +173,7 @@ export default function CarPlayer() {
     const handlePlaying = () => {
       if (currentAttempt !== loadAttemptRef.current) return;
       setIsLoading(false);
-      if (silenceAudioRef.current) {
-        silenceAudioRef.current.pause();
-      }
+      // Note: Silence audio continues playing to maintain lock screen session
       if (errorTimeoutRef.current) {
         clearTimeout(errorTimeoutRef.current);
         errorTimeoutRef.current = null;
@@ -405,9 +400,17 @@ export default function CarPlayer() {
     try {
       await audio.play();
       setIsPlaying(true);
+      // Immediately play silence to maintain lock screen session
+      if (silenceAudio) {
+        silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
+      }
     } catch (error) {
       console.log("Play failed:", error);
       setIsPlaying(true); // Keep state true to maintain controls
+      // Play silence even on error to maintain controls
+      if (silenceAudio) {
+        silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
+      }
     }
   };
 
