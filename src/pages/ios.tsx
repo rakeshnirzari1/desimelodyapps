@@ -565,6 +565,9 @@ export default function CarPlayer() {
           album: "DesiMelody.com",
           artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
         });
+        if ("setPlaybackState" in navigator.mediaSession) {
+          navigator.mediaSession.playbackState = "playing";
+        }
       }
 
       await adAudio.play();
@@ -599,6 +602,9 @@ export default function CarPlayer() {
           album: "DesiMelody.com, 1200 Radio Stations From South East Asia",
           artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
         });
+        if ("setPlaybackState" in navigator.mediaSession) {
+          navigator.mediaSession.playbackState = "playing";
+        }
       }
 
       // Pre-load next ad immediately for iOS autoplay acceptance
@@ -623,6 +629,9 @@ export default function CarPlayer() {
           album: "DesiMelody.com, 1200 Radio Stations From South East Asia",
           artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
         });
+        if ("setPlaybackState" in navigator.mediaSession) {
+          navigator.mediaSession.playbackState = "playing";
+        }
       }
 
       // Pre-load next ad even on error to prepare for next interval
