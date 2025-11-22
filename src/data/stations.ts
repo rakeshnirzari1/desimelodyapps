@@ -13,7 +13,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://eu8.fastcast4u.com/proxy/clyedupq/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -73,7 +73,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://nl4.mystreaming.net:443/uber/lrbollywood/icecast.audio",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -88,7 +88,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "https://stream-143.zeno.fm/4pd041xv1a0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI0cGQwNDF4djFhMHV2IiwiaG9zdCI6InN0cmVhbS0xNDMuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoibXBKd0xIZVVSYWVEN3dBcUpVMmhPQSIsImlhdCI6MTc2MjQ1MjgyNywiZXhwIjoxNzYyNDUyODg3fQ.q6SDRrHm5DMGBYJgRMwgKXieSl7n8KQ_DxQdtbC9Fnk",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -103,7 +103,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://streams.radio.co/s8d06d0298/listen",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -118,7 +118,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-142.zeno.fm/6n6ewddtad0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI2bjZld2RkdGFkMHV2IiwiaG9zdCI6InN0cmVhbS0xNDIuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoibS1LeTVVQktSTGlrVXRYM3gxMXZXUSIsImlhdCI6MTc2MjQ1MzMyMywiZXhwIjoxNzYyNDUzMzgzfQ.vpkXXVSu_dn92Q1lrLvsTT_-zu74O3vzecWcX6mVJJw",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -133,7 +133,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://streams.radio.co/s8d06d0298/listen",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -148,7 +148,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio001/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "classical",
   },
   {
@@ -163,7 +163,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://c7.radioboss.fm:18052/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -178,7 +178,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://nl4.mystreaming.net:443/uber/bollywoodaruitsingh/icecast.audio",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -208,7 +208,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://s2.radio.co/se5e166e2f/listen#.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -253,7 +253,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://streaming.webhostnepal.com/8018/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -283,7 +283,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://ice6.securenetsystems.net/INTRADIO?type=.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -298,7 +298,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-162.zeno.fm/87xam8pf7tzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI4N3hhbThwZjd0enV2IiwiaG9zdCI6InN0cmVhbS0xNjIuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoicllzamxBUUVTVjJmdEJ6b25ycWJVUSIsImlhdCI6MTc2MjQyMzY1OSwiZXhwIjoxNzYyNDIzNzE5fQ.7Z7rbXX6oW2WTQDNZOcOLIbCADt-cIUegDAztPQfO1I",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -313,7 +313,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-147.zeno.fm/v2zfmxef798uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ2MnpmbXhlZjc5OHV2IiwiaG9zdCI6InN0cmVhbS0xNDcuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiVFE0UDBXclpUSWUxYU4yWURFWnBYUSIsImlhdCI6MTc2MjQxOTkyOSwiZXhwIjoxNzYyNDE5OTg5fQ.VjCAX2O9Z66tMGMUixIPkAwkqgNvY2KfoT78vGmnQKI",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -328,7 +328,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://azuracast.vibesounds.in:8010/radio.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -343,7 +343,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio001/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -373,7 +373,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-171.zeno.fm/0ghtfp8ztm0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiIwZ2h0ZnA4enRtMHV2IiwiaG9zdCI6InN0cmVhbS0xNzEuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiUW1ORnFhSWRSbHFLVXp2S0dwVVk2QSIsImlhdCI6MTc2MjQzOTY0NiwiZXhwIjoxNzYyNDM5NzA2fQ.-duiwgI9qotmrMw5OlNwdZKIUOjxpQFgvfPECkHNzNI",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -388,7 +388,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://streams.radio.co/s8d06d0298/listen",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -403,7 +403,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://radio.canstream.co.uk:8115/live.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -418,7 +418,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://streaming.radio.co/s58948a3f0/listen",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -433,7 +433,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://usa2.fastcast4u.com/proxy/jgivvimk?mp=/1",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -448,7 +448,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-157.zeno.fm/rm4i9pdex3cuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJybTRpOXBkZXgzY3V2IiwiaG9zdCI6InN0cmVhbS0xNTcuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiZWh1Z29wby1SNkdYazR0NzhZTTdIZyIsImlhdCI6MTc2MjQ1Nzc3NCwiZXhwIjoxNzYyNDU3ODM0fQ.1ob11BJZe5yNLV86zEEp88bkS3uOftKGtrr3NJmeQAM",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -493,7 +493,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-159.zeno.fm/143d7gty24zuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiIxNDNkN2d0eTI0enV2IiwiaG9zdCI6InN0cmVhbS0xNTkuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoidDU5X0J6MlRRUy1pTlNkdEpUdkYwdyIsImlhdCI6MTc2MjQ1MzcxMywiZXhwIjoxNzYyNDUzNzczfQ.ibCBcTWKX-zYSXi3H6DhaPM3JUwNuBXW2DvrqbOjClI",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -508,7 +508,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-163.zeno.fm/yv2k0dp18vzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ5djJrMGRwMTh2enV2IiwiaG9zdCI6InN0cmVhbS0xNjMuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiWFk2QnE5ZlNTb1NSdm83dmkyRkdLUSIsImlhdCI6MTc2MjQyMDQyMywiZXhwIjoxNzYyNDIwNDgzfQ.zcXYXKZstdGGcd3hSC6_2IRzjcwHiPtuGWgJFLAgSdQ",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -523,7 +523,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://peridot.streamguys1.com:7150/Tarana.aac",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -614,7 +614,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://feeds.intoday.in/aajtak/api/master.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -629,7 +629,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://25703.live.streamtheworld.com:443/OLIVE1063.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -659,7 +659,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "https://ice24.securenetsystems.net/CKYE",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -674,7 +674,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-161.zeno.fm/btrks671ynhvv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJidHJrczY3MXluaHZ2IiwiaG9zdCI6InN0cmVhbS0xNjEuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoidVktUWp3b1VSdG1DM0piYVdDeEZIQSIsImlhdCI6MTc2MjQzMDQ4NywiZXhwIjoxNzYyNDMwNTQ3fQ.yfinG6e5QLNHaY6Qdio8iXhE4kX_Mmt7EAILW7oXnRY",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -689,7 +689,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-154.zeno.fm/yg1qhsbaqv5tv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ5ZzFxaHNiYXF2NXR2IiwiaG9zdCI6InN0cmVhbS0xNTQuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiV0ZSUGJRU2ZUUlcwaUhzTlh4YUFCUSIsImlhdCI6MTc2MjQ3MDI0MiwiZXhwIjoxNzYyNDcwMzAyfQ.HN5hXR-gOH_PMWKr3ZYTwu0LnpOHAsaBMwVnkG92xcw",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -720,7 +720,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio002/hlspbaudio002_Auto.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -735,7 +735,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://eu8.fastcast4u.com/proxy/clyedupq/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -750,7 +750,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-153.zeno.fm/bauwkrnqhxhvv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJiYXV3a3JucWh4aHZ2IiwiaG9zdCI6InN0cmVhbS0xNTMuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiVEJidTNQNUNSeld3SDVMZWtydkJLdyIsImlhdCI6MTc2MjQ3NDE0MywiZXhwIjoxNzYyNDc0MjAzfQ.ysTurmmoyAg6NX9MyevLRS1_StydS0hhYDcNW8bEBu8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -765,7 +765,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio007/hlspbaudio007_Auto.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -795,7 +795,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://2.mystreaming.net:443/uber/bollywoodshreyaghosal/icecast.audio",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -825,7 +825,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio002/hlspbaudio002_Auto.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -900,7 +900,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://s5.citrus3.com:8148/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -915,7 +915,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://radio.lotustechnologieslk.net:8006/;stream.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -930,7 +930,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://ice8.securenetsystems.net/SGTRADIO",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -960,7 +960,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-150.zeno.fm/v2zfmxef798uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ2MnpmbXhlZjc5OHV2IiwiaG9zdCI6InN0cmVhbS0xNTAuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiMkhXWVZQMzRSV2ktRV9yRm1CNEM1QSIsImlhdCI6MTc2MjQwOTEzNywiZXhwIjoxNzYyNDA5MTk3fQ.4IyBaogV5YkP3pVs6pSz2hxJYnR4c3NQ6oRx2YJ-d_M",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -975,7 +975,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-151.zeno.fm/nhrtcxg09u8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJuaHJ0Y3hnMDl1OHV2IiwiaG9zdCI6InN0cmVhbS0xNTEuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiYi1WYnkxVjdTSkdrYUNUWVlwY1lpZyIsImlhdCI6MTc2MjQ0NzY4MCwiZXhwIjoxNzYyNDQ3NzQwfQ.zVcZdQphI0Zc-4wTBGpccyV-CXnMhyXpuU6lmBq9nAg",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1036,7 +1036,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://ice7.securenetsystems.net/WWTR?",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1051,7 +1051,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://carol.epichosts.co.uk:8570/;",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1081,7 +1081,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://centova.aarenworld.com/proxy/894tamilfm/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1096,7 +1096,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://strmreg.1.fm/bombaybeats_mobile_mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1111,7 +1111,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://us3.streamingpulse.com/ssl/radiodil2",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1171,7 +1171,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-167.zeno.fm/cqak4ap7by8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJjcWFrNGFwN2J5OHV2IiwiaG9zdCI6InN0cmVhbS0xNjcuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiT3hpNEtDNy1UcGF3R1VMZ0l5LXlmZyIsImlhdCI6MTc2MjQzOTE3MCwiZXhwIjoxNzYyNDM5MjMwfQ.7uvucKPTjs9HnhkihJ1jhB7REuuwuLP8aSxdfWSG0q4",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1186,7 +1186,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://usa2.fastcast4u.com/proxy/tamilsun?mp=/;",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1201,7 +1201,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://solid48.streamupsolutions.com/proxy/radiosbs/radiosbs",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1216,7 +1216,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://server.mixify.in/listen/listen/radio.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1263,7 +1263,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-161.zeno.fm/tqnws2eafwzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ0cW53czJlYWZ3enV2IiwiaG9zdCI6InN0cmVhbS0xNjEuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiSWlHdjcwd0RUQmFoT2FRR293SjQwdyIsImlhdCI6MTc2MjQ1NDgxNCwiZXhwIjoxNzYyNDU0ODc0fQ.bLMMBVCa_acPvdP5dup3cW_2HgqrlBvvyKpvWFyuADI",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1293,7 +1293,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "https://gurbanikirtan.radioca.st/start.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1308,7 +1308,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-160.zeno.fm/48w230kx8vzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI0OHcyMzBreDh2enV2IiwiaG9zdCI6InN0cmVhbS0xNjAuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiY1BtWlpIbV9TbUs3MlJ4RWVKY0NsZyIsImlhdCI6MTc2MjQzMTQ4NywiZXhwIjoxNzYyNDMxNTQ3fQ.QSUdgKW65KmjFCXJ-MZP_r-kVc9BsE63NI2tqii2Hgw",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1338,7 +1338,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "http://sbs-ice.streamguys1.com/sbs-popdesi",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1383,7 +1383,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "https://ice10.securenetsystems.net/CKYR",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1429,7 +1429,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://n03.radiojar.com/cfqyfcspcv8uv?rj-ttl=5&rj-tok=AAABmlkUKm0Ai4NDVfHZhA9jhA",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1519,7 +1519,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://2.mystreaming.net:443/uber/bollywoodlove/icecast.audio",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1534,7 +1534,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://25633.live.streamtheworld.com:443/OLIVE1063.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1594,7 +1594,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "kannada",
     link: "https://stream-144.zeno.fm/fcsk9ryerd0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJmY3NrOXJ5ZXJkMHV2IiwiaG9zdCI6InN0cmVhbS0xNDQuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoibkVkbXNHNHlSRGU1aTlTTFhsTWdVUSIsImlhdCI6MTc2MjQ3Mzk4OSwiZXhwIjoxNzYyNDc0MDQ5fQ._1s8I5E0S8tv1t2nnf0vYpIVCARaYUDEboXrchLoCZ0&rj-ttl=5&rj-tok=AAABdXnVZ3sA-61zQpwDIgRWvw",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1624,7 +1624,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-154.zeno.fm/1t5ceyhcxbruv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiIxdDVjZXloY3hicnV2IiwiaG9zdCI6InN0cmVhbS0xNTQuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoicEJZUl9oQTRSNGVoc1hWcWFxeXV4USIsImlhdCI6MTc2MjQzOTY3NiwiZXhwIjoxNzYyNDM5NzM2fQ.8bSDPFcrkMKa-0TxZgvuSU1s3DjxG2zfarkmg0V9vio",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1639,7 +1639,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "kannada",
     link: "https://stream-158.zeno.fm/7g8axtgtsg0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI3ZzhheHRndHNnMHV2IiwiaG9zdCI6InN0cmVhbS0xNTguemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiUWdDUThRNTZTdVd0bVVydzdQYThRdyIsImlhdCI6MTc2MjQzNTc5OCwiZXhwIjoxNzYyNDM1ODU4fQ.Ptx2Yq0BM5OHaDkZplCCV2am7I0_AbWypaRug0U4jUU",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1669,7 +1669,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "kannada",
     link: "https://stream-159.zeno.fm/68snnbug8rhvv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI2OHNubmJ1ZzhyaHZ2IiwiaG9zdCI6InN0cmVhbS0xNTkuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoibnJ1dVJ1ZWRSeG0zcjF0dDlJY21uQSIsImlhdCI6MTc2MjQ3NDE0MiwiZXhwIjoxNzYyNDc0MjAyfQ.tfV4qevwhfhVhglxOzaT8wlVsOFMOcWMnOeXyeaPssc",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1744,7 +1744,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio004/hlspbaudio004_Auto.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1804,7 +1804,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "https://s4.radio.co/sfefce156f/listen",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1819,7 +1819,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-156.zeno.fm/512rbf1e3qzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI1MTJyYmYxZTNxenV2IiwiaG9zdCI6InN0cmVhbS0xNTYuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiRE5RcXBvTDZRRk91VDVXd3pPSFB5dyIsImlhdCI6MTc2MjQ2MzEwNiwiZXhwIjoxNzYyNDYzMTY2fQ.lo6bq6pBF3gc6h_0Txbm9yJhqtXOavy6CgbLynRCeoo",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1879,7 +1879,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-170.zeno.fm/a2gyqzwpwfeuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJhMmd5cXp3cHdmZXV2IiwiaG9zdCI6InN0cmVhbS0xNzAuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiZzRtZXp6YlBUWEdzQ0ltaDktZjU1ZyIsImlhdCI6MTc2MjQ2MDY4MywiZXhwIjoxNzYyNDYwNzQzfQ.reWOHYUTM87Zr30QahMt_w1FJHfkuAnjjyjEdYGwup0&rj-ttl=5&rj-tok=AAABc6yhYroA-BQkZAca7Yj0jA",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1909,7 +1909,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-158.zeno.fm/n58tt09cqchvv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJuNTh0dDA5Y3FjaHZ2IiwiaG9zdCI6InN0cmVhbS0xNTguemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoicm01MmdSemRSUy1odzM0YjU0czFIZyIsImlhdCI6MTc2MjQzODk5OSwiZXhwIjoxNzYyNDM5MDU5fQ.uD756bFLP_j0mkbqJkhWk--u2ntS6F43DLsATz5ObEo",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1939,7 +1939,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://2.mystreaming.net:443/er/bollywood/icecast.audio",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1954,7 +1954,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-171.zeno.fm/pr0zc64zdy8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJwcjB6YzY0emR5OHV2IiwiaG9zdCI6InN0cmVhbS0xNzEuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiWVlhY0ZGWmhRS1NJZUluY0JRa2FNdyIsImlhdCI6MTc2MjQ3MTk4MSwiZXhwIjoxNzYyNDcyMDQxfQ.zQGscRQXR3uszqwbLghFYOP2fqEGekzxqRHxQNd2ais",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1969,7 +1969,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-179.zeno.fm/uy91e749fv8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ1eTkxZTc0OWZ2OHV2IiwiaG9zdCI6InN0cmVhbS0xNzkuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiX2RPSXI3MUlUb3E2eUhIVjNkQkVpQSIsImlhdCI6MTc2MjQ2MDY4NSwiZXhwIjoxNzYyNDYwNzQ1fQ.lR_l8Z8Zkc3v5MUUgMyB6s7X2n9HG-lipMi5_P_Ns58",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -1984,7 +1984,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-161.zeno.fm/r2gn1pgm4qruv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJyMmduMXBnbTRxcnV2IiwiaG9zdCI6InN0cmVhbS0xNjEuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiT21tYzRZQk9UMi1Rd2Q4cUNkVV9kQSIsImlhdCI6MTc2MjQzMzcwOCwiZXhwIjoxNzYyNDMzNzY4fQ.qaNfCfrGbI7iZnH8xa2Sw-fwoa-ssc-3k6NdZ5ZrVos",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2166,7 +2166,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://peridot.streamguys1.com:7150/RFTwo",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2181,7 +2181,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-154.zeno.fm/9x1sw687nf9uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI5eDFzdzY4N25mOXV2IiwiaG9zdCI6InN0cmVhbS0xNTQuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiNkR4QzdMem1TV2lsQ0tOZ19MMTM0ZyIsImlhdCI6MTc2MjQ2Mzk4NywiZXhwIjoxNzYyNDY0MDQ3fQ.lIb0-KV2PWuXM-VEr0n6pJbwHcszGw370hTY88nz6LU",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2226,7 +2226,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-179.zeno.fm/uy91e749fv8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ1eTkxZTc0OWZ2OHV2IiwiaG9zdCI6InN0cmVhbS0xNzkuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiR0QwaGtOc3dRNmlIM0VoREhnbzl3dyIsImlhdCI6MTc2MjQ0NDM2OCwiZXhwIjoxNzYyNDQ0NDI4fQ.U6hXtHD3RTgJbcVP0dJs70ixFhPr8--_xvXDImiQMA8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2257,7 +2257,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://s6.yesstreaming.net/proxy/john1237?mp=/live",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2288,7 +2288,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://streams.radio.co/s8d06d0298/listen",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2318,7 +2318,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "urdu",
     link: "https://live.cmr24.net/CMR/Desi_Music-MQ/icecast.audio",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2348,7 +2348,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-153.zeno.fm/512rbf1e3qzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI1MTJyYmYxZTNxenV2IiwiaG9zdCI6InN0cmVhbS0xNTMuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiUFNFSDVHQWxSMjJLa05JUEJoZGdBUSIsImlhdCI6MTc2MjQ2MTY2MiwiZXhwIjoxNzYyNDYxNzIyfQ.MIPJ0gmTCJdwVsUP4Ixj-YjORrSw61iBvqeni5B64kY",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2363,7 +2363,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://cast1.my-control-panel.com/proxy/geethan3/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2378,7 +2378,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://2.mystreaming.net:443/uber/bollywoodmix/icecast.audio",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2393,7 +2393,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-153.zeno.fm/84h97t3ewg0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI4NGg5N3QzZXdnMHV2IiwiaG9zdCI6InN0cmVhbS0xNTMuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiRXB1MmRkVVBRbmFrU3p0ZXFyc0NYQSIsImlhdCI6MTc2MjQxMzcyNCwiZXhwIjoxNzYyNDEzNzg0fQ.VzxXKvZ00HlbrHJfaqm3kPUohwcaA7DHmkpZ3SoaO64",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2483,7 +2483,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-175.zeno.fm/5nu139840tzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI1bnUxMzk4NDB0enV2IiwiaG9zdCI6InN0cmVhbS0xNzUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiSjUzeVdIQktSUU9hd0VJakFWbDFsQSIsImlhdCI6MTc2MjQ3MTk4NiwiZXhwIjoxNzYyNDcyMDQ2fQ._iIJiYaclSYAyD2dm9jNKe7ExQLfq_QmVqSVuRVZKlc",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2498,7 +2498,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "marathi",
     link: "https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio008/hlspbaudio008_Auto.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2528,7 +2528,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "bangla",
     link: "https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio057/hlspbaudio05764kbps.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2543,7 +2543,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-174.zeno.fm/rqqps6cbe3quv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJycXFwczZjYmUzcXV2IiwiaG9zdCI6InN0cmVhbS0xNzQuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiN29WZGxqWTNUaHlrYUJsNU1ocjJoUSIsImlhdCI6MTc2MjQyMjIyOCwiZXhwIjoxNzYyNDIyMjg4fQ.xyOoPmaRxoeDPWCicgy7Vj-sZvP51WyekhqI16gxlk4&rj-ttl=5&rj-tok=AAABccQyYG8AGJ3KW_903AafBw",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2558,7 +2558,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "",
     link: "http://stream-157.zeno.fm/zu59ykebs2zuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ6dTU5eWtlYnMyenV2IiwiaG9zdCI6InN0cmVhbS0xNTcuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiNW9jTDVhNjNTZGlqaVh5OUFvQnN1dyIsImlhdCI6MTc2MjQyNTY0NSwiZXhwIjoxNzYyNDI1NzA1fQ.kbCfC6SZ_HEup4JCh_B0zK96wTbEyzJdwi0xDk9hmv0",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "international",
   },
   {
@@ -2633,7 +2633,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://22343.live.streamtheworld.com:443/SUNO917_SC",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2663,7 +2663,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://listen-lycaradio.sharp-stream.com/1035.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2678,7 +2678,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-161.zeno.fm/m1krtxpk11zuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJtMWtydHhwazExenV2IiwiaG9zdCI6InN0cmVhbS0xNjEuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiUFlYUjRNVWNRNXFaV0FDS1I4bkxVdyIsImlhdCI6MTc2MjQzNjM4NSwiZXhwIjoxNzYyNDM2NDQ1fQ.B1beE7sIoyBbzsxOxEGWXWJyAxsbdKsRV-Usyud1cOs",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2693,7 +2693,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://strmreg.1.fm/bombaybeats_mobile_mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2723,7 +2723,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://indianlink1.radioca.st/;",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2813,7 +2813,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://edge.iono.fm/xice/129_medium.aac",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2828,7 +2828,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-158.zeno.fm/u7yaqq493v8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ1N3lhcXE0OTN2OHV2IiwiaG9zdCI6InN0cmVhbS0xNTguemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoidWdUWTFVQlFUVGFZbUxpQklkUm5wdyIsImlhdCI6MTc2MjQxNjg2OCwiZXhwIjoxNzYyNDE2OTI4fQ.u7I_nNt1bekziFABjh8tlgb4DrrfrZICuY0cqT7n_7k",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2873,7 +2873,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "kannada",
     link: "https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio030/hlspbaudio030_Auto.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2888,7 +2888,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://ice42.securenetsystems.net/CR90",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2903,7 +2903,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio229/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2934,7 +2934,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "bangla",
     link: "https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio245/hlspbaudio24564kbps.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2949,7 +2949,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio005/hlspbaudio005_Auto.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2964,7 +2964,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-162.zeno.fm/yavek61461zuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ5YXZlazYxNDYxenV2IiwiaG9zdCI6InN0cmVhbS0xNjIuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiS05kVGtNS1VROFdOeFpDeDRSTVhnUSIsImlhdCI6MTc2MjQ1MjUzMywiZXhwIjoxNzYyNDUyNTkzfQ.-Ne_3WCPqM9hqw7BghmuMMr3stQixpYPVBbFOSDCeGQ",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -2979,7 +2979,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://c5.radioboss.fm:18125/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3024,7 +3024,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://a9oldhits-a9media.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3039,7 +3039,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://mhariraa.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3054,7 +3054,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "http://stream-155.zeno.fm/65b1awrgnv5tv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI2NWIxYXdyZ252NXR2IiwiaG9zdCI6InN0cmVhbS0xNTUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiLUhSZU8tNDVTbm11MWY4cUY2SUNIZyIsImlhdCI6MTc2MjQ2ODk5MiwiZXhwIjoxNzYyNDY5MDUyfQ.BauhS1ifLuGrAnSJlgepJfEy7RrCvQbjyOP7vb8gDGo",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3069,7 +3069,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-159.zeno.fm/n58tt09cqchvv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJuNTh0dDA5Y3FjaHZ2IiwiaG9zdCI6InN0cmVhbS0xNTkuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiRFhrTmdaUHFRUmF3bndvczk2bkotQSIsImlhdCI6MTc2MjQ3MDY0OCwiZXhwIjoxNzYyNDcwNzA4fQ.LOmxScvk1yLioyMmGhFT7e-6n3iEBgB1rNvyWPqKBcQ",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3084,7 +3084,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio087/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3099,7 +3099,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "odia",
     link: "https://stream.justneed.in:2087/listen/radio_dunia/radio.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3114,7 +3114,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://ice31.securenetsystems.net/RADIOKERAL",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3159,7 +3159,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio138/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3174,7 +3174,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream1.themediasite.co.uk/8070/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3189,7 +3189,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://s2.radio.co/s44bb88930/listen#.mp3?ver=997168",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3204,7 +3204,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "kannada",
     link: "https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio026/hlspbaudio026_Auto.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3219,7 +3219,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio044/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3234,7 +3234,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://ec3.yesstreaming.net:1190/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3294,7 +3294,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-154.zeno.fm/9k5ku7bhb8zuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI5azVrdTdiaGI4enV2IiwiaG9zdCI6InN0cmVhbS0xNTQuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiRUdqZzEwRjFTRWFCN1B5SlpsR3d5USIsImlhdCI6MTc2MjQzMTU5NCwiZXhwIjoxNzYyNDMxNjU0fQ.aD7Sg_Ef1ixuxLB2YHZgLcZomZDQBLodddFzK_928fE",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3324,7 +3324,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://radio13.pro-fhi.net:19236/stream.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3339,7 +3339,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "https://radio.sikhnet.com/proxy/channel9/live",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3354,7 +3354,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-157.zeno.fm/s3sqemewrg0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJzM3NxZW1ld3JnMHV2IiwiaG9zdCI6InN0cmVhbS0xNTcuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiMmdGUUc4aEVSSi1haVBjZHRSTUljQSIsImlhdCI6MTc2MjQ2OTgzMywiZXhwIjoxNzYyNDY5ODkzfQ.cxqfYBWTYUsThlx8m7LuYrlwhB6FSmBV7hKJfxiOSrw",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3384,7 +3384,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-154.zeno.fm/xpbsngksa2zuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ4cGJzbmdrc2EyenV2IiwiaG9zdCI6InN0cmVhbS0xNTQuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoidldneWtRc0dUY1dTNlpLZUVSRy0zQSIsImlhdCI6MTc2MjQ0NjUzNCwiZXhwIjoxNzYyNDQ2NTk0fQ.KXo5ZluS0xOr9obhtxugFct9TiEfWBoj0JzO7is-1Kk",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3429,7 +3429,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio022/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3444,7 +3444,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio230/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3459,7 +3459,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "kannada",
     link: "https://stream-166.zeno.fm/v0gde6udfg8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ2MGdkZTZ1ZGZnOHV2IiwiaG9zdCI6InN0cmVhbS0xNjYuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiczEwRTNabHFRMWVvcmdMQ1pSaWtqZyIsImlhdCI6MTc2MjQ1Mzk1OSwiZXhwIjoxNzYyNDU0MDE5fQ.Y4ECr-9ITijRAprLfFp47A883bZ_bJsEuUyQ6cYHelY",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3489,7 +3489,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://streaming.webhostnepal.com/8020/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3504,7 +3504,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "",
     link: "http://air.pc.cdn.bitgravity.com/air/live/pbaudio138/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3534,7 +3534,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://radio.lotustechnologieslk.net:8006/;stream.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3549,7 +3549,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-154.zeno.fm/g8cx7tggb3quv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJnOGN4N3RnZ2IzcXV2IiwiaG9zdCI6InN0cmVhbS0xNTQuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiV1hCSTNPanFUT0N4cTd6UDEzYmFFQSIsImlhdCI6MTc2MjQ1NTYwNCwiZXhwIjoxNzYyNDU1NjY0fQ.K3PoIIMxJSta-zBxiSuGRyJjmGGSXBkGWMtSrwgztxE",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3564,7 +3564,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-159.zeno.fm/x1q3r3qdxy8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ4MXEzcjNxZHh5OHV2IiwiaG9zdCI6InN0cmVhbS0xNTkuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoidnhxeXltOWtRclNjeXJwbHBRUGlFZyIsImlhdCI6MTc2MjQ1MzEyOCwiZXhwIjoxNzYyNDUzMTg4fQ.E9icC62L7ZVYxmwkR3TBBMMjz-OKSx4hLVOVeGOtuzU",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3579,7 +3579,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-155.zeno.fm/bpc3ucypmm0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJicGMzdWN5cG1tMHV2IiwiaG9zdCI6InN0cmVhbS0xNTUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiQzJyR1hfV1JRMlNyRlljQmUwRmQwUSIsImlhdCI6MTc2MjQxODIzMiwiZXhwIjoxNzYyNDE4MjkyfQ.15hItT44TCrACpI8ZGtiXxEwBf9G36x78TG60G6jF5I",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3594,7 +3594,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-156.zeno.fm/08e1vkshcc9uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiIwOGUxdmtzaGNjOXV2IiwiaG9zdCI6InN0cmVhbS0xNTYuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiR0hfTEtNQTVUYWUyc0E1MThJLWt5QSIsImlhdCI6MTc2MjQ3MjcwMCwiZXhwIjoxNzYyNDcyNzYwfQ.MWn9Z3y2aG1fc5jGGMZ97tcAAG8r8xqjt33P9BmeULk",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3609,7 +3609,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "http://stream-154.zeno.fm/0xsvm1nr7a5tv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiIweHN2bTFucjdhNXR2IiwiaG9zdCI6InN0cmVhbS0xNTQuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiOXRTNm1ScU5UbTI1cWJWbzdYaUJVQSIsImlhdCI6MTc2MjQ3MTU2OCwiZXhwIjoxNzYyNDcxNjI4fQ.GC2zeMdMv7UoNdwWe_NN8p0uzq6-Yb7e_N65a_91UgA",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3639,7 +3639,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://uksoutha.streaming.broadcast.radio/awazfm",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3669,7 +3669,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "kannada",
     link: "https://16603.live.streamtheworld.com:443/RADIO_SUNO_MELODY_S06.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3714,7 +3714,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-151.zeno.fm/g372rxef798uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJnMzcycnhlZjc5OHV2IiwiaG9zdCI6InN0cmVhbS0xNTEuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiRkhSaEU2RWRTQnVwcmNieU1RUi04QSIsImlhdCI6MTc2MjQ3MTcyOSwiZXhwIjoxNzYyNDcxNzg5fQ.AiYCA1L7fyjHC4nT9o7lwHjhakxbGIRKi2PJyiSXPps",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3744,7 +3744,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "bangla",
     link: "https://14223.live.streamtheworld.com:443/SP_R3563475_SC",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3774,7 +3774,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-162.zeno.fm/r2gn1pgm4qruv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJyMmduMXBnbTRxcnV2IiwiaG9zdCI6InN0cmVhbS0xNjIuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoibUxwMW8wVmlUa0N5Z3JjemU5QUFKdyIsImlhdCI6MTc2MjQyOTgzOCwiZXhwIjoxNzYyNDI5ODk4fQ.9R6DrpJbpMAFWcJOUblnscVNJlga3dDqxtRgf11GUeU",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3789,7 +3789,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://azuracast.vibesounds.in:8000/radio.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3819,7 +3819,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://azuracast.vibesounds.in:8030/radio.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3834,7 +3834,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://uk2.internet-radio.com/proxy/radiosdapp?mp=/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3864,7 +3864,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-155.zeno.fm/9s8119m1rzzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI5czgxMTltMXJ6enV2IiwiaG9zdCI6InN0cmVhbS0xNTUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiT1UtNGc4QmNSZ3VMQ1dNSHFKdnc3ZyIsImlhdCI6MTc2MjQ1NDA4NiwiZXhwIjoxNzYyNDU0MTQ2fQ.yALU_63QMIAR3FfgpTGMaEOgKlFkRcsXxe9cN532HU4",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3879,7 +3879,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "odia",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio137/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3909,7 +3909,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-161.zeno.fm/48w230kx8vzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI0OHcyMzBreDh2enV2IiwiaG9zdCI6InN0cmVhbS0xNjEuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiVmx4Q2VfbHZST0trZGEtT0tRbm5CQSIsImlhdCI6MTc2MjQ3Mzc1OSwiZXhwIjoxNzYyNDczODE5fQ.HxAbqJf8BnrZsBcfpDPCVlJixTg-FdjATyPr3UKJ5tU",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3924,7 +3924,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-158.zeno.fm/dkxftg6k7tzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJka3hmdGc2azd0enV2IiwiaG9zdCI6InN0cmVhbS0xNTguemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiSXNHdEw3cjhRdEtjaU5Xc3pvRjJFZyIsImlhdCI6MTc2MjQzNTkzMCwiZXhwIjoxNzYyNDM1OTkwfQ.mXoKtTvjxHfc53E4tUmlyhoV7b7fXmvN2iR7ZZqVBiw",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -3939,7 +3939,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "http://n0f.radiojar.com/7mh06pa8uwzuv?rj-ttl=5&rj-tok=AAABmljz86gA1G_Qi24E07fJcg",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4030,7 +4030,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "english",
     link: "https://a1.asurahosting.com:9210/radio.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4045,7 +4045,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://a9oldhits-a9media.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4060,7 +4060,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio059/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4090,7 +4090,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "https://stream-156.zeno.fm/vpak30btzwzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ2cGFrMzBidHp3enV2IiwiaG9zdCI6InN0cmVhbS0xNTYuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiOUl3eXRrd0JSNktmTFhodDV4WlNQdyIsImlhdCI6MTc2MjQyNzIyMiwiZXhwIjoxNzYyNDI3MjgyfQ.RKz9XS4ITM18pLibxeq3Ugb7gVjddrXBo78F_jAgNNk",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4180,7 +4180,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "bangla",
     link: "https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio058/hlspbaudio05864kbps.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4210,7 +4210,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://tamilpanpalai.radioca.st/ind",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4255,7 +4255,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio025/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4315,7 +4315,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://s1.citrus3.com:8124/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4330,7 +4330,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-176.zeno.fm/ekthuu9bfwzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJla3RodXU5YmZ3enV2IiwiaG9zdCI6InN0cmVhbS0xNzYuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiNE85YmtQNU9SS2FlWTU3TUVHZDZpQSIsImlhdCI6MTc2MjQ3MDg3NiwiZXhwIjoxNzYyNDcwOTM2fQ.CEXuKv5CxrGz7RqztzsQ9l0yQzR7eWUguXYWPJWvYQA",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4360,7 +4360,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://shaincast.caster.fm:47814/listen.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4420,7 +4420,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-160.zeno.fm/aad4e51qz7zuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJhYWQ0ZTUxcXo3enV2IiwiaG9zdCI6InN0cmVhbS0xNjAuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiSExrTDFTRU1SNmVSMksxMHdHalR1USIsImlhdCI6MTc2MjQzNDA0OCwiZXhwIjoxNzYyNDM0MTA4fQ.39hFw-_etpPDYu7Mxwfhx0o7QjKfXzp-QC3RUbyum6M",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4435,7 +4435,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio001/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4450,7 +4450,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://usa15.fastcast4u.com/proxy/tammus00?mp=/;",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4480,7 +4480,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-156.zeno.fm/g2zves9gdwzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJnMnp2ZXM5Z2R3enV2IiwiaG9zdCI6InN0cmVhbS0xNTYuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiQU83OEJ1R3JTelMyZnc0UU1Rb0ZYUSIsImlhdCI6MTc2MjQzNzQzNSwiZXhwIjoxNzYyNDM3NDk1fQ.wPWdeqxOw935l3SF1xmOXr0haYEZx3VYhLuPTNrwCaA",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4495,7 +4495,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://tamilkaterumbufm-prabak78.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4510,7 +4510,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://22343.live.streamtheworld.com:443/SUNO917_SC",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4525,7 +4525,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-162.zeno.fm/k4hwu4qa4qzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJrNGh3dTRxYTRxenV2IiwiaG9zdCI6InN0cmVhbS0xNjIuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoickFRYlhvZEZTZ1NCejR3ZU0tdUV4USIsImlhdCI6MTc2MjQzNzA4NiwiZXhwIjoxNzYyNDM3MTQ2fQ.yX2y32dra74XHmaiftMh-oj_d7znHJpQHcSlVf9Bfu8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4555,7 +4555,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-161.zeno.fm/tqnws2eafwzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ0cW53czJlYWZ3enV2IiwiaG9zdCI6InN0cmVhbS0xNjEuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiemRLY05uRS1UdVctSnN6Ny15M3VIZyIsImlhdCI6MTc2MjQwNzQ2OSwiZXhwIjoxNzYyNDA3NTI5fQ.zq41731gmxJP_gHdH_QS8dORaWwqI49aosYZ5OdArjY",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4601,7 +4601,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://a1.asurahosting.com:9210/radio.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4631,7 +4631,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "https://bolpunjabi-ekamsoftware.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4661,7 +4661,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://ice2.securenetsystems.net/HUMSAFAR",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4676,7 +4676,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://abee.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4691,7 +4691,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-159.zeno.fm/xwhhyc5nyk8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ4d2hoeWM1bnlrOHV2IiwiaG9zdCI6InN0cmVhbS0xNTkuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiZ1prczhORlFSN213VTd6all0aXNRZyIsImlhdCI6MTc2MjQzMTQwOSwiZXhwIjoxNzYyNDMxNDY5fQ.2w30oLRtnH-_ontTIPTDOAJhisCOjdSYrmueufK3_oQ",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4706,7 +4706,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://streamer.radio.co/se30891e37/listen",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4721,7 +4721,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://s6.citrus3.com:8396/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4736,7 +4736,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://bakthiisai-unicast2u.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4751,7 +4751,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "http://stream-155.zeno.fm/5vva7u4ts0quv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI1dnZhN3U0dHMwcXV2IiwiaG9zdCI6InN0cmVhbS0xNTUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiemo4dXVxM2RSYnlBNTYtZWQ3WTdfQSIsImlhdCI6MTc2MjQ3Mzc2MiwiZXhwIjoxNzYyNDczODIyfQ.-0C8zkJQFvEtbzi-qgjOc9_B0ROF9MOLiz9GyWeShZs",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4766,7 +4766,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://22273.live.streamtheworld.com:443/MINNAL_FMAAC.aac",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4781,7 +4781,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://cp11.serverse.com/proxy/hgsmgluv?mp=/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4826,7 +4826,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://centova.aarenworld.com/proxy/894tamilfm/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4856,7 +4856,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "odia",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio001/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4871,7 +4871,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://ads-direct.sharp-stream.com/1458.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4886,7 +4886,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-157.zeno.fm/dkxftg6k7tzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJka3hmdGc2azd0enV2IiwiaG9zdCI6InN0cmVhbS0xNTcuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiUHJmeUZDa2dUSFdJVVUtZnhlQVc3USIsImlhdCI6MTc2MjQyNDM3MSwiZXhwIjoxNzYyNDI0NDMxfQ.MF0q9jkuC5A7N32T8BnvWdfLNzWriolgxBRUCkHPiiw",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4901,7 +4901,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://s2.radio.co/s3801784f1/listen",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4931,7 +4931,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-176.zeno.fm/r2ff41404k8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJyMmZmNDE0MDRrOHV2IiwiaG9zdCI6InN0cmVhbS0xNzYuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoid2ZRNS1pU1FTQzJ0MjFsMk9OOHA2USIsImlhdCI6MTc2MjQ1MzE5NSwiZXhwIjoxNzYyNDUzMjU1fQ.oHVCqnqc-UK3d5qf1hL3OCKv-9xnFzMleidLYP6HuVU",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4946,7 +4946,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://gains.reviveradio.net/proxy/revivemalayalam?mp=/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4961,7 +4961,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://audio-edge-vqwx4.yyz.g.radiomast.io/22e2c991-fc0c-4242-8cba-0a64d0aea809",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -4976,7 +4976,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "http://stream-153.zeno.fm/019324w4ez4tv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiIwMTkzMjR3NGV6NHR2IiwiaG9zdCI6InN0cmVhbS0xNTMuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiaTduaXRhOTNUSk9QSjRxQm1EeTRNZyIsImlhdCI6MTc2MjQ1OTM0MiwiZXhwIjoxNzYyNDU5NDAyfQ.JEHUaJP1DxNSto30RsYRDnr8RlBJKrWLUdkWy9QO-IM",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5006,7 +5006,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://us9.maindigitalstream.com/ssl/RadioZindagi",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5037,7 +5037,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-153.zeno.fm/9x1sw687nf9uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI5eDFzdzY4N25mOXV2IiwiaG9zdCI6InN0cmVhbS0xNTMuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiazZNLWhwOV9SaXVLU3FHaTNhRkhMUSIsImlhdCI6MTc2MjM5OTY1OCwiZXhwIjoxNzYyMzk5NzE4fQ.6oFiLOsGHskYOPy-Eh5TdA0SBMoq9X_OQKcDW-TVxCI",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5052,7 +5052,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-153.zeno.fm/bfh4ywts2f8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJiZmg0eXd0czJmOHV2IiwiaG9zdCI6InN0cmVhbS0xNTMuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiQUQxclpaaFJTS3F2c0RjbVhGZGhoUSIsImlhdCI6MTc2MjQ2NDYxOSwiZXhwIjoxNzYyNDY0Njc5fQ.i4gMzrSMpGjujL9vxTk8ESrwW29f2V1K40uzqu_COrc",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5067,7 +5067,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-156.zeno.fm/02n962ezyp8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiIwMm45NjJlenlwOHV2IiwiaG9zdCI6InN0cmVhbS0xNTYuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiaGZ2ZC1lcnpTNC1QT3R1UVptRzFKdyIsImlhdCI6MTc2MjQ2OTgzNCwiZXhwIjoxNzYyNDY5ODk0fQ.c3-cTCaG-bB2R6rQVsB0bc_AmsL-PEwd8QCUDFr0PgA",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5127,7 +5127,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://servidor18-4.brlogic.com:7740/live",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5142,7 +5142,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "https://bolpunjabi-ekamsoftware.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5157,7 +5157,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://mystation.micast.media/radio/8090/radio.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5202,7 +5202,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://tamilpanpalai.radioca.st/ind",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5217,7 +5217,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://live.cmr24.net/CMR/TamilHD-MQ/icecast.audio",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5232,7 +5232,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://25053.live.streamtheworld.com:443/OMRADIO_S01AAC_SC",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5247,7 +5247,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://audio-edge-fvq45.ams.d.radiomast.io/3ccc1156-fcf8-4ba7-9a0c-28e3a465e1ae?listening-from-radio-garden=1607152226837",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5262,7 +5262,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://eu8.fastcast4u.com/proxy/ailevdcu?mp=/;",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5292,7 +5292,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-155.zeno.fm/yg1qhsbaqv5tv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ5ZzFxaHNiYXF2NXR2IiwiaG9zdCI6InN0cmVhbS0xNTUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoieTFxT3RWMkRSazZMNWF2N1Q1cHRmZyIsImlhdCI6MTc2MjQ2NTk0NywiZXhwIjoxNzYyNDY2MDA3fQ.h4Ty8-BuwjBHdYuda58SBYkinBEXp00TySMsu62vSxU",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5307,7 +5307,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "telugu",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio174/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5322,7 +5322,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "kannada",
     link: "https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio027/hlspbaudio027_Auto.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5337,7 +5337,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://hello.citrus3.com:2020/stream/britishindiantamilradio",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5352,7 +5352,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-155.zeno.fm/phv06yfkwzzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJwaHYwNnlma3d6enV2IiwiaG9zdCI6InN0cmVhbS0xNTUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiMzZ1MHJiM2hUUHVrR19pYlJnS0dnUSIsImlhdCI6MTc2MjQ3MzkyNCwiZXhwIjoxNzYyNDczOTg0fQ.M_vy7R0ML9vKw5YnWpgaRfb_YMXEebEIozAI7d6bj3M",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5397,7 +5397,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-161.zeno.fm/s6hhy943w0hvv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJzNmhoeTk0M3cwaHZ2IiwiaG9zdCI6InN0cmVhbS0xNjEuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiMllaN1ZDX0tSSkt3RDVQbDg1aVN6USIsImlhdCI6MTc2MjQ2NzU0OSwiZXhwIjoxNzYyNDY3NjA5fQ.6rk2M6tXTpNSczfzKr6NPy5-phJEtOL5YbzfXqPpNFA",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5457,7 +5457,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://s2.radio.co/se5e166e2f/listen",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5472,7 +5472,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://rs.suricloud.com/radio/8030/radio.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5487,7 +5487,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "http://stream-158.zeno.fm/fu94u25kqd0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJmdTk0dTI1a3FkMHV2IiwiaG9zdCI6InN0cmVhbS0xNTguemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoib0l4RFdlRGhRUXk0ZHlYcjNPY2hxZyIsImlhdCI6MTc2MjQ3MzA3MCwiZXhwIjoxNzYyNDczMTMwfQ.GpRCT3ZTobQxdvhaZJTFNWtVYtDX0XeAyzRHrjEM6oU",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5532,7 +5532,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "https://stream-153.zeno.fm/4mbfcn4mf24tv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI0bWJmY240bWYyNHR2IiwiaG9zdCI6InN0cmVhbS0xNTMuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiZ2ZpclgzdG9TYWFzOFFTMlZrSUNOUSIsImlhdCI6MTc2MjQ0NTExMiwiZXhwIjoxNzYyNDQ1MTcyfQ.F31QOF2UJKHFpmIvrng8nUr6JScx3nErJXIHcRj3bh8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5607,7 +5607,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "",
     link: "http://stream-154.zeno.fm/ncw879a2h8quv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJuY3c4NzlhMmg4cXV2IiwiaG9zdCI6InN0cmVhbS0xNTQuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiQjhmbENOQW9TUzJzYzN2WFdQRkxjQSIsImlhdCI6MTc2MjQ0NTU5NiwiZXhwIjoxNzYyNDQ1NjU2fQ.6pH1ik8SrVSzxxTx4PxUUTGIPj_8QLYVz52JmaFHRZQ",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "classical",
   },
   {
@@ -5622,7 +5622,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://centova.radioservers.biz/proxy/eastfmc1/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5637,7 +5637,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-140.zeno.fm/dgrgdv2zrf9uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJkZ3JnZHYyenJmOXV2IiwiaG9zdCI6InN0cmVhbS0xNDAuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiNmRjbW9RUnVUZTZqTWxjTnh3RmxzZyIsImlhdCI6MTc2MjQzNTU1OSwiZXhwIjoxNzYyNDM1NjE5fQ.InJMkFwirFlpZFX-TQKFY3DLFkPWdxNw4zJmwVP0BQc",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5667,7 +5667,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "http://stream-179.zeno.fm/fbbg2pbbmbruv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJmYmJnMnBiYm1icnV2IiwiaG9zdCI6InN0cmVhbS0xNzkuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiSHBlWlQyeEhRZXF6ZEV1NDV5OVFPZyIsImlhdCI6MTc2MjQyMTE3MywiZXhwIjoxNzYyNDIxMjMzfQ.VD6h8iHGHhFiFtvF3oqHV6PmPJ0FL0SJR_-PRsoXv38",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5697,7 +5697,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://centova71.instainternet.com/proxy/tamilrockyfm?mp=/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5727,7 +5727,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-145.zeno.fm/pxc55r5uyc9uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJweGM1NXI1dXljOXV2IiwiaG9zdCI6InN0cmVhbS0xNDUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoicmFZQ1FNRkFURXk4al8tSFczX0tEdyIsImlhdCI6MTc2MjQzOTQ2NSwiZXhwIjoxNzYyNDM5NTI1fQ.OaFwAN_OM2b3tyvzgB-2-UuVNqHJ_FmwMWLqrypZMGE",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5742,7 +5742,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://rbx2.hnux.com/http://10454.cloudrad.io:6176/;stream.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5787,7 +5787,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream1.themediasite.co.uk/8070/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5802,7 +5802,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream.ujala.nl/ujala",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5817,7 +5817,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://static.s123-cdn-static-c.com/uploads/2568273/normal_5d8ba39d1261c.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5847,7 +5847,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "odia",
     link: "https://stream-156.zeno.fm/1t5ceyhcxbruv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiIxdDVjZXloY3hicnV2IiwiaG9zdCI6InN0cmVhbS0xNTYuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiQnhtTFA5aDhScUdyUEV3SVFSZkxUUSIsImlhdCI6MTc2MjQ2OTUzOSwiZXhwIjoxNzYyNDY5NTk5fQ.LpTielOj63TK8bcT9V0lRudiNoK4wFWljnrTYqLlsZk",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5862,7 +5862,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-160.zeno.fm/7fmywrmrga0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI3Zm15d3JtcmdhMHV2IiwiaG9zdCI6InN0cmVhbS0xNjAuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiMEFoUm5tdkFRdU92QVZUbzRXZHBTQSIsImlhdCI6MTc2MjQ2OTkxNywiZXhwIjoxNzYyNDY5OTc3fQ.M4301Fd5TFpfrAyrCe20efder92Qja6iSVnpBgz47MU",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5907,7 +5907,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "https://ice9.securenetsystems.net/CIRVFM",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5937,7 +5937,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio021/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5952,7 +5952,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-155.zeno.fm/4mbfcn4mf24tv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI0bWJmY240bWYyNHR2IiwiaG9zdCI6InN0cmVhbS0xNTUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiRVltT2UwdnpRQW0tX1p1TmMyTGFsQSIsImlhdCI6MTc2MjQzNzkwMywiZXhwIjoxNzYyNDM3OTYzfQ.TuoxrrpEfNyce6BloNU6AI5jou3g0YTIHDQQ5zr_Jnc",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5982,7 +5982,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://ice66.securenetsystems.net/TAJ",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -5997,7 +5997,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://usa2.fastcast4u.com/proxy/tamilsun?mp=/;",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6042,7 +6042,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://gtr-unicast2u.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6132,7 +6132,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://radionayaandaz.out.airtime.pro/radionayaandaz_a",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6147,7 +6147,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://kummalam.stream.laut.fm/kummalam",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6177,7 +6177,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-161.zeno.fm/vxoisuvazztvv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ2eG9pc3V2YXp6dHZ2IiwiaG9zdCI6InN0cmVhbS0xNjEuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiaUd1eTRhYzlRbnVoX0VPclkxN3Y1USIsImlhdCI6MTc2MjQxNjg0NSwiZXhwIjoxNzYyNDE2OTA1fQ.Fin0gmh3fIspA-zyWXwy-DXvxYnNu8n7aPXjVBFi6Fw",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6192,7 +6192,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://s3.citrus3.com:8320/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6207,7 +6207,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-175.zeno.fm/tmgktm50dzzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ0bWdrdG01MGR6enV2IiwiaG9zdCI6InN0cmVhbS0xNzUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiRjJuQUlUS0hTVU9UYTNCRmRTTlMxUSIsImlhdCI6MTc2MjQ0NjU0NCwiZXhwIjoxNzYyNDQ2NjA0fQ.m9S_Lv0AzShegF92cswSTVId8hEIUIWeP61XqdjHvdU",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6237,7 +6237,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "kannada",
     link: "https://stream-159.zeno.fm/7g8axtgtsg0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI3ZzhheHRndHNnMHV2IiwiaG9zdCI6InN0cmVhbS0xNTkuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiTDFYT21GbkJRbVNjZk4tMUhJXzJJZyIsImlhdCI6MTc2MjQ3MTI5MCwiZXhwIjoxNzYyNDcxMzUwfQ.BfNJYTunExWP9cHec-KQFyWSGAmsvmEa8LMS3yguLW0",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6252,7 +6252,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://thenaruvivaanoli.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6267,7 +6267,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://28093.live.streamtheworld.com:443/MINNAL_FMAAC.aac",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6282,7 +6282,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio045/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6297,7 +6297,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://25283.live.streamtheworld.com:443/SUNO917_SC",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6327,7 +6327,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio154/chunklist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "classical",
   },
   {
@@ -6357,7 +6357,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-160.zeno.fm/whwy245c2wzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ3aHd5MjQ1YzJ3enV2IiwiaG9zdCI6InN0cmVhbS0xNjAuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiSGZFc3BPRENSbHFLSlNYWkVzelgwUSIsImlhdCI6MTc2MjQ1ODY4MCwiZXhwIjoxNzYyNDU4NzQwfQ.roPPoZVELV3rQWqK86FPXY3M-XOBtGax6nrxZ4cztpE",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6402,7 +6402,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-156.zeno.fm/w9kku8utuy8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ3OWtrdTh1dHV5OHV2IiwiaG9zdCI6InN0cmVhbS0xNTYuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoib0lnbFlwLWxUaHUzRDBENXlNZS00USIsImlhdCI6MTc2MjQ0NzM3MywiZXhwIjoxNzYyNDQ3NDMzfQ.Fwl_BlBUzbzWLo13mYp81hmvTNWcs2ZY9rAzFNF8Jdo",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6417,7 +6417,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "https://ice66.securenetsystems.net/CIRF",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6432,7 +6432,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://cast1.my-control-panel.com/proxy/radiomattoli/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6462,7 +6462,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://cp12.serverse.com/proxy/vasanthamfm?mp=/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6492,7 +6492,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-157.zeno.fm/kzd2e3tx24zuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJremQyZTN0eDI0enV2IiwiaG9zdCI6InN0cmVhbS0xNTcuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiajZjRkxpbGZTR2lFN3o5MjkxVFpwdyIsImlhdCI6MTc2MjQ3MzQxNCwiZXhwIjoxNzYyNDczNDc0fQ.aP_lJeqtwCX0nJmOEQeVOOOnVybThajP5tnwyba8Vxs",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6507,7 +6507,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-176.zeno.fm/e2b3xgmdhuquv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJlMmIzeGdtZGh1cXV2IiwiaG9zdCI6InN0cmVhbS0xNzYuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiOWt4WU9aU3dUM0tDSlR6NTZNZ3FPZyIsImlhdCI6MTc2MjQ3MjIzNCwiZXhwIjoxNzYyNDcyMjk0fQ.RYz4C0Ed-mmSHRoR1kuREIWD9EmOwppsoY-J7b0jr4w",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6522,7 +6522,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "http://stream-154.zeno.fm/019324w4ez4tv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiIwMTkzMjR3NGV6NHR2IiwiaG9zdCI6InN0cmVhbS0xNTQuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiX0lKeUdJLWFSaGVHdEdRVFlqNmJrdyIsImlhdCI6MTc2MjQyOTI3NywiZXhwIjoxNzYyNDI5MzM3fQ.eFPDhv8z8RTgJdhYfo-nA4M4Ne5Z7jKLxSQMyt3AXmM",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6552,7 +6552,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "kannada",
     link: "https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio028/hlspbaudio028_Auto.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6567,7 +6567,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://usa15.fastcast4u.com/proxy/magizhchifm?mp=/1",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6582,7 +6582,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio041/chunklist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6597,7 +6597,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://c28.radioboss.fm:18046/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6627,7 +6627,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://radio.canstream.co.uk:8115/live.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6642,7 +6642,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://live.cmr24.net/CMR/TamilHD-HQ/icecast.audio",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6672,7 +6672,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-177.zeno.fm/2fhh49f3zf8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiIyZmhoNDlmM3pmOHV2IiwiaG9zdCI6InN0cmVhbS0xNzcuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiNWVaelo4WUhUT2kwOTc3WUNDMUMxdyIsImlhdCI6MTc2MjQ2MjQwNiwiZXhwIjoxNzYyNDYyNDY2fQ.FixbGpk3Tin-TSVNDAnl_M0kSSI9ZzIMOU3cDGgqPbg",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6687,7 +6687,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://gtr-unicast2u.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6702,7 +6702,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "https://s5.voscast.com:9281/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6732,7 +6732,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://sonic01.instainternet.com/8002/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6747,7 +6747,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://streams.radio.co/s937ac5492/listen",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6762,7 +6762,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://server6.radio-streams.net:18048/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6777,7 +6777,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-156.zeno.fm/xekhrn4zetzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ4ZWtocm40emV0enV2IiwiaG9zdCI6InN0cmVhbS0xNTYuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiQmsyREFYSkZRT1N1eEEtYWdGRTVidyIsImlhdCI6MTc2MjQwMjU5OSwiZXhwIjoxNzYyNDAyNjU5fQ.-IZu4NzWKlWSpp8LxI6298g5OiZnaPz1bpc_1DjzBAc",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6792,7 +6792,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "kannada",
     link: "http://n13.radiojar.com/g6dgm6m6p3hvv?rj-ttl=5&rj-tok=AAABmlm5A9EAtGinj5D2sYObtQ",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6822,7 +6822,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://sivanradio.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6898,7 +6898,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://audio-edge-vqwx4.yyz.g.radiomast.io/22e2c991-fc0c-4242-8cba-0a64d0aea809",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6928,7 +6928,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio017/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "classical",
   },
   {
@@ -6943,7 +6943,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "https://c7.radioboss.fm/stream/52",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6958,7 +6958,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://usa15.fastcast4u.com/proxy/radiomall/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -6973,7 +6973,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "kannada",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio073/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7003,7 +7003,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://ice8.securenetsystems.net/EASY96",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7018,7 +7018,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "kannada",
     link: "https://stream-141.zeno.fm/fcsk9ryerd0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJmY3NrOXJ5ZXJkMHV2IiwiaG9zdCI6InN0cmVhbS0xNDEuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiSUExRURKRGtRanFJbUhydTc5MFU4USIsImlhdCI6MTc2MjQ1NTUzNywiZXhwIjoxNzYyNDU1NTk3fQ.StKY0Oi3STiA9hqpM5wnvGR_iAP4dVp-qm5shakV31A&rj-ttl=5&rj-tok=AAABdXnVZ3sA-61zQpwDIgRWvw",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7033,7 +7033,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio024/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7048,7 +7048,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-175.zeno.fm/tmgktm50dzzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ0bWdrdG01MGR6enV2IiwiaG9zdCI6InN0cmVhbS0xNzUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoia0pIekJOUXlUTi1HeHJOQzlJMWFCUSIsImlhdCI6MTc2MjQ3Mzc1NCwiZXhwIjoxNzYyNDczODE0fQ.1TZOiAa_20Qb8Hyb7XqG0tBxpyZLe_q5ZzAeOUfGltw",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7078,7 +7078,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://sugu.radioca.st/stream/;stream/1",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7093,7 +7093,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-153.zeno.fm/qgqrxfte41zuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJxZ3FyeGZ0ZTQxenV2IiwiaG9zdCI6InN0cmVhbS0xNTMuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiZVBpcFBqSnRTMGV0TjJSbXhvV2NFdyIsImlhdCI6MTc2MjQ3NDQ1NSwiZXhwIjoxNzYyNDc0NTE1fQ.Cbj1gN0EnKU5iGgbn5jOZjw1_0eLUFY5k-Y3Ftt8j8I",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7108,7 +7108,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://radio.mbconline.xyz/hls/tallfm.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7138,7 +7138,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-178.zeno.fm/9fp1383f0d0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI5ZnAxMzgzZjBkMHV2IiwiaG9zdCI6InN0cmVhbS0xNzguemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiUXl6d29NMktSdjZfUjl0bEpNTVpIdyIsImlhdCI6MTc2MjQ3NDE5OSwiZXhwIjoxNzYyNDc0MjU5fQ.kPsemcjpiB5oNXyvzSd1MryQKXdxSs0B-fy3UfxULbI",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7153,7 +7153,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://cp11.serverse.com/proxy/hgsmgluv?mp=/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7168,7 +7168,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio083/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7198,7 +7198,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://aasman_radio.ice.infomaniak.ch/aasmanradio.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7213,7 +7213,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "bangla",
     link: "http://stream-175.zeno.fm/10rt7tpf6ehvv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiIxMHJ0N3RwZjZlaHZ2IiwiaG9zdCI6InN0cmVhbS0xNzUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiNTZmc21YME1TN0dyNF9KZnRoN21PQSIsImlhdCI6MTc2MjQyNjYwNiwiZXhwIjoxNzYyNDI2NjY2fQ.RQsmHbcy0_nr5aEcJmWJVn5wOq-2PIY7KG1vT70Nzoo",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7258,7 +7258,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://c7.radioboss.fm:18052/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7288,7 +7288,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://live.cmr24.net/CMR/Desi_Music-MQ/icecast.audio",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7348,7 +7348,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://14983.live.streamtheworld.com:443/RADIO_OLIVE_CLUB_S04AAC.aac",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7378,7 +7378,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://peaceradio.out.airtime.pro/peaceradio_a",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7409,7 +7409,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-157.zeno.fm/k9e5pmbktp8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJrOWU1cG1ia3RwOHV2IiwiaG9zdCI6InN0cmVhbS0xNTcuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiV2NuZlZwMjBSa3k3VVlxYTJKeXBDdyIsImlhdCI6MTc2MjQ2MDc2NCwiZXhwIjoxNzYyNDYwODI0fQ.wxG8RyQzdBg9SJtwauLKVv643IT7ces-KuyYk34wtwA",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7424,7 +7424,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://patmos.cdnstream.com/proxy/luminous/?mp=/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7454,7 +7454,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "bangla",
     link: "https://stream.radiotreetal.com/listen",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7469,7 +7469,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://16603.live.streamtheworld.com:443/RADIO_SUNO_TAMIL_S01.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7484,7 +7484,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://centova.aarenworld.com/proxy/894tamilfm/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7544,7 +7544,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://usa3.fastcast4u.com/proxy/dhayanib?mp=/;",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7559,7 +7559,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-175.zeno.fm/c32gn1eas2zuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJjMzJnbjFlYXMyenV2IiwiaG9zdCI6InN0cmVhbS0xNzUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoidGxyNDVKMG9UUWFvNWdpak5sR1FHdyIsImlhdCI6MTc2MjQyNDE2OSwiZXhwIjoxNzYyNDI0MjI5fQ.NG7oka80mlCjvUPkUU9IpwfTP09epMiDIDl8gbQcIyE",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7589,7 +7589,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-155.zeno.fm/g5ay9q4dgrruv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJnNWF5OXE0ZGdycnV2IiwiaG9zdCI6InN0cmVhbS0xNTUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiYnZHU01jU3hRcXlZYW55TDRLcU9SUSIsImlhdCI6MTc2MjQzOTM5NCwiZXhwIjoxNzYyNDM5NDU0fQ.cZroEUEvIo9TzzGyOmg_QSovE38JtVH5Xfkag7zjQVw",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7604,7 +7604,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio022/master.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7649,7 +7649,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://amorfm_192.streampartner.nl/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7664,7 +7664,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "kannada",
     link: "http://stream-163.zeno.fm/kgw2tp5p1y5tv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJrZ3cydHA1cDF5NXR2IiwiaG9zdCI6InN0cmVhbS0xNjMuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiMVRQZjgxZkpRNkNUTVBWb0FqMjZfUSIsImlhdCI6MTc2MjQzOTU3MywiZXhwIjoxNzYyNDM5NjMzfQ.2QvTtAMWw80Vls4BqEBWAoO0ufX18FrK_P7OQV6lJQw",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7694,7 +7694,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://a9oldhits-a9media.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7709,7 +7709,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://sonic01.instainternet.com/8002/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7724,7 +7724,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://usa11.fastcast4u.com/proxy/ajaydk?mp=/;",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7769,7 +7769,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "",
     link: "http://n0a.radiojar.com/0tpy1h0kxtzuv?rj-ttl=5&rj-tok=AAABmltR06wAKwaYW9D2ep4ltQ",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "classical",
   },
   {
@@ -7799,7 +7799,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "https://c2.radioboss.fm:8276/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7814,7 +7814,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://streams.radio.co/s937ac5492/listen",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7919,7 +7919,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://usa9.fastcast4u.com/proxy/nesaganam?mp=/1",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7934,7 +7934,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://fra-ranger01.dedicateware.com:8008/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7964,7 +7964,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://a9newhits-a9media.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -7979,7 +7979,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio052/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "country",
   },
   {
@@ -7994,7 +7994,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://usa2.fastcast4u.com/proxy/tamilsun?mp=/;",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8009,7 +8009,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-177.zeno.fm/77fs4kfuhnruv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI3N2ZzNGtmdWhucnV2IiwiaG9zdCI6InN0cmVhbS0xNzcuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiQkt3dUx2ZGhRRm1IRXFnYWNYOW1YdyIsImlhdCI6MTc2MjQ2OTUzMSwiZXhwIjoxNzYyNDY5NTkxfQ.TPHVbvaoxBTLqubEoV_WdLR-ujcr60xJAE7WW46UIiU",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8039,7 +8039,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "kannada",
     link: "https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio030/hlspbaudio030_Auto.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8159,7 +8159,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-157.zeno.fm/fu94u25kqd0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJmdTk0dTI1a3FkMHV2IiwiaG9zdCI6InN0cmVhbS0xNTcuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiVGZRVXVDTFFRenVEUVlCUEJIbUxwdyIsImlhdCI6MTc2MjQ0Nzg4NCwiZXhwIjoxNzYyNDQ3OTQ0fQ.g72YSEdQxW7yH-OscAWCklWU2j4sEsCE0Ye5f9DrPTY",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8189,7 +8189,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://radio13.pro-fhi.net:19236/stream.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8219,7 +8219,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://server4.ujala.nl/stream/2/listen.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8234,7 +8234,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://centova71.instainternet.com/proxy/brisvaaniradio?mp=/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8264,7 +8264,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://s2.radio.co/s44bb88930/listen#.mp3?ver=997168",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8294,7 +8294,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://cast1.my-control-panel.com/proxy/enteradio/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8309,7 +8309,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://cast4.my-control-panel.com/proxy/demo4usv/live",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8324,7 +8324,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://vm65162.streamerr.co/listen/megazone_south/radio.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8339,7 +8339,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://usa19.fastcast4u.com/swiss",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8354,7 +8354,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://live.cmr24.net/CMR/CMR-MQ/icecast.audio",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8369,7 +8369,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio165/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8384,7 +8384,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://gains.reviveradio.net/proxy/rafaradio?mp=/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8414,7 +8414,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-162.zeno.fm/dcts7v7sef9uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJkY3RzN3Y3c2VmOXV2IiwiaG9zdCI6InN0cmVhbS0xNjIuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiUnpPcHdxYmVRM3V0cjB5QXBYRWFiZyIsImlhdCI6MTc2MjQyODc5NywiZXhwIjoxNzYyNDI4ODU3fQ.Mq4ERundV3w7eiUJQYPRoXY96MtkLIupTv4xJs_CN6E",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8429,7 +8429,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://usa9.fastcast4u.com/proxy/thentamilfm?mp=/;",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8459,7 +8459,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-176.zeno.fm/pzgws1kc41zuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJwemd3czFrYzQxenV2IiwiaG9zdCI6InN0cmVhbS0xNzYuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiRDBoQ2c4MTBTUE9TenA3MGpXTDRBQSIsImlhdCI6MTc2MjQ1NTUzNSwiZXhwIjoxNzYyNDU1NTk1fQ.hkIlj2yyGro8rIIpmSnbbNCgZEj8igGQr6yLzVkGxFQ",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8474,7 +8474,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio134/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8489,7 +8489,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://live.cmr24.net/CMR/Desi_Music-MQ/icecast.audio",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8504,7 +8504,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "kannada",
     link: "http://n08.radiojar.com/g6dgm6m6p3hvv?rj-ttl=5&rj-tok=AAABmliztHoAJ_huLXybW7EFsg",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8534,7 +8534,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "http://stream-153.zeno.fm/8ux50camqwzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI4dXg1MGNhbXF3enV2IiwiaG9zdCI6InN0cmVhbS0xNTMuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoic29hTndYSVBTQmlzQTBaeFQ3OU5hdyIsImlhdCI6MTc2MjQwNTcyOSwiZXhwIjoxNzYyNDA1Nzg5fQ.LXRDannHRUgZPMhtq9p8FIMar9SGxPaOyCkq6HNYh2s",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8579,7 +8579,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://cast1.asurahosting.com/proxy/geethan3/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8609,7 +8609,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://gurgaonradio.out.airtime.pro/gurgaonradio_a",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8624,7 +8624,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://eu10.fastcast4u.com:6740/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8669,7 +8669,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-176.zeno.fm/wx8ue96nc18uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ3eDh1ZTk2bmMxOHV2IiwiaG9zdCI6InN0cmVhbS0xNzYuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiLXJESV9RMDFUQ2E0THdoLVZKVDJzUSIsImlhdCI6MTc2MjQyODk2MywiZXhwIjoxNzYyNDI5MDIzfQ.DSe1Iw1h9vFZDVTrmSHgVUmL_HWShPIFrrRIj2LUmqU",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8715,7 +8715,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "https://mehramedia.in:3021/;",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8746,7 +8746,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-178.zeno.fm/7b78sdv2x1zuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI3Yjc4c2R2MngxenV2IiwiaG9zdCI6InN0cmVhbS0xNzguemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiNGR5Z3ZQODZSOXFaSFduZHBFMk44QSIsImlhdCI6MTc2MjQyOTEwMCwiZXhwIjoxNzYyNDI5MTYwfQ.jyZ0nGBBpLwZgLupHPKO7nivIJTyy7Oli3FsKbkFx1s",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8761,7 +8761,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio138/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8776,7 +8776,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://casper.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8821,7 +8821,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-162.zeno.fm/e9hsbbbey4zuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJlOWhzYmJiZXk0enV2IiwiaG9zdCI6InN0cmVhbS0xNjIuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiQjVhYnU1NnlURUNRcjMzX1RlN09DdyIsImlhdCI6MTc2MjQ2NDE1NywiZXhwIjoxNzYyNDY0MjE3fQ.cmPCWjoP5n0uM0Yf3KwvqKBqnyzEozhaiUzoiU3jN2o",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8836,7 +8836,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "kannada",
     link: "http://stream-169.zeno.fm/6quh1pfnt1duv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI2cXVoMXBmbnQxZHV2IiwiaG9zdCI6InN0cmVhbS0xNjkuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiRGxhaHRGRDhUbFdaQzBnSDFLbURuUSIsImlhdCI6MTc2MjQ0NjAzNiwiZXhwIjoxNzYyNDQ2MDk2fQ._a77ZNzGBqGwKruoB2WKhgWrcxcpSjnS7Px5MBGElL8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8851,7 +8851,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-145.zeno.fm/nhrtcxg09u8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJuaHJ0Y3hnMDl1OHV2IiwiaG9zdCI6InN0cmVhbS0xNDUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoickVPNG5nc19UYWFvS2gzeU1xc2pJUSIsImlhdCI6MTc2MjQyMjIyMywiZXhwIjoxNzYyNDIyMjgzfQ.e29mI_ssuDR44iB3FWqgp4DMhjCfaDZNasiQSNkCXFo",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8866,7 +8866,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://streaming.radio.co/s58948a3f0/listen",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8881,7 +8881,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://live.cmr24.net/CMR/TamilHD-MQ/icecast.audio",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8896,7 +8896,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-164.zeno.fm/aqp97f3z238uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJhcXA5N2YzejIzOHV2IiwiaG9zdCI6InN0cmVhbS0xNjQuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiV2dfTXdVb1RTQS1fRlFELTVKeVVxQSIsImlhdCI6MTc2MjQ0ODY5OSwiZXhwIjoxNzYyNDQ4NzU5fQ.x_YWnDn_fWRbmuNBTXP77nuWHgSK8tSkirZm2x5o12c",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8911,7 +8911,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/audio_syndication_low_sbr_v1/cfs/bbc_asian_network.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -8971,7 +8971,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "kannada",
     link: "https://d3ctxlq1ktw2nl.cloudfront.net/staging/2023-8-27/24e94d7f-07dc-9d45-95d0-ddfbbda2b7ae.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "bhakti",
   },
   {
@@ -8986,7 +8986,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://streams.radio.co/s937ac5492/listen",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9016,7 +9016,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://usa15.fastcast4u.com/proxy/radiomall/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9031,7 +9031,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "punjabi",
     link: "https://17813.live.streamtheworld.com:443/KRPIAM_SC",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9046,7 +9046,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio022/master.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9061,7 +9061,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-156.zeno.fm/b741tfumhm8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJiNzQxdGZ1bWhtOHV2IiwiaG9zdCI6InN0cmVhbS0xNTYuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoidmdEN1Voa2tSZDJlRXMyUF9SV0R5QSIsImlhdCI6MTc2MjQ0MzE5OCwiZXhwIjoxNzYyNDQzMjU4fQ.LdemXsFW2yAeixfb0ZHzPcFP3nZP2jSsLWm39KBy_YE",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9076,7 +9076,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://uksoutha.streaming.broadcast.radio/awazfm",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9107,7 +9107,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio175/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "country",
   },
   {
@@ -9122,7 +9122,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://gurgaonradio.out.airtime.pro/gurgaonradio_a",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9137,7 +9137,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-158.zeno.fm/gdkvpstgtp8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJnZGt2cHN0Z3RwOHV2IiwiaG9zdCI6InN0cmVhbS0xNTguemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoibEoycnAySE5URzJtRndHUERXNm8tUSIsImlhdCI6MTc2MjQ3Mjc5MywiZXhwIjoxNzYyNDcyODUzfQ.d8sND-1hyZvnUFWd5jso_EJsUHkg2BtFcLtG_rfqcdc",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9152,7 +9152,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-175.zeno.fm/37tsftts91zuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiIzN3RzZnR0czkxenV2IiwiaG9zdCI6InN0cmVhbS0xNzUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiZDEtczNDa2NRci1RTzJYN2d2V3NIZyIsImlhdCI6MTc2MjQ0MjU5MCwiZXhwIjoxNzYyNDQyNjUwfQ.I_0kGlzGmpyCieL_z48aHkkqc9ew_BDRIpqJWz63W4M",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9198,7 +9198,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://ice42.securenetsystems.net/CR90?type=.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9213,7 +9213,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio082/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9228,7 +9228,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://streaming.webhostnepal.com/8020/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9243,7 +9243,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://usa8.fastcast4u.com/proxy/subikshafm?mp=/1",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9258,7 +9258,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://funasia.streamguys1.com/live-1?_=1596332823914",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9273,7 +9273,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://rbx2.hnux.com/http://10454.cloudrad.io:6176/;stream.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9288,7 +9288,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://usa19.fastcast4u.com/swiss",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9318,7 +9318,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "odia",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio112/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9333,7 +9333,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://fra-ranger01.dedicateware.com:8008/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9348,7 +9348,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://stream-156.zeno.fm/rzuke118e3quv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJyenVrZTExOGUzcXV2IiwiaG9zdCI6InN0cmVhbS0xNTYuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiR3E1X0R3dlRSaGVIRTF2OUNFVl8tdyIsImlhdCI6MTc2MjQwOTUyMSwiZXhwIjoxNzYyNDA5NTgxfQ.KgA31-Npv2AM-8rdxtnqGz_2dDgmbPqPZbf-sEGPpmg&rj-ttl=5&rj-tok=AAABcTlCgAwAy6eEPdjo1Hgv7g",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9363,7 +9363,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://ice8.securenetsystems.net/CINA",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9393,7 +9393,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://live.cmr24.net/CMR/TamilHD-MQ/icecast.audio",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9423,7 +9423,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://gains.reviveradio.net/proxy/jesusreigns?mp=/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9468,7 +9468,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-161.zeno.fm/f29eh57d3qzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJmMjllaDU3ZDNxenV2IiwiaG9zdCI6InN0cmVhbS0xNjEuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiaXQ1UzAwWFRUVEtvMEVYVFllS2VSUSIsImlhdCI6MTc2MjQ2NjM5NCwiZXhwIjoxNzYyNDY2NDU0fQ.UWTbG1sK1z6VML6FbMgoz_-zsg0q8M5lopL4g1L6HQU",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9483,7 +9483,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://radio.massstream.net/8010/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9528,7 +9528,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://radiocast.cr8tive-digital.com/radiofaza",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9543,7 +9543,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "odia",
     link: "https://stream-155.zeno.fm/dkpdmc8e0chvv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJka3BkbWM4ZTBjaHZ2IiwiaG9zdCI6InN0cmVhbS0xNTUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiWk5VUWdEcWtRY2VGUzlta01aUGlnZyIsImlhdCI6MTc2MjQyOTU3OCwiZXhwIjoxNzYyNDI5NjM4fQ.4S9LBaCauRIv1ebGDvFky2beHPmxCaBUKQ--wxPc9kM",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9588,7 +9588,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://thenralw.radioca.st/LiveStream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9603,7 +9603,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://cp1.hostcrate.com/8910/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9618,7 +9618,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://mars.streamerr.co/8274/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9633,7 +9633,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://us3.streamingpulse.com/ssl/radiodil2",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9648,7 +9648,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://s4.voscast.com:8735/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9693,7 +9693,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio017/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9708,7 +9708,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-156.zeno.fm/b741tfumhm8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJiNzQxdGZ1bWhtOHV2IiwiaG9zdCI6InN0cmVhbS0xNTYuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiRnFZMlR0UXZRTGFiNVdEZmE5dG9VZyIsImlhdCI6MTc2MjQ2MTI1OSwiZXhwIjoxNzYyNDYxMzE5fQ.cszC2ZMzbJ21JmgWIUVVKCsijZa7nOTrif918jy8Dds",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9768,7 +9768,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://radio.mbconline.xyz/hls/tallfm.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9798,7 +9798,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-175.zeno.fm/k0qrmtts91zuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJrMHFybXR0czkxenV2IiwiaG9zdCI6InN0cmVhbS0xNzUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiMGc2bmgyRGZUV2VJd3dfNHNNbC1CZyIsImlhdCI6MTc2MjQ2MjI4NCwiZXhwIjoxNzYyNDYyMzQ0fQ.WUEzjw0CjAlKjybD9j5RCk2rTYIQ3tsU_NdFNm3Cdrg",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9813,7 +9813,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-154.zeno.fm/utmhndkgtp8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ1dG1obmRrZ3RwOHV2IiwiaG9zdCI6InN0cmVhbS0xNTQuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoidWdmYXdEVWtRT0tnREpudFMzcFVzUSIsImlhdCI6MTc2MjQ1NDM1NCwiZXhwIjoxNzYyNDU0NDE0fQ.K55sfmBlbhz0qu90I_LZ0EUHu3r-PXUT8-wSD_lB0zQ",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9843,7 +9843,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://globalwebmusic.com/akaram.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9858,7 +9858,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-154.zeno.fm/vewxk5336qzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ2ZXd4azUzMzZxenV2IiwiaG9zdCI6InN0cmVhbS0xNTQuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiQ3lGZUNFeXdTRUNCY2FrMzE4LVF0USIsImlhdCI6MTc2MjQxNTMyMSwiZXhwIjoxNzYyNDE1MzgxfQ.TW9nyiaaaVYlT5a_uBv76SDOUGHqcZ_cjJpY4KCLhxw",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9873,7 +9873,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio126/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9888,7 +9888,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio013/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "classical",
   },
   {
@@ -9903,7 +9903,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "bangla",
     link: "https://stream-154.zeno.fm/ybf1umk1k18uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ5YmYxdW1rMWsxOHV2IiwiaG9zdCI6InN0cmVhbS0xNTQuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiVFFWMHJMSHFUTjZCODFFZm0ydUlnUSIsImlhdCI6MTc2MjQ3MDM4MSwiZXhwIjoxNzYyNDcwNDQxfQ._qBX17nrHaEns8gJvpeUkteRFQJKgQoMjLa_-kJa1eE",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9933,7 +9933,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "odia",
     link: "https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio002/hlspbaudio002_Auto.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -9978,7 +9978,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://radiopetti.out.airtime.pro/radiopetti_a",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10068,7 +10068,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://kathiravanfm-prabak78.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10083,7 +10083,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://radio13.pro-fhi.net:19236/stream.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10160,7 +10160,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://server6.radio-streams.net:18048/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10175,7 +10175,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://ice8.securenetsystems.net/EASY96?type=.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10190,7 +10190,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://nanbanfm-unicast2u.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10205,7 +10205,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-155.zeno.fm/r1m0u429e2zuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJyMW0wdTQyOWUyenV2IiwiaG9zdCI6InN0cmVhbS0xNTUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoidG8ta2pmWlpUaDZ3RS1najVzT1YzUSIsImlhdCI6MTc2MjQ2MDE3MywiZXhwIjoxNzYyNDYwMjMzfQ.DAY8GY0VLt4a7aLY8in20WHbLEpSHdyYy0Y2scL3gTY",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10220,7 +10220,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "odia",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio102/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10235,7 +10235,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://usa9.fastcast4u.com/proxy/arnifm?mp=/1",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10250,7 +10250,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://cast4.asurahosting.com/proxy/neville/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10295,7 +10295,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-175.zeno.fm/d5skwct7hqzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJkNXNrd2N0N2hxenV2IiwiaG9zdCI6InN0cmVhbS0xNzUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoib3VBYjdCRENUdmk2UDZhYUxpZlhNdyIsImlhdCI6MTc2MjQxNzA5OCwiZXhwIjoxNzYyNDE3MTU4fQ.qivo_xkoWKMl8SOu38JmjAfHsY4F4jzQRLGWblgKvcI",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10325,7 +10325,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://thenaruvivaanoli.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10340,7 +10340,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-176.zeno.fm/heq754gwxwzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJoZXE3NTRnd3h3enV2IiwiaG9zdCI6InN0cmVhbS0xNzYuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiVXR5SHY1T2tRZENLQW9lZGd2ak00QSIsImlhdCI6MTc2MjQ1NDk1MiwiZXhwIjoxNzYyNDU1MDEyfQ.Bkv1DXYI6UtnfhdFWvnrVc69g_ase-IZLDGJR-oP4FQ",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10370,7 +10370,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://radio.canstream.co.uk:8025/live.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10385,7 +10385,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://radio.lotustechnologieslk.net:8006/;stream.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10400,7 +10400,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://usa8.fastcast4u.com/proxy/auralradio?mp=/1/;stream.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10415,7 +10415,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "kannada",
     link: "https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudioragam/hlspbaudioragam_Auto.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10430,7 +10430,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-179.zeno.fm/zrfx7zy2wwzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ6cmZ4N3p5Mnd3enV2IiwiaG9zdCI6InN0cmVhbS0xNzkuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiNS1FWVExcU5UbEdMTjlxc0dpZjR2ZyIsImlhdCI6MTc2MjQyNjU2NSwiZXhwIjoxNzYyNDI2NjI1fQ.gaHBW_QNOrZNfy9qN7ZU02WHQ5dfkcybIqV01Ljsb8M",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10445,7 +10445,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://radio.mbconline.xyz/hls/bestfm.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10475,7 +10475,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio024/chunklist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10490,7 +10490,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-153.zeno.fm/4yfsm0d8n98uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI0eWZzbTBkOG45OHV2IiwiaG9zdCI6InN0cmVhbS0xNTMuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiTjBVYWh3M1JSbGFtSW9uaW9raF9IUSIsImlhdCI6MTc2MjQzODIzMywiZXhwIjoxNzYyNDM4MjkzfQ.2nVy2IJwSyQYrwHp6KLZCH-FmSaQ-v7QE8gfWmcQPeM",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10520,7 +10520,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://peridot.streamguys1.com:7150/RFTwo",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10535,7 +10535,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio004/hlspbaudio004_Auto.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10565,7 +10565,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://rbx2.hnux.com/http://5984.cloudrad.io:8032/;stream.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10580,7 +10580,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "",
     link: "https://kathiravanfm-prabak78.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "classical",
   },
   {
@@ -10625,7 +10625,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio016/chunklist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10670,7 +10670,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-155.zeno.fm/4yfsm0d8n98uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI0eWZzbTBkOG45OHV2IiwiaG9zdCI6InN0cmVhbS0xNTUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiWHRNcldvOURTbnlpYTRzSUFyRnQwQSIsImlhdCI6MTc2MjQxNjU5NywiZXhwIjoxNzYyNDE2NjU3fQ.oNmAxsR5m8rr_vUZvlI-nhUlQvaJ8VflVrzODDCN-Jk",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10685,7 +10685,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://s6.yesstreaming.net:19012/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10700,7 +10700,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://s3.yesstreaming.net:17045/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10731,7 +10731,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://usa15.fastcast4u.com/proxy/magizhchifm?mp=/1",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10761,7 +10761,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "odia",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio120/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10791,7 +10791,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://usa7.fastcast4u.com/proxy/ozmediae?mp=/1",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10822,7 +10822,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://ice31.securenetsystems.net/DVN",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10837,7 +10837,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio098/chunklist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10852,7 +10852,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://centova71.instainternet.com/proxy/sweetyfm?mp=/stream2",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10867,7 +10867,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "http://usa15.fastcast4u.com/proxy/tammus00?mp=/;",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10897,7 +10897,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "assamese",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio090/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10912,7 +10912,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://c13.radioboss.fm:8552/healerradio",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10927,7 +10927,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://ice31.securenetsystems.net/DVN",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10942,7 +10942,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-153.zeno.fm/g8cx7tggb3quv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJnOGN4N3RnZ2IzcXV2IiwiaG9zdCI6InN0cmVhbS0xNTMuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiU2gxS0p2LWVSaUNFRVpUbGZVOTFSZyIsImlhdCI6MTc2MjQ2NzQ2MywiZXhwIjoxNzYyNDY3NTIzfQ.YhdOR6v2KMblBzgR8d3Ql1-QjzsFbMmTnf1PNMxFjso",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10957,7 +10957,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudioragam/hlspbaudioragam_Auto.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10972,7 +10972,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-154.zeno.fm/p88vvwd0gm0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJwODh2dndkMGdtMHV2IiwiaG9zdCI6InN0cmVhbS0xNTQuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoianVJejM1MmRURmlKc2R0WHdNVFFMZyIsImlhdCI6MTc2MjQ2OTQwOSwiZXhwIjoxNzYyNDY5NDY5fQ.T27PbrdF31HG10hBUza_eBt5c7ngAqDTQKj-gfD3Bsg",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -10987,7 +10987,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://usa3.fastcast4u.com/proxy/jeifm?mp=/1",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11002,7 +11002,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "odia",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio215/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11017,7 +11017,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://devaprasannam-a9media.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11032,7 +11032,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-179.zeno.fm/xuqoqfdtjcquv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ4dXFvcWZkdGpjcXV2IiwiaG9zdCI6InN0cmVhbS0xNzkuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiMmJQODlwWlFURnVlc3JwLUQ5NVNNUSIsImlhdCI6MTc2MjQ1MTMxMiwiZXhwIjoxNzYyNDUxMzcyfQ.UVMjFU3qQTKPWthW09x-n2eUh0DG0WR7TZWort6c0RY",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11047,7 +11047,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://radio.mediacp.eu/stream/mtr-fm/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11062,7 +11062,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio098/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11092,7 +11092,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-153.zeno.fm/nxb2dpmmhm8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJueGIyZHBtbWhtOHV2IiwiaG9zdCI6InN0cmVhbS0xNTMuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiVThPRk9wcDdUUTY0QjdnZGcxblM2dyIsImlhdCI6MTc2MjQyMjIzMCwiZXhwIjoxNzYyNDIyMjkwfQ.ohk1LO9L5J-Z9Sr3bzL4luJPozpg5GX8Uk8KfXSU1mg",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11107,7 +11107,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://radiopetti.out.airtime.pro/radiopetti_a",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11122,7 +11122,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://live.cmr24.net/CMR/TamilHD-MQ/icecast.audio",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11137,7 +11137,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://vpmurugun.radioca.st/autodj",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11167,7 +11167,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-179.zeno.fm/zrfx7zy2wwzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ6cmZ4N3p5Mnd3enV2IiwiaG9zdCI6InN0cmVhbS0xNzkuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiaUI5N0h1UTZUdGlrdkYzdDduNzI5ZyIsImlhdCI6MTc2MjQ1MjQ0MiwiZXhwIjoxNzYyNDUyNTAyfQ.-NWGtK44gCYPG-J4RQZKDHwx7fNmLHWI_Y4n_xrl59Q",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11197,7 +11197,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://casper.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11212,7 +11212,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://sirpifmhd-unicast2u.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11227,7 +11227,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-155.zeno.fm/c2p4f1np4bruv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJjMnA0ZjFucDRicnV2IiwiaG9zdCI6InN0cmVhbS0xNTUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiSGxoVU05U21RVnlzWnRNMUQxNENuZyIsImlhdCI6MTc2MjQyMjYwMiwiZXhwIjoxNzYyNDIyNjYyfQ.BPaTXo-xGVH0BLokcTFK_DlSEshtyWCsxfM-6OXgGj0",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11258,7 +11258,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://pudhugaisaifm-prabak78.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11288,7 +11288,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "http://s2.radio.co/s3801784f1/listen",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11318,7 +11318,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-155.zeno.fm/p88vvwd0gm0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJwODh2dndkMGdtMHV2IiwiaG9zdCI6InN0cmVhbS0xNTUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiZGNJSVZKMGNUNUdfMVk0SkZ3MlhjUSIsImlhdCI6MTc2MjQyNjM4MSwiZXhwIjoxNzYyNDI2NDQxfQ.HJbBPVr7F6OQzY6fKvKrZ0fwZFGZYQItfoJB2ICWu-o",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11333,7 +11333,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://globalwebmusic.com/akaram.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11348,7 +11348,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://edge.mixlr.com/channel/uaphi",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11363,7 +11363,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "http://centova71.instainternet.com/proxy/brisvaaniradio?mp=/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11378,7 +11378,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "kannada",
     link: "https://stream-165.zeno.fm/v0gde6udfg8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ2MGdkZTZ1ZGZnOHV2IiwiaG9zdCI6InN0cmVhbS0xNjUuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiMzQxNW5kU05TbXljYzg4a21tcVZPdyIsImlhdCI6MTc2MjQ0ODM4MiwiZXhwIjoxNzYyNDQ4NDQyfQ.PFGeyy8S1d-F7PYOc8lC1fK3WjeGC9qhE10XHUUW-nI",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11408,7 +11408,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://das-edge14-live365-dal02.cdnstream.com/a50671",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11423,7 +11423,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio062/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11438,7 +11438,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://vtfm2020-vtfm.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11453,7 +11453,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "",
     link: "http://cast1.my-control-panel.com/proxy/radiomattoli/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "classical",
   },
   {
@@ -11468,7 +11468,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://usa8.fastcast4u.com/proxy/auralradio?mp=/1/;stream.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11498,7 +11498,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://vpmurugun.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11513,7 +11513,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://sathees.radioca.st/;",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11543,7 +11543,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-160.zeno.fm/wg4b845c2wzuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ3ZzRiODQ1YzJ3enV2IiwiaG9zdCI6InN0cmVhbS0xNjAuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiUl9FeUlZc0JUZnV0ZmVaQXpaajByQSIsImlhdCI6MTc2MjQ3MTI5MiwiZXhwIjoxNzYyNDcxMzUyfQ.JWTOtF81V0fliSwgGtXKtxmkbBxtPWmYXk2HME9IiUM",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11573,7 +11573,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://centova71.instainternet.com/proxy/isaiolifmadmin?mp=/stream&1691245966241",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11603,7 +11603,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://uksoutha.streaming.broadcast.radio/awazfm",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11618,7 +11618,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://peaceradio.out.airtime.pro/peaceradio_a",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11633,7 +11633,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://mars.streamerr.co/8274/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11648,7 +11648,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "",
     link: "https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio002/hlspbaudio002_Auto.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "classical",
   },
   {
@@ -11663,7 +11663,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://ec4.yesstreaming.net:1990/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11678,7 +11678,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://edge-ads-01-gos2.sharp-stream.com/1458.mp3?",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11693,7 +11693,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://azuracast.vibesounds.in:8000/radio.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11708,7 +11708,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio021/chunklist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11723,7 +11723,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://usa7.fastcast4u.com/proxy/ozmediae?mp=/1",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11753,7 +11753,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://cp12.serverse.com/proxy/vasanthamfm?mp=/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11783,7 +11783,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-153.zeno.fm/wkqvzsg1238uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ3a3F2enNnMTIzOHV2IiwiaG9zdCI6InN0cmVhbS0xNTMuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoibWUwdXZGRDlRUWVXU0IzZU5aaXcxQSIsImlhdCI6MTc2MjQ0Nzc0OSwiZXhwIjoxNzYyNDQ3ODA5fQ.ZXP4jJrcuUNnuio8Qjunhf_CS1bB4VPbuYy0f5U6gUA",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11813,7 +11813,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-157.zeno.fm/xzt706p3h2zuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ4enQ3MDZwM2gyenV2IiwiaG9zdCI6InN0cmVhbS0xNTcuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoicExCV2tEVWNSai1vUGd5U29ubm40QSIsImlhdCI6MTc2MjQ1OTg1NSwiZXhwIjoxNzYyNDU5OTE1fQ.8KOO4JMAoe7FC5-hTUN9hIzDosb3kWS09TOQYAa4nuo",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11828,7 +11828,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://usa8.fastcast4u.com/proxy/auralradio?mp=/1",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11843,7 +11843,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://neramfm.com:8000/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11858,7 +11858,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://ice7.securenetsystems.net/AMENFM",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11873,7 +11873,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://a9oldhits-a9media.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11888,7 +11888,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio016/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "classical",
   },
   {
@@ -11903,7 +11903,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://rbx2.hnux.com/http://5984.cloudrad.io:8032/;stream.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11933,7 +11933,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://ecrfm-prabak78.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11948,7 +11948,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://bud.streampanel.net:6257/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11963,7 +11963,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://s3.voscast.com:10527/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11978,7 +11978,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://s3.radio.co/sadfae7495/listen",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -11993,7 +11993,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://centova.radioservers.biz/proxy/eastfmc1/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12008,7 +12008,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://cp1.hostcrate.com/8910/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12023,7 +12023,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://ec2.yesstreaming.net:2540/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12038,7 +12038,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://s4.voscast.com:8735/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12053,7 +12053,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://eu10.fastcast4u.com:6740/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12068,7 +12068,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://vpmurugun.radioca.st/autodj",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12083,7 +12083,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://18533.live.streamtheworld.com:443/NAKSHATRA_S01AAC_SC",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12098,7 +12098,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://centova.radioservers.biz/proxy/eastfmc1/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12113,7 +12113,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://s3.voscast.com:10527/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12128,7 +12128,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://c22.radioboss.fm:8532/jehovahrapha",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12143,7 +12143,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://usa9.fastcast4u.com/proxy/arnifm?mp=/1",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12158,7 +12158,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://s3.voscast.com:10527/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12173,7 +12173,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-154.zeno.fm/22db1xmde2zuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiIyMmRiMXhtZGUyenV2IiwiaG9zdCI6InN0cmVhbS0xNTQuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiX1IzOWJCajdUZnl3cVhfcHhDZzFmUSIsImlhdCI6MTc2MjQzMDk4NSwiZXhwIjoxNzYyNDMxMDQ1fQ.0X4mqnk2ZNUALdc9brJ4Ycc8uQSQym0e1aWStksxtnw",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12188,7 +12188,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://s6.yesstreaming.net:19012/stream;",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12203,7 +12203,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://njsunrise.out.airtime.pro/njsunrise_a",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12218,7 +12218,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-153.zeno.fm/22db1xmde2zuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiIyMmRiMXhtZGUyenV2IiwiaG9zdCI6InN0cmVhbS0xNTMuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiV2ZXUFhBY0JSX0tGOXVjeXZGdEpKUSIsImlhdCI6MTc2MjQxMDM0MiwiZXhwIjoxNzYyNDEwNDAyfQ.fHin9Hv7TwpfxUi2EE-FIrsApYGQzfTQyyn71Ybp92c",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12248,7 +12248,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://28383.live.streamtheworld.com:443/OLI968FMAAC.aac",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12263,7 +12263,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-176.zeno.fm/81gn28sbna0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI4MWduMjhzYm5hMHV2IiwiaG9zdCI6InN0cmVhbS0xNzYuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiQk1UY21yNDhRbmVaeFZBU2Zwb2l5QSIsImlhdCI6MTc2MjQzNzkyMywiZXhwIjoxNzYyNDM3OTgzfQ.T2q3kbHq_OYL20oRdrZ7wZQTEvlnN_ZQfes9rfL4YXo",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12293,7 +12293,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://sugu.radioca.st/stream/;stream/1",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12323,7 +12323,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-176.zeno.fm/swgzh04zbg0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJzd2d6aDA0emJnMHV2IiwiaG9zdCI6InN0cmVhbS0xNzYuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiMk9IOGNhUDVSVUtNVzBYRUNWMTc2ZyIsImlhdCI6MTc2MjM5OTA3NCwiZXhwIjoxNzYyMzk5MTM0fQ._yp5N4ftNkc3rXS5ewT51sR8LpFA_MdIfgLvxdz-I_0",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12338,7 +12338,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-178.zeno.fm/0wck59rarchvv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiIwd2NrNTlyYXJjaHZ2IiwiaG9zdCI6InN0cmVhbS0xNzguemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiMTc3UktvbmhSY0NvUy05dG1fem05dyIsImlhdCI6MTc2MjQyMzA5NywiZXhwIjoxNzYyNDIzMTU3fQ.9IeZbPdMr1e-Ee5cxAm6tWDce326jqA0EvmLH1qREgM",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12353,7 +12353,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://vm65162.streamerr.co/listen/megazone_south/radio.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12368,7 +12368,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://28333.live.streamtheworld.com:443/OLI968FMAAC.aac",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12383,7 +12383,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://cp12.serverse.com/proxy/vasanthamfm?mp=/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12398,7 +12398,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://centova71.instainternet.com/proxy/imaifmradio?mp=/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12413,7 +12413,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://sirpifmhd-unicast2u.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12428,7 +12428,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-176.zeno.fm/ut4syfwb1k8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ1dDRzeWZ3YjFrOHV2IiwiaG9zdCI6InN0cmVhbS0xNzYuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiR2tYTEs0amxUd0M4NUdmNVhyM0EwQSIsImlhdCI6MTc2MjQzMTc3OSwiZXhwIjoxNzYyNDMxODM5fQ.bYz6T5CNKomcLlTyCsh244-hpXghobQY0KfhiRJRXaI",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12443,7 +12443,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://eu9.fastcast4u.com/proxy/simon?mp=/1",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12458,7 +12458,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://air.pc.cdn.bitgravity.com/air/live/pbaudio062/playlist.m3u8",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12473,7 +12473,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://bud.streampanel.net:6257/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12488,7 +12488,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://usa13.fastcast4u.com/proxy/gtcfm?mp=/1",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12503,7 +12503,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://radio13.pro-fhi.net:19236/stream.mp3",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12518,7 +12518,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "hindi",
     link: "https://solid48.streamupsolutions.com/proxy/radiosbs/radiosbs",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12533,7 +12533,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://streaming.radio.co/sf833cd785/listen",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12548,7 +12548,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://s3.radio.co/sadfae7495/listen",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12563,7 +12563,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://radio.massstream.net/8010/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12578,7 +12578,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-177.zeno.fm/hszf3agf0k8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJoc3pmM2FnZjBrOHV2IiwiaG9zdCI6InN0cmVhbS0xNzcuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoibElHTVZmN2lTLS1BNG05OTB1SHFrQSIsImlhdCI6MTc2MjQ2ODg2OCwiZXhwIjoxNzYyNDY4OTI4fQ.V29plegX9s-1R05r5XCRzk0YSMO8QojXA3rvoWn_Z8M",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12593,7 +12593,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://nanbanfm-unicast2u.radioca.st/stream",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12608,7 +12608,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://usa13.fastcast4u.com/proxy/gtcfm?mp=/1",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12623,7 +12623,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://streaming.radio.co/sf833cd785/listen",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12638,7 +12638,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-158.zeno.fm/ohhsihm2byluv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJvaGhzaWhtMmJ5bHV2IiwiaG9zdCI6InN0cmVhbS0xNTguemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiNllhNDJ2QTNUeW1xcUVWZzNfN08wZyIsImlhdCI6MTc2MjQ0NDY5MCwiZXhwIjoxNzYyNDQ0NzUwfQ.Liz_-52z1Tf7OT4O1iiSa4tzmr5nErUT1iQUzhGjD6I",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12653,7 +12653,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "tamil",
     link: "https://stream-159.zeno.fm/yu4c9ms3h2zuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ5dTRjOW1zM2gyenV2IiwiaG9zdCI6InN0cmVhbS0xNTkuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoiaURoWDBtOG5UY083ekl5eS0xQWxoQSIsImlhdCI6MTc2MjQzNDEyMywiZXhwIjoxNzYyNDM0MTgzfQ.uhTbKS0mF4SwBtPKY-0dV-u9Ztlz3eKaBdGnRf5sNQE",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
   {
@@ -12668,7 +12668,7 @@ export const radioStations: RadioStation[] = [
     location: "India",
     language: "malayalam",
     link: "https://stream-153.zeno.fm/1a8r3ugrn7zuv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiIxYThyM3Vncm43enV2IiwiaG9zdCI6InN0cmVhbS0xNTMuemVuby5mbSIsInRtIjpmYWxzZSwicnR0bCI6NSwianRpIjoidGVqX0pEN3dUTWVwNWp3MmZnVGM3USIsImlhdCI6MTc2MjQ0Mjk2MywiZXhwIjoxNzYyNDQzMDIzfQ.NyLHcdI9BAmTCdoVJut9ec-DNuLu5NN2HgUSGfs7wWI&rj-ttl=5&rj-tok=AAABc60Whb8A20ig1x3DtwIVoA",
-    website: "https://www.radio-browser.info/",
+    website: "https://desimelody.com/",
     tags: "",
   },
 ];
