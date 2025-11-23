@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Helmet } from "react-helmet";
-import { Play, Pause, Square, SkipForward, SkipBack, Search, Volume2, User } from "lucide-react";
+import { Play, Pause, Square, SkipForward, SkipBack, Search, Volume2, User, Loader } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -813,8 +813,8 @@ export default function CarPlayer() {
                     >
                       {isLoading ? (
                         <div className="flex flex-col items-center">
-                          <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse mb-1" />
-                          <span className="text-[10px] font-bold">WAIT</span>
+                          <Loader className="w-8 h-8 animate-spin text-yellow-500 mb-1" />
+                          <span className="text-xs font-bold text-yellow-300">LOADING</span>
                         </div>
                       ) : isPlaying ? (
                         <Square className="w-10 h-10" />
@@ -823,8 +823,8 @@ export default function CarPlayer() {
                       )}
                     </Button>
                     {isLoading && (
-                      <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                        <p className="text-white text-base font-semibold animate-pulse">Loading...</p>
+                      <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black/50 rounded-lg px-3 py-1">
+                        <p className="text-yellow-300 text-sm font-semibold animate-pulse">Loading Station...</p>
                       </div>
                     )}
                   </div>
