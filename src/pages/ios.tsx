@@ -242,9 +242,9 @@ export default function CarPlayer() {
     if (!currentStation || !("mediaSession" in navigator)) return;
 
     navigator.mediaSession.metadata = new MediaMetadata({
-      title: `Station: ${currentStation.name}`,
-      artist: `Presented by: DesiMelody.com`,
-      album: `Note: Pause is disabled on live radio`,
+      title: `${currentStation.name}`,
+      artist: `DesiMelody.com`,
+      album: `Live radio -Pause disabled`,
       artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
     });
 
