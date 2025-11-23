@@ -754,7 +754,7 @@ export default function CarPlayer() {
             <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-3 text-center">
               <div className="whitespace-nowrap flex items-center justify-center gap-2">
                 <p className="text-yellow-200 text-sm font-medium inline-block">
-                  ℹ️ If radio stops/buffers, click.. ℹ️
+                  ℹ️ If radio stops/buffers, click here
                 </p>
                 <button
                   onClick={() => window.location.reload()}
