@@ -754,7 +754,14 @@ export default function CarPlayer() {
             <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-3 text-center">
               <div className="whitespace-nowrap">
                 <p className="text-yellow-200 text-sm font-medium inline-block">
-                  ℹ️ If radio stops/buffers, refresh the website ℹ️
+                  ℹ️ If radio stops/buffers,{" "}
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="text-yellow-300 hover:text-yellow-100 underline hover:no-underline transition-colors"
+                  >
+                    refresh the website
+                  </button>{" "}
+                  ℹ️
                 </p>
               </div>
             </div>
