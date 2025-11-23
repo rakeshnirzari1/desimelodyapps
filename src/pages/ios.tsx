@@ -754,7 +754,7 @@ export default function CarPlayer() {
             <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-3 text-center">
               <div className="whitespace-nowrap">
                 <p className="text-yellow-200 text-sm font-medium inline-block">
-                  ℹ️ If radio stops, refresh the website
+                  ℹ️ If radio stops/buffers, refresh the website ℹ️
                 </p>
               </div>
             </div>
