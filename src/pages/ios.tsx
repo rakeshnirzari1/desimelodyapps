@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Helmet } from "react-helmet";
-import { Play, Pause, Stop, SkipForward, SkipBack, Search, Volume2, User } from "lucide-react";
+import { Play, Pause, Square, SkipForward, SkipBack, Search, Volume2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -812,7 +812,7 @@ export default function CarPlayer() {
                           <span className="text-[10px] font-bold">WAIT</span>
                         </div>
                       ) : isPlaying ? (
-                        <Stop className="w-10 h-10" />
+                        <Square className="w-10 h-10" />
                       ) : (
                         <Play className="w-10 h-10 ml-1" />
                       )}
