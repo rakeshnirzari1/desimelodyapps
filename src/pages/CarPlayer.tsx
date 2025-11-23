@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Helmet } from "react-helmet";
-import { Play, Pause, SkipForward, SkipBack, Search, Volume2 } from "lucide-react";
+import { Play, Pause, Square, SkipForward, SkipBack, Search, Volume2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -11,8 +11,6 @@ import { getUserCountry } from "@/lib/geolocation";
 import { useAudio } from "@/contexts/AudioContext";
 import logo from "@/assets/desimelodylogo.png";
 import adBanner from "@/assets/advertisementbanner.gif";
-import { useAuth } from "@/contexts/AuthContext";
-import { Link } from "react-router-dom";
 import { FavoritesManager } from "@/components/premium/FavoritesManager";
 import { FolderManager } from "@/components/premium/FolderManager";
 import { UserMenu } from "@/components/premium/UserMenu";
@@ -52,8 +50,16 @@ export default function CarPlayer() {
     const stations = getStationsWithSlugs();
     setAllStations(stations);
 
-    // Detect user country for ads
-    getUserCountry().then(setUserCountry);
+    // Detect user country for ads (cached for battery optimization)
+    const cachedCountry = localStorage.getItem("userCountry");
+    if (cachedCountry) {
+      setUserCountry(cachedCountry);
+    } else {
+      getUserCountry().then((country) => {
+        setUserCountry(country);
+        localStorage.setItem("userCountry", country);
+      });
+    }
   }, []);
 
   // Sync with context station when it changes (e.g., from favorites)
@@ -201,13 +207,13 @@ export default function CarPlayer() {
     };
   }, [currentStation]);
 
-  // Handle silence audio to keep lock screen controls active during loading and interruptions
+  // Handle silence audio to keep lock screen controls active when playing
   useEffect(() => {
     if (!silenceAudioRef.current) return;
 
     const silenceAudio = silenceAudioRef.current;
-    // Set volume to very low to prevent it from taking over media controls
-    silenceAudio.volume = 0.01;
+    // Set volume to very low to prevent it from taking over media controls (further reduced for battery)
+    silenceAudio.volume = 0.005;
 
     // Clear any pending media session sync
     if (mediaSessionSyncTimeoutRef.current) {
@@ -236,32 +242,33 @@ export default function CarPlayer() {
     if (!currentStation || !("mediaSession" in navigator)) return;
 
     navigator.mediaSession.metadata = new MediaMetadata({
-      title: currentStation.name,
-      artist: `${currentStation.language || "Hindi"} • ${currentStation.type}`,
-      album: "DesiMelody.com, 1200 Radio Stations From South East Asia",
+      title: `${currentStation.name}`,
+      artist: `DesiMelody.com`,
+      album: `Live radio -Pause disabled`,
       artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
     });
 
     // Set position state for live streaming (helps maintain lock screen presence)
-    try {
-      navigator.mediaSession.setPositionState({
-        duration: Infinity, // Live stream has no duration
-        playbackRate: 1,
-        position: 0,
-      });
-    } catch (e) {
-      console.log("Position state not supported");
-    }
+    // Disabled for battery optimization
+    // try {
+    //   navigator.mediaSession.setPositionState({
+    //     duration: Infinity, // Live stream has no duration
+    //     playbackRate: 1,
+    //     position: 0,
+    //   });
+    // } catch (e) {
+    //   console.log("Position state not supported");
+    // }
 
     // Sync playback state with lock screen
     if ("setPlaybackState" in navigator.mediaSession) {
       navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
-      console.log("Media Session playback state:", isPlaying ? "playing" : "paused");
+      // console.log("Media Session playback state:", isPlaying ? "playing" : "paused");
     }
 
-    // Enable play and pause handlers for lock screen controls
+    // Enable play and stop handlers for lock screen controls
     navigator.mediaSession.setActionHandler("play", handlePlay);
-    navigator.mediaSession.setActionHandler("pause", handlePause);
+    navigator.mediaSession.setActionHandler("pause", () => {}); // No-op to keep button visible but disabled on lock screen
 
     // Next and previous handlers
     navigator.mediaSession.setActionHandler("nexttrack", handleNext);
@@ -269,7 +276,7 @@ export default function CarPlayer() {
 
     return () => {
       navigator.mediaSession.setActionHandler("play", null);
-      navigator.mediaSession.setActionHandler("pause", null);
+      navigator.mediaSession.setActionHandler("pause", null); // Keep as null in cleanup
       navigator.mediaSession.setActionHandler("nexttrack", null);
       navigator.mediaSession.setActionHandler("previoustrack", null);
     };
@@ -298,7 +305,7 @@ export default function CarPlayer() {
     };
   }, [isInterrupted]);
 
-  // Handle phone call interruptions
+  // Handle phone call interruptions - Enhanced for locked screen
   useEffect(() => {
     if (!audioRef.current || !silenceAudioRef.current) return;
 
@@ -315,13 +322,13 @@ export default function CarPlayer() {
       }
     };
 
-    // Handle when interruption ends and we can resume
-    const handleVisibilityChange = () => {
-      if (!document.hidden && wasInterruptedRef.current && isPlaying) {
-        console.log("App visible again after interruption - resuming");
+    // Handle when audio can play again after interruption
+    const handleAudioResume = () => {
+      if (wasInterruptedRef.current && isPlaying) {
+        console.log("Audio can play again - resuming after interruption");
         wasInterruptedRef.current = false;
         setIsInterrupted(false);
-        // Stop silent audio and reload/resume main station
+        // Stop silent audio and resume main station
         silenceAudio.pause();
         if (currentStation) {
           audio.src = currentStation.link;
@@ -331,21 +338,54 @@ export default function CarPlayer() {
       }
     };
 
+    // Handle when interruption ends and we can resume
+    const handleVisibilityChange = () => {
+      if (!document.hidden && wasInterruptedRef.current && isPlaying) {
+        console.log("App visible again after interruption - resuming");
+        handleAudioResume();
+      }
+    };
+
     // Listen for audio pause events (could be phone call)
     audio.addEventListener("pause", handleAudioInterruption);
+
+    // Listen for when audio element can resume (after interruption ends)
+    // These events help detect when call ends even with locked screen
+    audio.addEventListener("canplay", () => {
+      if (wasInterruptedRef.current && isPlaying && !isInterrupted) {
+        console.log("Audio ready after interruption");
+        handleAudioResume();
+      }
+    });
 
     // Listen for visibility changes (when call ends and user returns)
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
+    // Listen for page focus events (helps detect when call ends on locked screen)
+    const handleFocus = () => {
+      if (wasInterruptedRef.current && isPlaying) {
+        console.log("Page focused after interruption - attempting resume");
+        // Small delay to let iOS finish cleaning up the call
+        setTimeout(() => {
+          if (wasInterruptedRef.current && isPlaying) {
+            handleAudioResume();
+          }
+        }, 500);
+      }
+    };
+    window.addEventListener("focus", handleFocus);
+
     return () => {
       audio.removeEventListener("pause", handleAudioInterruption);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
     };
-  }, [currentStation, isPlaying]);
+  }, [currentStation, isPlaying, isInterrupted]);
 
   const handlePlay = async () => {
     const audio = audioRef.current;
     const silenceAudio = silenceAudioRef.current;
+    const adAudio = adAudioRef.current;
     if (!audio || isPlaying) return; // Do nothing if already playing
 
     // Always reload source for fresh live stream
@@ -357,6 +397,15 @@ export default function CarPlayer() {
     if (silenceAudio) {
       silenceAudio.pause();
     }
+
+    // Pre-load ad audio early to help iOS accept it
+    if (adAudio && userCountry) {
+      const adUrl = getRandomAd(userCountry);
+      adAudio.src = adUrl;
+      adAudio.load();
+      // console.log("[AD] Pre-loaded ad audio:", adUrl);
+    }
+
     try {
       await audio.play();
       setIsPlaying(true);
@@ -365,7 +414,7 @@ export default function CarPlayer() {
         silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
       }
     } catch (error) {
-      console.log("Play failed:", error);
+      // console.log("Play failed:", error);
       setIsPlaying(true); // Keep state true to maintain controls
       // Play silence even on error to maintain controls
       if (silenceAudio) {
@@ -374,7 +423,7 @@ export default function CarPlayer() {
     }
   };
 
-  const handlePause = () => {
+  const handleStop = () => {
     const audio = audioRef.current;
     if (!audio || !isPlaying) return; // Do nothing if not playing
 
@@ -428,34 +477,35 @@ export default function CarPlayer() {
 
   // Volume control
   useEffect(() => {
-    if (audioRef.current) {
+    // Don't adjust radio volume when ad is playing (ad controls volume manually)
+    if (audioRef.current && !isPlayingAd) {
       const targetVolume = isMuted ? 0 : volume / 100;
       audioRef.current.volume = targetVolume;
       audioRef.current.muted = isMuted;
-      console.log(
-        "Volume effect - Volume:",
-        targetVolume,
-        "Muted:",
-        isMuted,
-        "Actual volume:",
-        audioRef.current.volume,
-        "Actual muted:",
-        audioRef.current.muted,
-      );
+      // console.log(
+      //   "Volume effect - Volume:",
+      //   targetVolume,
+      //   "Muted:",
+      //   isMuted,
+      //   "Actual volume:",
+      //   audioRef.current.volume,
+      //   "Actual muted:",
+      //   audioRef.current.muted,
+      // );
     }
-  }, [volume, isMuted]);
+  }, [volume, isMuted, isPlayingAd]);
 
   const toggleMute = () => {
     const newMutedState = !isMuted;
     setIsMuted(newMutedState);
-    console.log("Mute toggled:", newMutedState);
+    // console.log("Mute toggled:", newMutedState);
 
-    // Force volume change immediately for iOS
-    if (audioRef.current) {
+    // Force volume change immediately for iOS (but not during ads)
+    if (audioRef.current && !isPlayingAd) {
       const targetVolume = newMutedState ? 0 : volume / 100;
       audioRef.current.volume = targetVolume;
       audioRef.current.muted = newMutedState;
-      console.log("Audio muted property:", audioRef.current.muted, "Volume:", audioRef.current.volume);
+      // console.log("Audio muted property:", audioRef.current.muted, "Volume:", audioRef.current.volume);
     }
   };
 
@@ -493,21 +543,28 @@ export default function CarPlayer() {
     const adAudio = adAudioRef.current;
 
     try {
-      console.log("[AD] Starting advertisement playback");
+      // console.log("[AD] Starting advertisement playback");
       setIsPlayingAd(true);
       originalVolumeRef.current = volume;
 
-      // Get random ad for user's country
-      const adUrl = getRandomAd(userCountry);
-      adAudio.src = adUrl;
-      console.log("[AD] Playing:", adUrl);
+      // Ad should already be pre-loaded from handlePlay, but reload if needed
+      if (!adAudio.src || adAudio.readyState === 0) {
+        const adUrl = getRandomAd(userCountry);
+        adAudio.src = adUrl;
+        adAudio.load();
+        // console.log("[AD] Loading ad:", adUrl);
+      } else {
+        // console.log("[AD] Using pre-loaded ad:", adAudio.src);
+      }
 
-      // Lower radio volume immediately (no animation for mobile lock screen)
-      setAudioVolume(radioAudio, 0.05);
-      console.log("[AD] Radio volume lowered");
+      // Aggressively mute radio for iOS (set both volume and muted property)
+      radioAudio.volume = 0;
+      radioAudio.muted = true;
+      // console.log("[AD] Radio aggressively muted (volume=0, muted=true)");
 
-      // Set ad volume and play
-      setAudioVolume(adAudio, volume / 100);
+      // Set ad volume to maximum for clear playback
+      adAudio.volume = 1.0;
+      adAudio.muted = false;
 
       // Update Media Session for lock screen
       if ("mediaSession" in navigator && currentStation) {
@@ -523,17 +580,17 @@ export default function CarPlayer() {
       }
 
       await adAudio.play();
-      console.log("[AD] Ad playback started");
+      // console.log("[AD] Ad playback started");
 
       // Wait for ad to finish
       await new Promise<void>((resolve) => {
         const handleAdEnd = () => {
-          console.log("[AD] Ad finished");
+          // console.log("[AD] Ad finished");
           adAudio.removeEventListener("ended", handleAdEnd);
           resolve();
         };
         const handleAdError = () => {
-          console.error("[AD] Ad playback error");
+          // console.error("[AD] Ad playback error");
           adAudio.removeEventListener("error", handleAdError);
           resolve();
         };
@@ -541,9 +598,10 @@ export default function CarPlayer() {
         adAudio.addEventListener("error", handleAdError);
       });
 
-      // Restore radio volume immediately
-      setAudioVolume(radioAudio, originalVolumeRef.current / 100);
-      console.log("[AD] Radio volume restored");
+      // Restore radio volume and unmute
+      radioAudio.volume = originalVolumeRef.current / 100;
+      radioAudio.muted = false;
+      // console.log("[AD] Radio unmuted and volume restored to", originalVolumeRef.current);
 
       // Restore Media Session
       if ("mediaSession" in navigator && currentStation) {
@@ -558,12 +616,19 @@ export default function CarPlayer() {
         }
       }
 
+      // Pre-load next ad immediately for iOS autoplay acceptance
+      const nextAdUrl = getRandomAd(userCountry);
+      adAudio.src = nextAdUrl;
+      adAudio.load();
+      // console.log("[AD] Pre-loaded next ad:", nextAdUrl);
+
       setIsPlayingAd(false);
     } catch (error) {
       console.error("[AD] Error playing advertisement:", error);
-      // Restore radio volume on error
+      // Restore radio volume and unmute on error
       if (radioAudio) {
-        setAudioVolume(radioAudio, originalVolumeRef.current / 100);
+        radioAudio.volume = originalVolumeRef.current / 100;
+        radioAudio.muted = false;
       }
       // Restore Media Session on error
       if ("mediaSession" in navigator && currentStation) {
@@ -573,12 +638,24 @@ export default function CarPlayer() {
           album: "DesiMelody.com, 1200 Radio Stations From South East Asia",
           artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
         });
+        if ("setPlaybackState" in navigator.mediaSession) {
+          navigator.mediaSession.playbackState = "playing";
+        }
       }
+
+      // Pre-load next ad even on error to prepare for next interval
+      if (adAudio) {
+        const nextAdUrl = getRandomAd(userCountry);
+        adAudio.src = nextAdUrl;
+        adAudio.load();
+        console.log("[AD] Pre-loaded next ad after error:", nextAdUrl);
+      }
+
       setIsPlayingAd(false);
     }
   };
 
-  // Set up 2-minute advertisement interval
+  // Set up advertisement intervals
   useEffect(() => {
     if (!isPlaying) {
       // Clear interval when not playing
@@ -589,19 +666,16 @@ export default function CarPlayer() {
       return;
     }
 
-    // Play first ad after 5 minutes
-    const firstAdTimeout = setTimeout(
-      () => {
-        console.log("[AD] Triggering first advertisement");
-        playAdvertisement();
-      },
-      5 * 60 * 1000,
-    ); // 5 minutes
+    // Play first ad after 360 seconds
+    const firstAdTimeout = setTimeout(() => {
+      // console.log("[AD] Triggering first advertisement");
+      playAdvertisement();
+    }, 360 * 1000); // 360 seconds
 
     // Then continue with 10-minute interval
     adIntervalRef.current = setInterval(
       () => {
-        console.log("[AD] Triggering scheduled advertisement");
+        // console.log("[AD] Triggering scheduled advertisement");
         playAdvertisement();
       },
       10 * 60 * 1000,
@@ -623,34 +697,37 @@ export default function CarPlayer() {
         <meta name="description" content="Car-friendly radio player with steering wheel controls support" />
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f1624] text-white flex flex-col relative overflow-hidden">
+      <style>
+        {`
+          /* Marquee animation disabled for battery optimization */
+          /* @keyframes marquee {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-50%); }
+          }
+          .animate-marquee {
+            animation: marquee 20s linear infinite;
+          } */
+        `}
+      </style>
+
+      <div className="min-h-screen bg-[#1a1a2e] text-white flex flex-col relative overflow-hidden">
         <audio ref={audioRef} preload="auto" />
         <audio ref={silenceAudioRef} src="/silence.mp3" loop preload="auto" style={{ display: "none" }} />
         <audio ref={adAudioRef} preload="auto" style={{ display: "none" }} />
 
-        {/* Animated background effects */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent pointer-events-none" />
-        <div
-          className="absolute top-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: "4s" }}
-        />
-        <div
-          className="absolute bottom-0 right-0 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: "5s", animationDelay: "1s" }}
-        />
+        {/* Animated background effects - simplified for battery */}
+        <div className="absolute inset-0 bg-purple-900/10 pointer-events-none" />
+        <div className="absolute top-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-pink-500/10 rounded-full" />
 
-        {/* Logo Header - Clickable */}
-        <div className="relative z-10 py-4 md:py-6 flex justify-between items-center px-4">
-          <div className="flex-1" />
-          <a href="https://desimelody.com/m" target="_self" rel="noopener" className="relative block">
+        <div className="relative z-10 py-4 md:py-6 flex items-center justify-end px-4">
+          <a href="https://desimelody.com/m" target="_self" rel="noopener" className="mx-auto">
             <div className="relative">
-              <div className="absolute inset-0 blur-2xl bg-gradient-to-r from-purple-500 to-pink-500 opacity-30 animate-pulse" />
-              <img src={logo} alt="DesiMelody.com" className="relative h-24 md:h-28 w-auto drop-shadow-2xl" />
+              <div className="absolute inset-0 bg-purple-500/20" />
+              <img src={logo} alt="DesiMelody.com" className="relative h-20 md:h-24 w-auto drop-shadow-2xl" />
             </div>
           </a>
-          <div className="flex-1 flex justify-end">
-            <UserMenu />
-          </div>
+          <UserMenu />
         </div>
 
         {/* Search Bar */}
@@ -668,6 +745,19 @@ export default function CarPlayer() {
               onFocus={() => setShowSearchResults(searchQuery.trim().length > 0)}
               className="pl-11 h-12 bg-white/10 backdrop-blur-md border-white/20 text-white placeholder:text-white/50 focus:bg-white/15 focus:border-purple-400/50 rounded-2xl shadow-lg text-base"
             />
+          </div>
+        </div>
+
+        {/* Info Banner */}
+        <div className="relative z-10 px-4 pb-2">
+          <div className="max-w-2xl mx-auto overflow-hidden">
+            <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-3 text-center">
+              <div className="whitespace-nowrap">
+                <p className="text-yellow-200 text-sm font-medium inline-block">
+                  ℹ️ If radio stops/buffers, refresh the website ℹ️
+                </p>
+              </div>
+            </div>
           </div>
         </div>
         {/* Player */}
@@ -690,7 +780,7 @@ export default function CarPlayer() {
               <div className="flex items-center justify-center gap-4">
                 {/* Station Image */}
                 <div className="relative flex-shrink-0">
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 rounded-3xl blur-2xl opacity-50 animate-pulse" />
+                  <div className="absolute inset-0 bg-purple-500/20 rounded-3xl" />
                   <img
                     src={currentStation.image}
                     alt={currentStation.name}
@@ -705,16 +795,18 @@ export default function CarPlayer() {
                 <div className="flex items-center gap-4">
                   <Button
                     onClick={handlePrevious}
-                    size="icon"
                     variant="ghost"
-                    className="w-16 h-16 rounded-full hover:bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-105 border border-white/10"
+                    className="w-20 h-20 rounded-full hover:bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-105 border border-white/10 flex items-center justify-center"
                   >
-                    <SkipBack className="w-7 h-7" />
+                    <div className="text-center leading-tight">
+                      <div className="text-sm font-medium">Back</div>
+                      <div className="text-xs opacity-80">Station</div>
+                    </div>
                   </Button>
 
                   <div className="relative">
                     <Button
-                      onClick={isPlaying ? handlePause : handlePlay}
+                      onClick={isPlaying ? handleStop : handlePlay}
                       size="icon"
                       disabled={isLoading}
                       className="w-20 h-20 rounded-full bg-white hover:bg-white/90 text-[#1a1a2e] disabled:opacity-40 disabled:bg-white/50 shadow-2xl transition-all hover:scale-105 disabled:hover:scale-100 disabled:cursor-not-allowed border-4 border-white/20"
@@ -725,7 +817,7 @@ export default function CarPlayer() {
                           <span className="text-[10px] font-bold">WAIT</span>
                         </div>
                       ) : isPlaying ? (
-                        <Pause className="w-10 h-10" />
+                        <Square className="w-10 h-10" />
                       ) : (
                         <Play className="w-10 h-10 ml-1" />
                       )}
@@ -739,11 +831,13 @@ export default function CarPlayer() {
 
                   <Button
                     onClick={handleNext}
-                    size="icon"
                     variant="ghost"
-                    className="w-16 h-16 rounded-full hover:bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-105 border border-white/10"
+                    className="w-20 h-20 rounded-full hover:bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-105 border border-white/10 flex items-center justify-center"
                   >
-                    <SkipForward className="w-7 h-7" />
+                    <div className="text-center leading-tight">
+                      <div className="text-sm font-medium">Next</div>
+                      <div className="text-xs opacity-80">Station</div>
+                    </div>
                   </Button>
                 </div>
               </div>
@@ -777,19 +871,19 @@ export default function CarPlayer() {
                 <Slider
                   value={[isMuted ? 0 : volume]}
                   onValueChange={(value) => {
-                    console.log("Slider changed to:", value[0]);
+                    // console.log("Slider changed to:", value[0]);
                     const newVolume = value[0];
                     setVolume(newVolume);
                     if (newVolume > 0 && isMuted) {
                       setIsMuted(false);
-                      if (audioRef.current) {
+                      if (audioRef.current && !isPlayingAd) {
                         audioRef.current.muted = false;
                       }
                     }
-                    // Directly update audio element
-                    if (audioRef.current) {
+                    // Directly update audio element (but not during ads)
+                    if (audioRef.current && !isPlayingAd) {
                       audioRef.current.volume = newVolume / 100;
-                      console.log("Audio volume directly set to:", audioRef.current.volume);
+                      // console.log("Audio volume directly set to:", audioRef.current.volume);
                     }
                   }}
                   max={100}
@@ -865,7 +959,7 @@ export default function CarPlayer() {
                 {["MP3", "Bollywood", "Classical", "Devotional", "Pop", "Rock", "Folk", "News"].map((tag) => (
                   <a
                     key={tag}
-                    href={`/m/tag/${tag.toLowerCase()}`}
+                    href={`/ios/tag/${tag.toLowerCase()}`}
                     className="px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-full text-sm font-medium transition-all hover:scale-105 border border-white/20"
                   >
                     {tag}
@@ -878,11 +972,11 @@ export default function CarPlayer() {
             <div>
               <h3 className="text-white font-bold text-lg mb-3 text-center">Browse by Language</h3>
               <div className="flex flex-wrap gap-2 justify-center">
-                {["Hindi", "Tamil", "Malayalam", "Kannada", "Telugu", "Punjabi", "Bengali", "Marathi", "Gujarati"].map(
+                {["Hindi", "Tamil", "Malayalam", "Kannada", "Telugu", "Punjabi", "Bengali", "Marathi"].map(
                   (language) => (
                     <a
                       key={language}
-                      href={`/m/browse?language=${language.toLowerCase()}`}
+                      href={`/ios/browse?language=${language.toLowerCase()}`}
                       className="px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-full text-sm font-medium transition-all hover:scale-105 border border-white/20"
                     >
                       {language}
