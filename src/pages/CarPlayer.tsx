@@ -757,9 +757,9 @@ export default function CarPlayer() {
                   ℹ️ If radio stops/buffers,{" "}
                   <button
                     onClick={() => window.location.reload()}
-                    className="text-yellow-300 hover:text-yellow-100 underline hover:no-underline transition-colors"
+                    className="px-3 py-1 bg-yellow-500/30 hover:bg-yellow-500/50 text-yellow-100 hover:text-white rounded-md border border-yellow-400/50 hover:border-yellow-400 transition-all duration-200 font-semibold text-xs"
                   >
-                    refresh the website
+                    🔄 Refresh Page
                   </button>{" "}
                   ℹ️
                 </p>
