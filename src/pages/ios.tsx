@@ -731,6 +731,18 @@ export default function CarPlayer() {
             />
           </div>
         </div>
+
+        {/* Info Banner */}
+        <div className="relative z-10 px-4 pb-2">
+          <div className="max-w-2xl mx-auto">
+            <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-3 text-center">
+              <p className="text-yellow-200 text-sm font-medium">
+                ℹ️ Pause is disabled on lock screen and car controls for continuous live radio listening. Use
+                next/previous to change stations.
+              </p>
+            </div>
+          </div>
+        </div>
         {/* Player */}
         <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-4">
           {currentStation ? (
