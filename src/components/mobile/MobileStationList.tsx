@@ -32,7 +32,7 @@ export const MobileStationList = ({ stations, currentStation, onStationSelect }:
                   {station.name}
                 </h3>
                 <p className="text-sm text-muted-foreground truncate">
-                  {station.language} • {station.type}
+                  {station.language}
                 </p>
                 {station.tags && (
                   <div className="flex items-center gap-2 mt-1 flex-wrap">

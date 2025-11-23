@@ -612,7 +612,7 @@ export default function CarPlayer() {
       if ("mediaSession" in navigator && currentStation) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: currentStation.name,
-          artist: `${currentStation.language || "Hindi"} • ${currentStation.type}`,
+          artist: currentStation.language || "Hindi",
           album: "DesiMelody.com, 1200 Radio Stations From South East Asia",
           artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
         });
@@ -639,7 +639,7 @@ export default function CarPlayer() {
       if ("mediaSession" in navigator && currentStation) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: currentStation.name,
-          artist: `${currentStation.language || "Hindi"} • ${currentStation.type}`,
+          artist: currentStation.language || "Hindi",
           album: "DesiMelody.com, 1200 Radio Stations From South East Asia",
           artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
         });
@@ -777,7 +777,7 @@ export default function CarPlayer() {
                   <FavoritesManager station={currentStation} />
                 </div>
                 <p className="text-sm md:text-base text-white/70">
-                  {currentStation.language || "Hindi"} • Live
+                  {currentStation.language || "Hindi"}
                 </p>
               </div>
 
@@ -1046,7 +1046,7 @@ export default function CarPlayer() {
                       <div className="flex-1 min-w-0">
                         <div className="font-bold text-gray-900 truncate text-base">{station.name}</div>
                         <div className="text-sm text-gray-600 truncate">
-                          {station.language || "Hindi"} • Live
+                          {station.language || "Hindi"}
                         </div>
                       </div>
                     </button>
