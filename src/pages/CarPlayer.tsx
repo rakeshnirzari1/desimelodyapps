@@ -772,7 +772,7 @@ export default function CarPlayer() {
                   <FavoritesManager station={currentStation} />
                 </div>
                 <p className="text-sm md:text-base text-white/70">
-                  {currentStation.language || "Hindi"} • {currentStation.type}
+                  {currentStation.language || "Hindi"} • Live
                 </p>
               </div>
 
@@ -1037,7 +1037,7 @@ export default function CarPlayer() {
                       <div className="flex-1 min-w-0">
                         <div className="font-bold text-gray-900 truncate text-base">{station.name}</div>
                         <div className="text-sm text-gray-600 truncate">
-                          {station.language || "Hindi"} • {station.type}
+                          {station.language || "Hindi"} • Live
                         </div>
                       </div>
                     </button>
