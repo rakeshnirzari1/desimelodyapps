@@ -688,6 +688,18 @@ export default function CarPlayer() {
         <meta name="description" content="Car-friendly radio player with steering wheel controls support" />
       </Helmet>
 
+      <style>
+        {`
+          @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+          }
+          .animate-marquee {
+            animation: marquee 15s linear infinite;
+          }
+        `}
+      </style>
+
       <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f1624] text-white flex flex-col relative overflow-hidden">
         <audio ref={audioRef} preload="auto" />
         <audio ref={silenceAudioRef} src="/silence.mp3" loop preload="auto" style={{ display: "none" }} />
@@ -734,12 +746,14 @@ export default function CarPlayer() {
 
         {/* Info Banner */}
         <div className="relative z-10 px-4 pb-2">
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-2xl mx-auto overflow-hidden">
             <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-3 text-center">
-              <p className="text-yellow-200 text-sm font-medium">
-                ℹ️ Pause is disabled on lock screen and car controls for continuous live radio listening. Use
-                next/previous to change stations.
-              </p>
+              <div className="whitespace-nowrap animate-marquee">
+                <p className="text-yellow-200 text-sm font-medium inline-block">
+                  ℹ️ Pause is disabled on lock screen and car controls for continuous live radio listening. Use
+                  next/previous to change stations. &nbsp;&nbsp;&nbsp;
+                </p>
+              </div>
             </div>
           </div>
         </div>
