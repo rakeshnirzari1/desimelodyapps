@@ -794,9 +794,12 @@ export default function CarPlayer() {
                   <Button
                     onClick={handlePrevious}
                     variant="ghost"
-                    className="w-20 h-16 rounded-full hover:bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-105 border border-white/10 flex items-center justify-center"
+                    className="w-20 h-20 rounded-full hover:bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-105 border border-white/10 flex items-center justify-center"
                   >
-                    Back
+                    <div className="text-center leading-tight">
+                      <div className="text-sm font-medium">Back</div>
+                      <div className="text-xs opacity-80">Station</div>
+                    </div>
                   </Button>
 
                   <div className="relative">
@@ -827,9 +830,12 @@ export default function CarPlayer() {
                   <Button
                     onClick={handleNext}
                     variant="ghost"
-                    className="w-20 h-16 rounded-full hover:bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-105 border border-white/10 flex items-center justify-center"
+                    className="w-20 h-20 rounded-full hover:bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-105 border border-white/10 flex items-center justify-center"
                   >
-                    Next
+                    <div className="text-center leading-tight">
+                      <div className="text-sm font-medium">Next</div>
+                      <div className="text-xs opacity-80">Station</div>
+                    </div>
                   </Button>
                 </div>
               </div>
