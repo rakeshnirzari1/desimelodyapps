@@ -235,7 +235,7 @@ export default function CarPlayer() {
 
     navigator.mediaSession.metadata = new MediaMetadata({
       title: currentStation.name,
-      artist: `${currentStation.language || "Hindi"}`,
+      artist: `${currentStation.language || "Hindi"} Pause disabled on live radio`,
       album: "DesiMelody.com, 1200 Radio Stations From South East Asia",
       artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
     });
