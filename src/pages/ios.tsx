@@ -50,8 +50,16 @@ export default function CarPlayer() {
     const stations = getStationsWithSlugs();
     setAllStations(stations);
 
-    // Detect user country for ads
-    getUserCountry().then(setUserCountry);
+    // Detect user country for ads (cached for battery optimization)
+    const cachedCountry = localStorage.getItem("userCountry");
+    if (cachedCountry) {
+      setUserCountry(cachedCountry);
+    } else {
+      getUserCountry().then((country) => {
+        setUserCountry(country);
+        localStorage.setItem("userCountry", country);
+      });
+    }
   }, []);
 
   // Sync with context station when it changes (e.g., from favorites)
@@ -204,8 +212,8 @@ export default function CarPlayer() {
     if (!silenceAudioRef.current) return;
 
     const silenceAudio = silenceAudioRef.current;
-    // Set volume to very low to prevent it from taking over media controls
-    silenceAudio.volume = 0.01;
+    // Set volume to very low to prevent it from taking over media controls (further reduced for battery)
+    silenceAudio.volume = 0.005;
 
     // Clear any pending media session sync
     if (mediaSessionSyncTimeoutRef.current) {
@@ -691,13 +699,14 @@ export default function CarPlayer() {
 
       <style>
         {`
-          @keyframes marquee {
+          /* Marquee animation disabled for battery optimization */
+          /* @keyframes marquee {
             0% { transform: translateX(0%); }
             100% { transform: translateX(-50%); }
           }
           .animate-marquee {
             animation: marquee 20s linear infinite;
-          }
+          } */
         `}
       </style>
 
@@ -743,7 +752,7 @@ export default function CarPlayer() {
         <div className="relative z-10 px-4 pb-2">
           <div className="max-w-2xl mx-auto overflow-hidden">
             <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-3 text-center">
-              <div className="whitespace-nowrap animate-marquee">
+              <div className="whitespace-nowrap">
                 <p className="text-yellow-200 text-sm font-medium inline-block">
                   ℹ️ Pause is disabled on live radio. Use next/previous to change stations. If radio gets stuck or stops
                   playing, refresh the page. &nbsp;&nbsp;&nbsp; ℹ️ Pause is disabled on live radio. Use next/previous to
