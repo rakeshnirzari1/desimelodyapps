@@ -172,7 +172,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     // Update metadata
     navigator.mediaSession.metadata = new MediaMetadata({
       title: station.name,
-      artist: `${station.language || "Hindi"} • ${station.type}`,
+      artist: station.language || "Hindi",
       album: "DesiMelody.com",
       artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
     });
@@ -323,7 +323,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       if ("mediaSession" in navigator && station) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: station.name,
-          artist: `${station.language || "Hindi"} • ${station.type}`,
+          artist: station.language || "Hindi",
           album: "DesiMelody.com",
           artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
         });
@@ -340,7 +340,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       if ("mediaSession" in navigator && station) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: station.name,
-          artist: `${station.language || "Hindi"} • ${station.type}`,
+          artist: station.language || "Hindi",
           album: "DesiMelody.com",
           artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
         });
@@ -428,7 +428,7 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
                 ? "This station is currently unavailable"
                 : isLoading
                   ? "Connecting to station..."
-                  : `${station.language || "Hindi"} • ${station.type}`}
+                  : station.language || "Hindi"}
             </p>
             {!loadError && !isLoading && (
               <p className="text-xs text-primary font-medium mt-1">Playing for {formatTime(playbackTime)}</p>

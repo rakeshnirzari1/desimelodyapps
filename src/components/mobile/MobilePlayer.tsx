@@ -55,7 +55,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious }: MobilePlayerProps)
 
     navigator.mediaSession.metadata = new MediaMetadata({
       title: station.name,
-      artist: `${station.language || "Hindi"} • ${station.type}`,
+      artist: station.language || "Hindi",
       album: "DesiMelody.com",
       artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
     });
@@ -124,7 +124,7 @@ export const MobilePlayer = ({ station, onNext, onPrevious }: MobilePlayerProps)
             <FavoritesManager station={station} />
           </div>
           <p className="text-sm text-muted-foreground truncate">
-            {isLoading ? "Loading..." : `${station.language || "Hindi"} • Live`}
+            {isLoading ? "Loading..." : station.language || "Hindi"}
           </p>
         </div>
 
