@@ -235,7 +235,7 @@ export default function CarPlayer() {
 
     navigator.mediaSession.metadata = new MediaMetadata({
       title: currentStation.name,
-      artist: `${currentStation.language || "Hindi"} • ${currentStation.type}`,
+      artist: `${currentStation.language || "Hindi"}`,
       album: "DesiMelody.com, 1200 Radio Stations From South East Asia",
       artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
     });
@@ -691,11 +691,11 @@ export default function CarPlayer() {
       <style>
         {`
           @keyframes marquee {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-50%); }
           }
           .animate-marquee {
-            animation: marquee 15s linear infinite;
+            animation: marquee 20s linear infinite;
           }
         `}
       </style>
@@ -751,7 +751,8 @@ export default function CarPlayer() {
               <div className="whitespace-nowrap animate-marquee">
                 <p className="text-yellow-200 text-sm font-medium inline-block">
                   ℹ️ Pause is disabled on lock screen and car controls for continuous live radio listening. Use
-                  next/previous to change stations. &nbsp;&nbsp;&nbsp;
+                  next/previous to change stations. &nbsp;&nbsp;&nbsp; ℹ️ Pause is disabled on lock screen and car
+                  controls for continuous live radio listening. Use next/previous to change stations. &nbsp;&nbsp;&nbsp;
                 </p>
               </div>
             </div>
