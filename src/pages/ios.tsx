@@ -259,7 +259,7 @@ export default function CarPlayer() {
 
     // Enable play and pause handlers for lock screen controls
     navigator.mediaSession.setActionHandler("play", handlePlay);
-    navigator.mediaSession.setActionHandler("pause", null); // Disabled to prevent pause from lock screen/car controls
+    navigator.mediaSession.setActionHandler("pause", () => {}); // No-op to keep button visible but disabled on lock screen
 
     // Next and previous handlers
     navigator.mediaSession.setActionHandler("nexttrack", handleNext);
@@ -267,7 +267,7 @@ export default function CarPlayer() {
 
     return () => {
       navigator.mediaSession.setActionHandler("play", null);
-      navigator.mediaSession.setActionHandler("pause", null); // Disabled
+      navigator.mediaSession.setActionHandler("pause", null); // Keep as null in cleanup
       navigator.mediaSession.setActionHandler("nexttrack", null);
       navigator.mediaSession.setActionHandler("previoustrack", null);
     };
