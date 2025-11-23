@@ -234,9 +234,9 @@ export default function CarPlayer() {
     if (!currentStation || !("mediaSession" in navigator)) return;
 
     navigator.mediaSession.metadata = new MediaMetadata({
-      title: currentStation.name,DesiMelody.com
-      language: `${currentStation.language || "Hindi"} station- Pause button is disabled for continuous live streaming`,
-      album: "DesiMelody.com, All Radio Stations From South East Asia DesiMelody.com, All Radio Stations From South East Asia",
+      title: currentStation.name,
+      artist: `${currentStation.language || "Hindi"} station- Pause button is disabled for continuous live streaming`,
+      album: "DesiMelody.com - All Radio Stations From South East Asia",
       artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
     });
 
