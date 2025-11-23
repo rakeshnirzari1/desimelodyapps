@@ -42,6 +42,7 @@ export default function CarPlayer() {
   const wasInterruptedRef = useRef(false);
   const adIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [isPlayingAd, setIsPlayingAd] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(false);
   const [userCountry, setUserCountry] = useState<string>("india");
   const originalVolumeRef = useRef<number>(80);
 
@@ -181,6 +182,7 @@ export default function CarPlayer() {
     const handlePlaying = () => {
       if (currentAttempt !== loadAttemptRef.current) return;
       setIsLoading(false);
+      setIsBuffering(false);
       // Note: Silence audio continues playing to maintain lock screen session
       if (errorTimeoutRef.current) {
         clearTimeout(errorTimeoutRef.current);
@@ -388,6 +390,8 @@ export default function CarPlayer() {
     const adAudio = adAudioRef.current;
     if (!audio || isPlaying) return; // Do nothing if already playing
 
+    setIsBuffering(true);
+
     // Always reload source for fresh live stream
     if (currentStation) {
       audio.src = currentStation.link;
@@ -429,6 +433,7 @@ export default function CarPlayer() {
 
     audio.pause();
     setIsPlaying(false);
+    setIsBuffering(false);
   };
 
   const handleNext = () => {
@@ -889,9 +894,11 @@ export default function CarPlayer() {
               </div>
 
               {/* Loading Message */}
-              {isLoading && (
+              {(isLoading || isBuffering) && (
                 <div className="text-center mt-4">
-                  <p className="text-yellow-300 text-sm font-semibold animate-pulse">Loading Station...</p>
+                  <p className="text-yellow-300 text-sm font-semibold animate-pulse">
+                    {isBuffering ? "Buffering Station..." : "Loading Station..."}
+                  </p>
                 </div>
               )}
 
