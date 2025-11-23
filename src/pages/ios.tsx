@@ -235,26 +235,27 @@ export default function CarPlayer() {
 
     navigator.mediaSession.metadata = new MediaMetadata({
       title: currentStation.name,
-      artist: `${currentStation.language || "Hindi"} - Pause button is disabled for continuous live streaming`,
+      artist: `${currentStation.language || "Hindi"} station- Pause button is disabled for continuous live streaming`,
       album: "DesiMelody.com, 1200 Radio Stations From South East Asia",
       artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
     });
 
     // Set position state for live streaming (helps maintain lock screen presence)
-    try {
-      navigator.mediaSession.setPositionState({
-        duration: Infinity, // Live stream has no duration
-        playbackRate: 1,
-        position: 0,
-      });
-    } catch (e) {
-      console.log("Position state not supported");
-    }
+    // Disabled for battery optimization
+    // try {
+    //   navigator.mediaSession.setPositionState({
+    //     duration: Infinity, // Live stream has no duration
+    //     playbackRate: 1,
+    //     position: 0,
+    //   });
+    // } catch (e) {
+    //   console.log("Position state not supported");
+    // }
 
     // Sync playback state with lock screen
     if ("setPlaybackState" in navigator.mediaSession) {
       navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
-      console.log("Media Session playback state:", isPlaying ? "playing" : "paused");
+      // console.log("Media Session playback state:", isPlaying ? "playing" : "paused");
     }
 
     // Enable play and stop handlers for lock screen controls
@@ -394,7 +395,7 @@ export default function CarPlayer() {
       const adUrl = getRandomAd(userCountry);
       adAudio.src = adUrl;
       adAudio.load();
-      console.log("[AD] Pre-loaded ad audio:", adUrl);
+      // console.log("[AD] Pre-loaded ad audio:", adUrl);
     }
 
     try {
@@ -405,7 +406,7 @@ export default function CarPlayer() {
         silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
       }
     } catch (error) {
-      console.log("Play failed:", error);
+      // console.log("Play failed:", error);
       setIsPlaying(true); // Keep state true to maintain controls
       // Play silence even on error to maintain controls
       if (silenceAudio) {
@@ -473,30 +474,30 @@ export default function CarPlayer() {
       const targetVolume = isMuted ? 0 : volume / 100;
       audioRef.current.volume = targetVolume;
       audioRef.current.muted = isMuted;
-      console.log(
-        "Volume effect - Volume:",
-        targetVolume,
-        "Muted:",
-        isMuted,
-        "Actual volume:",
-        audioRef.current.volume,
-        "Actual muted:",
-        audioRef.current.muted,
-      );
+      // console.log(
+      //   "Volume effect - Volume:",
+      //   targetVolume,
+      //   "Muted:",
+      //   isMuted,
+      //   "Actual volume:",
+      //   audioRef.current.volume,
+      //   "Actual muted:",
+      //   audioRef.current.muted,
+      // );
     }
   }, [volume, isMuted, isPlayingAd]);
 
   const toggleMute = () => {
     const newMutedState = !isMuted;
     setIsMuted(newMutedState);
-    console.log("Mute toggled:", newMutedState);
+    // console.log("Mute toggled:", newMutedState);
 
     // Force volume change immediately for iOS (but not during ads)
     if (audioRef.current && !isPlayingAd) {
       const targetVolume = newMutedState ? 0 : volume / 100;
       audioRef.current.volume = targetVolume;
       audioRef.current.muted = newMutedState;
-      console.log("Audio muted property:", audioRef.current.muted, "Volume:", audioRef.current.volume);
+      // console.log("Audio muted property:", audioRef.current.muted, "Volume:", audioRef.current.volume);
     }
   };
 
@@ -534,7 +535,7 @@ export default function CarPlayer() {
     const adAudio = adAudioRef.current;
 
     try {
-      console.log("[AD] Starting advertisement playback");
+      // console.log("[AD] Starting advertisement playback");
       setIsPlayingAd(true);
       originalVolumeRef.current = volume;
 
@@ -543,15 +544,15 @@ export default function CarPlayer() {
         const adUrl = getRandomAd(userCountry);
         adAudio.src = adUrl;
         adAudio.load();
-        console.log("[AD] Loading ad:", adUrl);
+        // console.log("[AD] Loading ad:", adUrl);
       } else {
-        console.log("[AD] Using pre-loaded ad:", adAudio.src);
+        // console.log("[AD] Using pre-loaded ad:", adAudio.src);
       }
 
       // Aggressively mute radio for iOS (set both volume and muted property)
       radioAudio.volume = 0;
       radioAudio.muted = true;
-      console.log("[AD] Radio aggressively muted (volume=0, muted=true)");
+      // console.log("[AD] Radio aggressively muted (volume=0, muted=true)");
 
       // Set ad volume to maximum for clear playback
       adAudio.volume = 1.0;
@@ -571,17 +572,17 @@ export default function CarPlayer() {
       }
 
       await adAudio.play();
-      console.log("[AD] Ad playback started");
+      // console.log("[AD] Ad playback started");
 
       // Wait for ad to finish
       await new Promise<void>((resolve) => {
         const handleAdEnd = () => {
-          console.log("[AD] Ad finished");
+          // console.log("[AD] Ad finished");
           adAudio.removeEventListener("ended", handleAdEnd);
           resolve();
         };
         const handleAdError = () => {
-          console.error("[AD] Ad playback error");
+          // console.error("[AD] Ad playback error");
           adAudio.removeEventListener("error", handleAdError);
           resolve();
         };
@@ -592,7 +593,7 @@ export default function CarPlayer() {
       // Restore radio volume and unmute
       radioAudio.volume = originalVolumeRef.current / 100;
       radioAudio.muted = false;
-      console.log("[AD] Radio unmuted and volume restored to", originalVolumeRef.current);
+      // console.log("[AD] Radio unmuted and volume restored to", originalVolumeRef.current);
 
       // Restore Media Session
       if ("mediaSession" in navigator && currentStation) {
@@ -611,7 +612,7 @@ export default function CarPlayer() {
       const nextAdUrl = getRandomAd(userCountry);
       adAudio.src = nextAdUrl;
       adAudio.load();
-      console.log("[AD] Pre-loaded next ad:", nextAdUrl);
+      // console.log("[AD] Pre-loaded next ad:", nextAdUrl);
 
       setIsPlayingAd(false);
     } catch (error) {
@@ -659,14 +660,14 @@ export default function CarPlayer() {
 
     // Play first ad after 360 seconds
     const firstAdTimeout = setTimeout(() => {
-      console.log("[AD] Triggering first advertisement");
+      // console.log("[AD] Triggering first advertisement");
       playAdvertisement();
     }, 360 * 1000); // 360 seconds
 
     // Then continue with 10-minute interval
     adIntervalRef.current = setInterval(
       () => {
-        console.log("[AD] Triggering scheduled advertisement");
+        // console.log("[AD] Triggering scheduled advertisement");
         playAdvertisement();
       },
       10 * 60 * 1000,
@@ -700,26 +701,20 @@ export default function CarPlayer() {
         `}
       </style>
 
-      <div className="min-h-screen bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f1624] text-white flex flex-col relative overflow-hidden">
+      <div className="min-h-screen bg-[#1a1a2e] text-white flex flex-col relative overflow-hidden">
         <audio ref={audioRef} preload="auto" />
         <audio ref={silenceAudioRef} src="/silence.mp3" loop preload="auto" style={{ display: "none" }} />
         <audio ref={adAudioRef} preload="auto" style={{ display: "none" }} />
 
-        {/* Animated background effects */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent pointer-events-none" />
-        <div
-          className="absolute top-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: "4s" }}
-        />
-        <div
-          className="absolute bottom-0 right-0 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: "5s", animationDelay: "1s" }}
-        />
+        {/* Animated background effects - simplified for battery */}
+        <div className="absolute inset-0 bg-purple-900/10 pointer-events-none" />
+        <div className="absolute top-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-pink-500/10 rounded-full" />
 
         <div className="relative z-10 py-4 md:py-6 flex items-center justify-end px-4">
           <a href="https://desimelody.com/m" target="_self" rel="noopener" className="mx-auto">
             <div className="relative">
-              <div className="absolute inset-0 blur-2xl bg-gradient-to-r from-purple-500 to-pink-500 opacity-30 animate-pulse" />
+              <div className="absolute inset-0 bg-purple-500/20" />
               <img src={logo} alt="DesiMelody.com" className="relative h-20 md:h-24 w-auto drop-shadow-2xl" />
             </div>
           </a>
@@ -778,7 +773,7 @@ export default function CarPlayer() {
               <div className="flex items-center justify-center gap-4">
                 {/* Station Image */}
                 <div className="relative flex-shrink-0">
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 rounded-3xl blur-2xl opacity-50 animate-pulse" />
+                  <div className="absolute inset-0 bg-purple-500/20 rounded-3xl" />
                   <img
                     src={currentStation.image}
                     alt={currentStation.name}
@@ -869,7 +864,7 @@ export default function CarPlayer() {
                 <Slider
                   value={[isMuted ? 0 : volume]}
                   onValueChange={(value) => {
-                    console.log("Slider changed to:", value[0]);
+                    // console.log("Slider changed to:", value[0]);
                     const newVolume = value[0];
                     setVolume(newVolume);
                     if (newVolume > 0 && isMuted) {
@@ -881,7 +876,7 @@ export default function CarPlayer() {
                     // Directly update audio element (but not during ads)
                     if (audioRef.current && !isPlayingAd) {
                       audioRef.current.volume = newVolume / 100;
-                      console.log("Audio volume directly set to:", audioRef.current.volume);
+                      // console.log("Audio volume directly set to:", audioRef.current.volume);
                     }
                   }}
                   max={100}
