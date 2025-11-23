@@ -414,7 +414,7 @@ const Index = () => {
             <p className="text-muted-foreground max-w-2xl mx-auto">Find stations by popular tags and genres</p>
           </div>
           <div className="flex flex-wrap justify-center gap-3">
-            {["MP3", "Bollywood", "Classical", "Devotional", "Pop", "Rock", "Folk", "News"].map((tag) => (
+            {["Bollywood", "Classical", "Devotional", "Pop", "Rock", "Folk", "News"].map((tag) => (
               <Link key={tag} to={`/tag/${tag.toLowerCase()}`}>
                 <Badge
                   variant="outline"

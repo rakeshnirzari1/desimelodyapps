@@ -776,9 +776,7 @@ export default function CarPlayer() {
                   <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-2xl">{currentStation.name}</h1>
                   <FavoritesManager station={currentStation} />
                 </div>
-                <p className="text-sm md:text-base text-white/70">
-                  {currentStation.language || "Hindi"}
-                </p>
+                <p className="text-sm md:text-base text-white/70">{currentStation.language || "Hindi"}</p>
               </div>
 
               {/* Station Image + Controls in Row */}
@@ -965,7 +963,7 @@ export default function CarPlayer() {
             <div className="mb-6">
               <h3 className="text-white font-bold text-lg mb-3 text-center">Browse by Tag</h3>
               <div className="flex flex-wrap gap-2 justify-center">
-                {["MP3", "Bollywood", "Classical", "Devotional", "Pop", "Rock", "Folk", "News"].map((tag) => (
+                {["Bollywood", "Classical", "Devotional", "Pop", "Rock", "Folk", "News"].map((tag) => (
                   <a
                     key={tag}
                     href={`/ios/tag/${tag.toLowerCase()}`}
@@ -1045,9 +1043,7 @@ export default function CarPlayer() {
                       />
                       <div className="flex-1 min-w-0">
                         <div className="font-bold text-gray-900 truncate text-base">{station.name}</div>
-                        <div className="text-sm text-gray-600 truncate">
-                          {station.language || "Hindi"}
-                        </div>
+                        <div className="text-sm text-gray-600 truncate">{station.language || "Hindi"}</div>
                       </div>
                     </button>
                     <div className="flex items-center gap-2">
