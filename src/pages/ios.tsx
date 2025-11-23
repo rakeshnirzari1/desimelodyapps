@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Helmet } from "react-helmet";
-import { Play, Pause, SkipForward, SkipBack, Search, Volume2, User } from "lucide-react";
+import { Play, Pause, Stop, SkipForward, SkipBack, Search, Volume2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -257,7 +257,7 @@ export default function CarPlayer() {
       console.log("Media Session playback state:", isPlaying ? "playing" : "paused");
     }
 
-    // Enable play and pause handlers for lock screen controls
+    // Enable play and stop handlers for lock screen controls
     navigator.mediaSession.setActionHandler("play", handlePlay);
     navigator.mediaSession.setActionHandler("pause", () => {}); // No-op to keep button visible but disabled on lock screen
 
@@ -414,7 +414,7 @@ export default function CarPlayer() {
     }
   };
 
-  const handlePause = () => {
+  const handleStop = () => {
     const audio = audioRef.current;
     if (!audio || !isPlaying) return; // Do nothing if not playing
 
@@ -793,16 +793,15 @@ export default function CarPlayer() {
                 <div className="flex items-center gap-4">
                   <Button
                     onClick={handlePrevious}
-                    size="icon"
                     variant="ghost"
-                    className="w-16 h-16 rounded-full hover:bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-105 border border-white/10"
+                    className="w-20 h-16 rounded-full hover:bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-105 border border-white/10 flex items-center justify-center"
                   >
-                    <SkipBack className="w-7 h-7" />
+                    Back
                   </Button>
 
                   <div className="relative">
                     <Button
-                      onClick={isPlaying ? handlePause : handlePlay}
+                      onClick={isPlaying ? handleStop : handlePlay}
                       size="icon"
                       disabled={isLoading}
                       className="w-20 h-20 rounded-full bg-white hover:bg-white/90 text-[#1a1a2e] disabled:opacity-40 disabled:bg-white/50 shadow-2xl transition-all hover:scale-105 disabled:hover:scale-100 disabled:cursor-not-allowed border-4 border-white/20"
@@ -813,7 +812,7 @@ export default function CarPlayer() {
                           <span className="text-[10px] font-bold">WAIT</span>
                         </div>
                       ) : isPlaying ? (
-                        <Pause className="w-10 h-10" />
+                        <Stop className="w-10 h-10" />
                       ) : (
                         <Play className="w-10 h-10 ml-1" />
                       )}
@@ -827,11 +826,10 @@ export default function CarPlayer() {
 
                   <Button
                     onClick={handleNext}
-                    size="icon"
                     variant="ghost"
-                    className="w-16 h-16 rounded-full hover:bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-105 border border-white/10"
+                    className="w-20 h-16 rounded-full hover:bg-white/20 text-white backdrop-blur-sm transition-all hover:scale-105 border border-white/10 flex items-center justify-center"
                   >
-                    <SkipForward className="w-7 h-7" />
+                    Next
                   </Button>
                 </div>
               </div>
