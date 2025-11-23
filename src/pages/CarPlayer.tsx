@@ -666,11 +666,11 @@ export default function CarPlayer() {
       return;
     }
 
-    // Play first ad after 360 seconds
+    // Play first ad after 60 seconds
     const firstAdTimeout = setTimeout(() => {
       // console.log("[AD] Triggering first advertisement");
       playAdvertisement();
-    }, 360 * 1000); // 360 seconds
+    }, 60 * 1000); // 60 seconds
 
     // Then continue with 10-minute interval
     adIntervalRef.current = setInterval(
@@ -771,9 +771,7 @@ export default function CarPlayer() {
                   <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-2xl">{currentStation.name}</h1>
                   <FavoritesManager station={currentStation} />
                 </div>
-                <p className="text-sm md:text-base text-white/70">
-                  {currentStation.language || "Hindi"}
-                </p>
+                <p className="text-sm md:text-base text-white/70">{currentStation.language || "Hindi"}</p>
               </div>
 
               {/* Station Image + Controls in Row */}
@@ -1036,9 +1034,7 @@ export default function CarPlayer() {
                       />
                       <div className="flex-1 min-w-0">
                         <div className="font-bold text-gray-900 truncate text-base">{station.name}</div>
-                        <div className="text-sm text-gray-600 truncate">
-                          {station.language || "Hindi"}
-                        </div>
+                        <div className="text-sm text-gray-600 truncate">{station.language || "Hindi"}</div>
                       </div>
                     </button>
                     <div className="flex items-center gap-2">
