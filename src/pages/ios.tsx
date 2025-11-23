@@ -612,7 +612,7 @@ export default function CarPlayer() {
       if ("mediaSession" in navigator && currentStation) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: currentStation.name,
-          artist: `${currentStation.language || "Hindi"} • ${currentStation.type}`,
+          artist: `${currentStation.language || "Hindi"} • ${currentStation.language}`,
           album: "DesiMelody.com, 1200 Radio Stations From South East Asia",
           artwork: [{ src: currentStation.image, sizes: "512x512", type: "image/jpeg" }],
         });
