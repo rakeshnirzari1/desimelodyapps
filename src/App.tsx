@@ -39,6 +39,7 @@ import MobileFolders from "./pages/mobile/MobileFolders";
 import IOSFavorites from "./pages/ios/IOSFavorites";
 import IOSHistory from "./pages/ios/IOSHistory";
 import IOSFolders from "./pages/ios/IOSFolders";
+import MobileHome from "./pages/MobileHome";
 
 const queryClient = new QueryClient();
 
@@ -67,7 +68,7 @@ const HomeWithMobileRedirect = () => {
     return <Navigate to="/ios" replace />;
   }
   if (isMobileDevice()) {
-    return <Navigate to="/m" replace />;
+    return <Navigate to="/mobile-home" replace />;
   }
   return <Index />;
 };
@@ -83,6 +84,7 @@ const App = () => (
           <ScrollToTop />
           <Routes>
             <Route path="/" element={<HomeWithMobileRedirect />} />
+            <Route path="/mobile-home" element={<MobileHome />} />
             <Route path="/ios" element={<IOSPlayer />} />
             <Route path="/ios/tags" element={<IOSTagIndex />} />
             <Route path="/ios/languages" element={<IOSLanguageIndex />} />

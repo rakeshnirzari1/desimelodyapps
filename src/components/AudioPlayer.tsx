@@ -11,6 +11,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { getUserCountry } from "@/lib/geolocation";
 import { HistoryTracker } from "@/components/premium/ListeningHistory";
 import { initializeMusicControls, updateMusicControls, destroyMusicControls } from "@/lib/musicControls";
+import { audioWakeLock } from "@/lib/audioWakeLock";
 
 interface AudioPlayerProps {
   station: RadioStation | null;
@@ -160,6 +161,22 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     }
   }, [isPlaying, isPlayingAd]);
 
+  // Handle visibility change to reacquire wake lock
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && isPlaying) {
+        // Page became visible and we're playing - reacquire wake lock
+        audioWakeLock.reacquire();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isPlaying]);
+
   // Volume control
   useEffect(() => {
     if (audioRef.current) {
@@ -291,13 +308,18 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     if (isPlaying) {
       audio.pause();
       setIsPlaying(false);
+      // Release wake lock when stopping
+      await audioWakeLock.release();
     } else {
       try {
+        // Request wake lock when starting playback
+        await audioWakeLock.request();
         await audio.play();
         setIsPlaying(true);
       } catch (error) {
         console.log("Play failed:", error);
         setIsPlaying(false);
+        await audioWakeLock.release();
       }
     }
   };
