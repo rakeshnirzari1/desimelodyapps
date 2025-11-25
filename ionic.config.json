@@ -1,0 +1,8 @@
+{
+  "name": "DesiMelody",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react",
+  "id": "desimelody"
+}
