@@ -10,6 +10,7 @@ import { useAudio } from "@/contexts/AudioContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getUserCountry } from "@/lib/geolocation";
 import { HistoryTracker } from "@/components/premium/ListeningHistory";
+import { initializeMusicControls, updateMusicControls, destroyMusicControls } from "@/lib/musicControls";
 
 interface AudioPlayerProps {
   station: RadioStation | null;
@@ -165,54 +166,120 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     }
   }, [volume, isMuted]);
 
-  // Media Session API
+  // Media Session API & Native Music Controls
   useEffect(() => {
-    if (!station || !("mediaSession" in navigator)) return;
+    if (!station) return;
 
-    // Update metadata
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: station.name,
-      artist: station.language || "Hindi",
-      album: "DesiMelody.com",
-      artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
-    });
+    const setupControls = async () => {
+      // Try to initialize native music controls first
+      const nativeControlsAvailable = await initializeMusicControls(
+        {
+          track: station.name,
+          artist: station.language || "Hindi",
+          album: "DesiMelody",
+          cover: station.image,
+          isPlaying: isPlaying,
+          dismissable: true,
+          hasPrev: true,
+          hasNext: true,
+          hasClose: true,
+        },
+        {
+          onPlay: async () => {
+            console.log("🎵 Music Controls PLAY");
+            const audio = audioRef.current;
+            if (!audio) return;
+            try {
+              await audio.play();
+              setIsPlaying(true);
+            } catch (error) {
+              console.error("Play error:", error);
+            }
+          },
+          onPause: () => {
+            console.log("⏸️ Music Controls PAUSE");
+            const audio = audioRef.current;
+            if (audio) {
+              audio.pause();
+              setIsPlaying(false);
+            }
+          },
+          onNext: playNextStation,
+          onPrev: playPreviousStation,
+          onClose: onClose,
+        }
+      );
 
-    navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+      // Fallback to Media Session API for web
+      if (!nativeControlsAvailable && "mediaSession" in navigator) {
+        // Update metadata
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: station.name,
+          artist: station.language || "Hindi",
+          album: "DesiMelody.com",
+          artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
+        });
 
-    const handlePlay = async () => {
-      console.log("🎵 Media Session PLAY");
-      const audio = audioRef.current;
-      if (!audio) return;
+        navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
 
-      try {
-        await audio.play();
-        setIsPlaying(true);
-      } catch (error) {
-        console.error("Play error:", error);
+        const handlePlay = async () => {
+          console.log("🎵 Media Session PLAY");
+          const audio = audioRef.current;
+          if (!audio) return;
+
+          try {
+            await audio.play();
+            setIsPlaying(true);
+          } catch (error) {
+            console.error("Play error:", error);
+          }
+        };
+
+        const handlePause = () => {
+          console.log("⏸️ Media Session PAUSE");
+          const audio = audioRef.current;
+          if (audio) {
+            audio.pause();
+            setIsPlaying(false);
+          }
+        };
+
+        navigator.mediaSession.setActionHandler("play", handlePlay);
+        navigator.mediaSession.setActionHandler("pause", handlePause);
+        navigator.mediaSession.setActionHandler("nexttrack", playNextStation);
+        navigator.mediaSession.setActionHandler("previoustrack", playPreviousStation);
       }
     };
 
-    const handlePause = () => {
-      console.log("⏸️ Media Session PAUSE");
-      const audio = audioRef.current;
-      if (audio) {
-        audio.pause();
-        setIsPlaying(false);
-      }
-    };
-
-    navigator.mediaSession.setActionHandler("play", handlePlay);
-    navigator.mediaSession.setActionHandler("pause", handlePause);
-    navigator.mediaSession.setActionHandler("nexttrack", playNextStation);
-    navigator.mediaSession.setActionHandler("previoustrack", playPreviousStation);
+    setupControls();
 
     return () => {
-      navigator.mediaSession.setActionHandler("play", null);
-      navigator.mediaSession.setActionHandler("pause", null);
-      navigator.mediaSession.setActionHandler("nexttrack", null);
-      navigator.mediaSession.setActionHandler("previoustrack", null);
+      // Clean up Media Session API handlers
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.setActionHandler("play", null);
+        navigator.mediaSession.setActionHandler("pause", null);
+        navigator.mediaSession.setActionHandler("nexttrack", null);
+        navigator.mediaSession.setActionHandler("previoustrack", null);
+      }
     };
   }, [station, isPlaying]);
+
+  // Update music controls when playback state changes
+  useEffect(() => {
+    if (station) {
+      updateMusicControls({
+        track: station.name,
+        artist: station.language || "Hindi",
+        cover: station.image,
+        isPlaying: isPlaying,
+      });
+
+      // Also update Media Session API
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+      }
+    }
+  }, [isPlaying, station]);
 
   const togglePlay = async () => {
     const audio = audioRef.current;
