@@ -142,22 +142,23 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     return () => clearInterval(interval);
   }, [isPlaying]);
 
-  // Handle silence audio to keep lock screen controls active during loading
+  // Handle silence audio to keep lock screen controls active when playing
   useEffect(() => {
     if (!silenceAudioRef.current) return;
 
     const silenceAudio = silenceAudioRef.current;
-    // Set volume to very low to prevent it from taking over media controls
-    silenceAudio.volume = 0.01;
+    // Set volume to very low to prevent it from taking over media controls (critical for lock screen)
+    silenceAudio.volume = 0.005;
 
-    // Play silence during loading to maintain lock screen controls
-    if (isLoading && isPlaying) {
+    // Play silence whenever playing to maintain lock screen controls
+    // This is CRITICAL - silence must play continuously to keep session active
+    if (isPlaying && !isPlayingAd) {
       silenceAudio.play().catch((e) => console.log("Silence play failed:", e));
     } else {
-      // Stop silence when station is actually playing
+      // Stop silence when not playing or during ads
       silenceAudio.pause();
     }
-  }, [isLoading, isPlaying]);
+  }, [isPlaying, isPlayingAd]);
 
   // Volume control
   useEffect(() => {
@@ -175,8 +176,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       const nativeControlsAvailable = await initializeMusicControls(
         {
           track: station.name,
-          artist: station.language || "Hindi",
-          album: "DesiMelody",
+          artist: "DesiMelody.com",
+          album: "Live radio - Pause disabled",
           cover: station.image,
           isPlaying: isPlaying,
           dismissable: true,
@@ -197,12 +198,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
             }
           },
           onPause: () => {
-            console.log("⏸️ Music Controls PAUSE");
-            const audio = audioRef.current;
-            if (audio) {
-              audio.pause();
-              setIsPlaying(false);
-            }
+            // No-op: Disable pause to keep radio playing (critical for lock screen)
+            console.log("⏸️ Music Controls PAUSE - Disabled");
           },
           onNext: playNextStation,
           onPrev: playPreviousStation,
@@ -212,11 +209,11 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
 
       // Fallback to Media Session API for web
       if (!nativeControlsAvailable && "mediaSession" in navigator) {
-        // Update metadata
+        // Update metadata with "Pause disabled" message
         navigator.mediaSession.metadata = new MediaMetadata({
           title: station.name,
-          artist: station.language || "Hindi",
-          album: "DesiMelody.com",
+          artist: "DesiMelody.com",
+          album: "Live radio - Pause disabled",
           artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
         });
 
@@ -235,17 +232,14 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
           }
         };
 
+        // Disable pause - no-op function to keep button visible but non-functional
         const handlePause = () => {
-          console.log("⏸️ Media Session PAUSE");
-          const audio = audioRef.current;
-          if (audio) {
-            audio.pause();
-            setIsPlaying(false);
-          }
+          console.log("⏸️ Media Session PAUSE - Disabled (keeps radio playing)");
+          // Do nothing - this prevents radio from stopping on lock screen
         };
 
         navigator.mediaSession.setActionHandler("play", handlePlay);
-        navigator.mediaSession.setActionHandler("pause", handlePause);
+        navigator.mediaSession.setActionHandler("pause", handlePause); // No-op to disable pause
         navigator.mediaSession.setActionHandler("nexttrack", playNextStation);
         navigator.mediaSession.setActionHandler("previoustrack", playPreviousStation);
       }
@@ -269,7 +263,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
     if (station) {
       updateMusicControls({
         track: station.name,
-        artist: station.language || "Hindi",
+        artist: "DesiMelody.com",
+        album: "Live radio - Pause disabled",
         cover: station.image,
         isPlaying: isPlaying,
       });
@@ -277,6 +272,14 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       // Also update Media Session API
       if ("mediaSession" in navigator) {
         navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+        
+        // Update metadata to keep showing pause disabled message
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: station.name,
+          artist: "DesiMelody.com",
+          album: "Live radio - Pause disabled",
+          artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
+        });
       }
     }
   }, [isPlaying, station]);
@@ -357,8 +360,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       if ("mediaSession" in navigator && station) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: "Advertisement",
-          artist: station.name,
-          album: "DesiMelody.com",
+          artist: "DesiMelody.com",
+          album: "Live radio - Pause disabled",
           artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
         });
       }
@@ -390,8 +393,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       if ("mediaSession" in navigator && station) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: station.name,
-          artist: station.language || "Hindi",
-          album: "DesiMelody.com",
+          artist: "DesiMelody.com",
+          album: "Live radio - Pause disabled",
           artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
         });
       }
@@ -407,8 +410,8 @@ export const AudioPlayer = ({ station, onClose }: AudioPlayerProps) => {
       if ("mediaSession" in navigator && station) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: station.name,
-          artist: station.language || "Hindi",
-          album: "DesiMelody.com",
+          artist: "DesiMelody.com",
+          album: "Live radio - Pause disabled",
           artwork: [{ src: station.image, sizes: "512x512", type: "image/jpeg" }],
         });
       }
