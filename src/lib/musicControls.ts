@@ -27,19 +27,31 @@ export interface MusicControlsCallbacks {
 
 let musicControlsListenersAdded = false;
 
+// Feature flag: disable native music controls by default for stability
+const ENABLE_NATIVE_MUSIC_CONTROLS = typeof localStorage !== 'undefined'
+  ? localStorage.getItem('enableNativeMusicControls') === 'true'
+  : false;
+
 export const initializeMusicControls = async (
   options: MusicControlsOptions,
   callbacks: MusicControlsCallbacks
 ) => {
   try {
-    // Check if running in native app
-    if (!(window as any).MusicControls) {
-      console.log('Music controls not available - using Media Session API');
+    // Hard-disable unless explicitly enabled to avoid native crashes
+    if (!ENABLE_NATIVE_MUSIC_CONTROLS) {
+      console.log('Native music controls disabled. Falling back to Media Session API.');
+      return false;
+    }
+
+    // Check if running in native app with the plugin available
+    const mc: any = (window as any).MusicControls;
+    if (!mc || typeof mc.create !== 'function') {
+      console.log('Music controls plugin not available - using Media Session API');
       return false;
     }
 
     // Create music controls
-    await (window as any).MusicControls.create({
+    await mc.create({
       track: options.track,
       artist: options.artist,
       album: options.album || 'DesiMelody',
@@ -60,7 +72,7 @@ export const initializeMusicControls = async (
 
     // Subscribe to events only once
     if (!musicControlsListenersAdded) {
-      (window as any).MusicControls.subscribe((action: string) => {
+      mc.subscribe((action: string) => {
         console.log('Music controls action:', action);
         
         switch (action) {
@@ -86,7 +98,7 @@ export const initializeMusicControls = async (
     }
 
     // Listen to headphone/Bluetooth events
-    (window as any).MusicControls.listen();
+    mc.listen();
 
     return true;
   } catch (error) {
